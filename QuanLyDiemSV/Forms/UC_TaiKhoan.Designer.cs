@@ -42,9 +42,9 @@
             panel3 = new Panel();
             groupBox2 = new GroupBox();
             label8 = new Label();
-            comboBox4 = new ComboBox();
-            radioButton2 = new RadioButton();
-            radioButton1 = new RadioButton();
+            cboKieuSX = new ComboBox();
+            radGiam = new RadioButton();
+            radTang = new RadioButton();
             txtTuKhoaTK = new TextBox();
             label11 = new Label();
             label12 = new Label();
@@ -63,7 +63,7 @@
             btnXoa = new Button();
             dtpNgayTao = new DateTimePicker();
             cboQuyenHan = new ComboBox();
-            cbboKhoa = new ComboBox();
+            cbKhoa = new ComboBox();
             cboTrangThai = new ComboBox();
             label6 = new Label();
             label7 = new Label();
@@ -194,9 +194,9 @@
             // groupBox2
             // 
             groupBox2.Controls.Add(label8);
-            groupBox2.Controls.Add(comboBox4);
-            groupBox2.Controls.Add(radioButton2);
-            groupBox2.Controls.Add(radioButton1);
+            groupBox2.Controls.Add(cboKieuSX);
+            groupBox2.Controls.Add(radGiam);
+            groupBox2.Controls.Add(radTang);
             groupBox2.Controls.Add(txtTuKhoaTK);
             groupBox2.Controls.Add(label11);
             groupBox2.Controls.Add(label12);
@@ -215,41 +215,44 @@
             // label8
             // 
             label8.AutoSize = true;
-            label8.Location = new Point(1197, 59);
+            label8.Location = new Point(1180, 66);
             label8.Name = "label8";
             label8.Size = new Size(111, 23);
             label8.TabIndex = 90;
             label8.Text = "Kiểu Sắp Xếp";
             // 
-            // comboBox4
+            // cboKieuSX
             // 
-            comboBox4.FormattingEnabled = true;
-            comboBox4.Location = new Point(1310, 56);
-            comboBox4.Name = "comboBox4";
-            comboBox4.Size = new Size(151, 31);
-            comboBox4.TabIndex = 89;
+            cboKieuSX.FormattingEnabled = true;
+            cboKieuSX.Location = new Point(1297, 63);
+            cboKieuSX.Name = "cboKieuSX";
+            cboKieuSX.Size = new Size(151, 31);
+            cboKieuSX.TabIndex = 89;
+            cboKieuSX.SelectedIndexChanged += cboKieuSX_SelectedIndexChanged;
             // 
-            // radioButton2
+            // radGiam
             // 
-            radioButton2.AutoSize = true;
-            radioButton2.Location = new Point(1573, 57);
-            radioButton2.Name = "radioButton2";
-            radioButton2.Size = new Size(71, 27);
-            radioButton2.TabIndex = 87;
-            radioButton2.Text = "Giảm";
-            radioButton2.UseVisualStyleBackColor = true;
+            radGiam.AutoSize = true;
+            radGiam.Location = new Point(1562, 67);
+            radGiam.Name = "radGiam";
+            radGiam.Size = new Size(71, 27);
+            radGiam.TabIndex = 87;
+            radGiam.Text = "Giảm";
+            radGiam.UseVisualStyleBackColor = true;
+            radGiam.CheckedChanged += radGiam_CheckedChanged;
             // 
-            // radioButton1
+            // radTang
             // 
-            radioButton1.AutoSize = true;
-            radioButton1.Checked = true;
-            radioButton1.Location = new Point(1486, 57);
-            radioButton1.Name = "radioButton1";
-            radioButton1.Size = new Size(67, 27);
-            radioButton1.TabIndex = 88;
-            radioButton1.TabStop = true;
-            radioButton1.Text = "Tăng";
-            radioButton1.UseVisualStyleBackColor = true;
+            radTang.AutoSize = true;
+            radTang.Checked = true;
+            radTang.Location = new Point(1475, 67);
+            radTang.Name = "radTang";
+            radTang.Size = new Size(67, 27);
+            radTang.TabIndex = 88;
+            radTang.TabStop = true;
+            radTang.Text = "Tăng";
+            radTang.UseVisualStyleBackColor = true;
+            radTang.CheckedChanged += radTang_CheckedChanged;
             // 
             // txtTuKhoaTK
             // 
@@ -290,25 +293,27 @@
             // 
             btnShowAll.BackColor = Color.White;
             btnShowAll.FlatStyle = FlatStyle.Flat;
-            btnShowAll.Location = new Point(1060, 59);
+            btnShowAll.Location = new Point(1039, 59);
             btnShowAll.Margin = new Padding(3, 4, 3, 4);
             btnShowAll.Name = "btnShowAll";
-            btnShowAll.Size = new Size(120, 40);
+            btnShowAll.Size = new Size(120, 34);
             btnShowAll.TabIndex = 84;
             btnShowAll.Text = "Hiện tất cả";
             btnShowAll.UseVisualStyleBackColor = false;
+            btnShowAll.Click += btnShowAll_Click_1;
             // 
             // btnTimKiem
             // 
             btnTimKiem.BackColor = Color.White;
             btnTimKiem.FlatStyle = FlatStyle.Flat;
-            btnTimKiem.Location = new Point(925, 59);
+            btnTimKiem.Location = new Point(901, 59);
             btnTimKiem.Margin = new Padding(3, 4, 3, 4);
             btnTimKiem.Name = "btnTimKiem";
-            btnTimKiem.Size = new Size(120, 40);
+            btnTimKiem.Size = new Size(120, 34);
             btnTimKiem.TabIndex = 83;
             btnTimKiem.Text = "Tìm Kiếm";
             btnTimKiem.UseVisualStyleBackColor = false;
+            btnTimKiem.Click += btnTimKiem_Click_1;
             // 
             // panel2
             // 
@@ -331,7 +336,7 @@
             groupBox1.Controls.Add(btnXoa);
             groupBox1.Controls.Add(dtpNgayTao);
             groupBox1.Controls.Add(cboQuyenHan);
-            groupBox1.Controls.Add(cbboKhoa);
+            groupBox1.Controls.Add(cbKhoa);
             groupBox1.Controls.Add(cboTrangThai);
             groupBox1.Controls.Add(label6);
             groupBox1.Controls.Add(label7);
@@ -502,13 +507,13 @@
             cboQuyenHan.Size = new Size(151, 31);
             cboQuyenHan.TabIndex = 3;
             // 
-            // cbboKhoa
+            // cbKhoa
             // 
-            cbboKhoa.FormattingEnabled = true;
-            cbboKhoa.Location = new Point(925, 49);
-            cbboKhoa.Name = "cbboKhoa";
-            cbboKhoa.Size = new Size(288, 31);
-            cbboKhoa.TabIndex = 3;
+            cbKhoa.FormattingEnabled = true;
+            cbKhoa.Location = new Point(925, 49);
+            cbKhoa.Name = "cbKhoa";
+            cbKhoa.Size = new Size(288, 31);
+            cbKhoa.TabIndex = 3;
             // 
             // cboTrangThai
             // 
@@ -645,7 +650,7 @@
         private Button btnLuu;
         private Button btnThem;
         private Button btnXoa;
-        private ComboBox cbboKhoa;
+        private ComboBox cbKhoa;
         private Label label7;
         private Panel panel4;
         private GroupBox groupBox3;
@@ -653,9 +658,9 @@
         private Panel panel3;
         private GroupBox groupBox2;
         private Label label8;
-        private ComboBox comboBox4;
-        private RadioButton radioButton2;
-        private RadioButton radioButton1;
+        private ComboBox cboKieuSX;
+        private RadioButton radGiam;
+        private RadioButton radTang;
         private TextBox txtTuKhoaTK;
         private Label label11;
         private Label label12;

@@ -28,17 +28,26 @@
         /// </summary>
         private void InitializeComponent()
         {
-            DataGridViewCellStyle dataGridViewCellStyle1 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle5 = new DataGridViewCellStyle();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(UC_LopHanhChinh));
             panelGrid = new Panel();
             groupBoxList = new GroupBox();
             dgvLopHanhChinh = new DataGridView();
+            MaLop = new DataGridViewTextBoxColumn();
+            TenLop = new DataGridViewTextBoxColumn();
+            NienKhoa = new DataGridViewTextBoxColumn();
+            MaNganh = new DataGridViewTextBoxColumn();
+            MaGVCN = new DataGridViewTextBoxColumn();
             btnAdTimKiem_SV = new Button();
             cboAdTimKiem_SV = new ComboBox();
             btnAdShowAll_SV = new Button();
             txtAdTuKhoa_SV = new TextBox();
             label11 = new Label();
             groupBoxSearch = new GroupBox();
+            radGiam = new RadioButton();
+            radTang = new RadioButton();
+            cboKieuSX = new ComboBox();
+            label9 = new Label();
             label12 = new Label();
             panelSearch = new Panel();
             panelInput = new Panel();
@@ -59,11 +68,6 @@
             btnAddNganh = new Button();
             btnThem = new Button();
             btnXoa = new Button();
-            MaLop = new DataGridViewTextBoxColumn();
-            TenLop = new DataGridViewTextBoxColumn();
-            NienKhoa = new DataGridViewTextBoxColumn();
-            MaNganh = new DataGridViewTextBoxColumn();
-            MaGVCN = new DataGridViewTextBoxColumn();
             panelGrid.SuspendLayout();
             groupBoxList.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)dgvLopHanhChinh).BeginInit();
@@ -106,14 +110,14 @@
             dgvLopHanhChinh.BackgroundColor = SystemColors.ButtonHighlight;
             dgvLopHanhChinh.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             dgvLopHanhChinh.Columns.AddRange(new DataGridViewColumn[] { MaLop, TenLop, NienKhoa, MaNganh, MaGVCN });
-            dataGridViewCellStyle1.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle1.BackColor = SystemColors.Window;
-            dataGridViewCellStyle1.Font = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            dataGridViewCellStyle1.ForeColor = SystemColors.ControlText;
-            dataGridViewCellStyle1.SelectionBackColor = SystemColors.Highlight;
-            dataGridViewCellStyle1.SelectionForeColor = SystemColors.HighlightText;
-            dataGridViewCellStyle1.WrapMode = DataGridViewTriState.False;
-            dgvLopHanhChinh.DefaultCellStyle = dataGridViewCellStyle1;
+            dataGridViewCellStyle5.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle5.BackColor = SystemColors.Window;
+            dataGridViewCellStyle5.Font = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            dataGridViewCellStyle5.ForeColor = SystemColors.ControlText;
+            dataGridViewCellStyle5.SelectionBackColor = SystemColors.Highlight;
+            dataGridViewCellStyle5.SelectionForeColor = SystemColors.HighlightText;
+            dataGridViewCellStyle5.WrapMode = DataGridViewTriState.False;
+            dgvLopHanhChinh.DefaultCellStyle = dataGridViewCellStyle5;
             dgvLopHanhChinh.Dock = DockStyle.Fill;
             dgvLopHanhChinh.Location = new Point(3, 24);
             dgvLopHanhChinh.Margin = new Padding(3, 4, 3, 4);
@@ -124,6 +128,46 @@
             dgvLopHanhChinh.RowTemplate.Height = 24;
             dgvLopHanhChinh.Size = new Size(1668, 521);
             dgvLopHanhChinh.TabIndex = 0;
+            // 
+            // MaLop
+            // 
+            MaLop.DataPropertyName = "MaLop";
+            MaLop.HeaderText = "Mã Lớp";
+            MaLop.MinimumWidth = 6;
+            MaLop.Name = "MaLop";
+            MaLop.ReadOnly = true;
+            // 
+            // TenLop
+            // 
+            TenLop.DataPropertyName = "TenLop";
+            TenLop.HeaderText = "Tên Lớp";
+            TenLop.MinimumWidth = 6;
+            TenLop.Name = "TenLop";
+            TenLop.ReadOnly = true;
+            // 
+            // NienKhoa
+            // 
+            NienKhoa.DataPropertyName = "NienKhoa";
+            NienKhoa.HeaderText = "Niên khóa";
+            NienKhoa.MinimumWidth = 6;
+            NienKhoa.Name = "NienKhoa";
+            NienKhoa.ReadOnly = true;
+            // 
+            // MaNganh
+            // 
+            MaNganh.DataPropertyName = "MaNganh";
+            MaNganh.HeaderText = "Ngành";
+            MaNganh.MinimumWidth = 6;
+            MaNganh.Name = "MaNganh";
+            MaNganh.ReadOnly = true;
+            // 
+            // MaGVCN
+            // 
+            MaGVCN.DataPropertyName = "TenGV";
+            MaGVCN.HeaderText = "Cố vấn học tập";
+            MaGVCN.MinimumWidth = 6;
+            MaGVCN.Name = "MaGVCN";
+            MaGVCN.ReadOnly = true;
             // 
             // btnAdTimKiem_SV
             // 
@@ -136,6 +180,7 @@
             btnAdTimKiem_SV.TabIndex = 20;
             btnAdTimKiem_SV.Text = "Tìm Kiếm";
             btnAdTimKiem_SV.UseVisualStyleBackColor = false;
+            btnAdTimKiem_SV.Click += btnAdTimKiem_SV_Click;
             // 
             // cboAdTimKiem_SV
             // 
@@ -157,6 +202,7 @@
             btnAdShowAll_SV.TabIndex = 21;
             btnAdShowAll_SV.Text = "Hiện tất cả";
             btnAdShowAll_SV.UseVisualStyleBackColor = false;
+            btnAdShowAll_SV.Click += btnAdShowAll_SV_Click;
             // 
             // txtAdTuKhoa_SV
             // 
@@ -177,6 +223,10 @@
             // 
             // groupBoxSearch
             // 
+            groupBoxSearch.Controls.Add(radGiam);
+            groupBoxSearch.Controls.Add(radTang);
+            groupBoxSearch.Controls.Add(cboKieuSX);
+            groupBoxSearch.Controls.Add(label9);
             groupBoxSearch.Controls.Add(txtAdTuKhoa_SV);
             groupBoxSearch.Controls.Add(label11);
             groupBoxSearch.Controls.Add(label12);
@@ -193,6 +243,48 @@
             groupBoxSearch.TabIndex = 0;
             groupBoxSearch.TabStop = false;
             groupBoxSearch.Text = "Tìm kiếm";
+            // 
+            // radGiam
+            // 
+            radGiam.AutoSize = true;
+            radGiam.Location = new Point(1552, 26);
+            radGiam.Name = "radGiam";
+            radGiam.Size = new Size(67, 24);
+            radGiam.TabIndex = 88;
+            radGiam.Text = "Giảm";
+            radGiam.UseVisualStyleBackColor = true;
+            radGiam.CheckedChanged += radGiam_CheckedChanged;
+            // 
+            // radTang
+            // 
+            radTang.AutoSize = true;
+            radTang.Checked = true;
+            radTang.Location = new Point(1482, 26);
+            radTang.Name = "radTang";
+            radTang.Size = new Size(64, 24);
+            radTang.TabIndex = 89;
+            radTang.TabStop = true;
+            radTang.Text = "Tăng";
+            radTang.UseVisualStyleBackColor = true;
+            radTang.CheckedChanged += radTang_CheckedChanged;
+            // 
+            // cboKieuSX
+            // 
+            cboKieuSX.FormattingEnabled = true;
+            cboKieuSX.Location = new Point(1311, 22);
+            cboKieuSX.Name = "cboKieuSX";
+            cboKieuSX.Size = new Size(151, 28);
+            cboKieuSX.TabIndex = 87;
+            cboKieuSX.SelectedIndexChanged += cboKieuSX_SelectedIndexChanged;
+            // 
+            // label9
+            // 
+            label9.AutoSize = true;
+            label9.Location = new Point(1184, 24);
+            label9.Name = "label9";
+            label9.Size = new Size(104, 20);
+            label9.TabIndex = 86;
+            label9.Text = "Kiểu Sắp Xếp:";
             // 
             // label12
             // 
@@ -443,46 +535,6 @@
             btnXoa.UseVisualStyleBackColor = false;
             btnXoa.Click += btnXoa_Click;
             // 
-            // MaLop
-            // 
-            MaLop.DataPropertyName = "MaLop";
-            MaLop.HeaderText = "Mã Lớp";
-            MaLop.MinimumWidth = 6;
-            MaLop.Name = "MaLop";
-            MaLop.ReadOnly = true;
-            // 
-            // TenLop
-            // 
-            TenLop.DataPropertyName = "TenLop";
-            TenLop.HeaderText = "Tên Lớp";
-            TenLop.MinimumWidth = 6;
-            TenLop.Name = "TenLop";
-            TenLop.ReadOnly = true;
-            // 
-            // NienKhoa
-            // 
-            NienKhoa.DataPropertyName = "NienKhoa";
-            NienKhoa.HeaderText = "Niên khóa";
-            NienKhoa.MinimumWidth = 6;
-            NienKhoa.Name = "NienKhoa";
-            NienKhoa.ReadOnly = true;
-            // 
-            // MaNganh
-            // 
-            MaNganh.DataPropertyName = "MaNganh";
-            MaNganh.HeaderText = "Ngành";
-            MaNganh.MinimumWidth = 6;
-            MaNganh.Name = "MaNganh";
-            MaNganh.ReadOnly = true;
-            // 
-            // MaGVCN
-            // 
-            MaGVCN.DataPropertyName = "TenGV";
-            MaGVCN.HeaderText = "Cố vấn học tập";
-            MaGVCN.MinimumWidth = 6;
-            MaGVCN.Name = "MaGVCN";
-            MaGVCN.ReadOnly = true;
-            // 
             // UC_LopHanhChinh
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
@@ -540,5 +592,9 @@
         private DataGridViewTextBoxColumn NienKhoa;
         private DataGridViewTextBoxColumn MaNganh;
         private DataGridViewTextBoxColumn MaGVCN;
+        private RadioButton radGiam;
+        private RadioButton radTang;
+        private ComboBox cboKieuSX;
+        private Label label9;
     }
 }

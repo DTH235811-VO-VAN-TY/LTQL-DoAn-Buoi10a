@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Windows.Forms;
+using Microsoft.EntityFrameworkCore;
 using QuanLyDiemSV.Data;
 using QuanLyDiemSV.Forms;
 
@@ -24,6 +25,7 @@ namespace QuanLyDiemSV
         {
             BatTatChucNang(false);
             LoadComboBoxData();
+            KhoiTaoCboTimKiemSapXep();
             LoadData();
         }
 
@@ -48,7 +50,18 @@ namespace QuanLyDiemSV
             btnSua.Enabled = !giaTri;
             btnXoa.Enabled = !giaTri;
         }
+        private void KhoiTaoCboTimKiemSapXep()
+        {
+            // 1. ComboBox Loại Tìm Kiếm (cboLoaiTK)
+            cboTimKiem.Items.Clear();
+            cboTimKiem.Items.AddRange(new string[] { "Mã Lớp học phần", "Tên Lớp Học Phần", "Giảng viên", "Mã Môn" });
+            cboTimKiem.SelectedIndex = 1; // Mặc định tìm theo Tên LHP
 
+            // 2. ComboBox Kiểu Sắp Xếp
+            cboKieuSX.Items.Clear();
+            cboKieuSX.Items.AddRange(new string[] { "Mã Lớp học phần", "Tên Lớp Học Phần", "Giảng viên" });
+            cboKieuSX.SelectedIndex = 0; // Mặc định sắp xếp theo Mã GV
+        }
         private void LoadComboBoxData()
         {
             try
@@ -78,7 +91,48 @@ namespace QuanLyDiemSV
         {
             try
             {
-                var listLHP = context.LopHocPhan.ToList();
+                dgvLopHocPhan.AutoGenerateColumns = false;
+
+                var query = context.LopHocPhan.Include(l => l.MaGVNavigation).AsQueryable();
+                string tuKhoa = txtTuKhoa.Text.Trim().ToLower();
+                if (!string.IsNullOrEmpty(tuKhoa) && cboTimKiem.SelectedIndex != -1)
+                {
+                    string loaiTK = cboTimKiem.SelectedItem.ToString();
+                    switch (loaiTK)
+                    {
+                        case "Mã Lớp học phần":
+                            query = query.Where(g => g.MaLHP.ToString().Contains(tuKhoa));
+                            break;
+                        case "Tên Lớp Học Phần":
+                            query = query.Where(g => g.TenLopHP.ToLower().Contains(tuKhoa));
+                            break;
+                        case "Giảng viên":
+                            query = query.Where(g => g.MaGVNavigation.HoTen.ToLower() == tuKhoa);
+                            break;
+                        case "Mã Môn":
+                            query = query.Where(g => g.MaMon.Contains(tuKhoa));
+                            break;
+                    }
+                }
+                bool isTang = radTang.Checked;
+                if (cboKieuSX.SelectedIndex != -1)
+                {
+                    string kieuSX = cboKieuSX.SelectedItem.ToString();
+                    switch (kieuSX)
+                    {
+                        case "Mã Lớp học phần":
+                            query = isTang ? query.OrderBy(g => g.MaLHP) : query.OrderByDescending(g => g.MaLHP);
+                            break;
+                        case "Tên Lớp Học Phần":
+                            query = isTang ? query.OrderBy(g => g.TenLopHP) : query.OrderByDescending(g => g.TenLopHP);
+                            break;
+                        case "Giảng viên":
+                            query = isTang ? query.OrderBy(g => g.MaGVNavigation.HoTen) : query.OrderByDescending(g => g.MaGVNavigation.HoTen);
+                            break;
+                    }
+                }
+
+                var listLHP = query.ToList();
                 bsLopHP.DataSource = listLHP;
 
                 txtMaLHP.DataBindings.Clear();
@@ -100,7 +154,7 @@ namespace QuanLyDiemSV
                 cboMaGV.DataBindings.Add("SelectedValue", bsLopHP, "MaGV", true, DataSourceUpdateMode.Never);
                 cboHocKy.DataBindings.Add("SelectedValue", bsLopHP, "MaHK", true, DataSourceUpdateMode.Never);
 
-                dgvLopHocPhan.AutoGenerateColumns = false;
+                // dgvLopHocPhan.AutoGenerateColumns = false;
                 dgvLopHocPhan.DataSource = bsLopHP;
 
                 bsLopHP.CurrentChanged += BsLopHP_CurrentChanged;
@@ -262,5 +316,51 @@ namespace QuanLyDiemSV
         }
 
         #endregion
+
+        private void btnTimKiem_Click(object sender, EventArgs e)
+        {
+            LoadData();
+        }
+
+        private void btnShowAll_Click(object sender, EventArgs e)
+        {
+            txtTuKhoa.Clear();
+            cboTimKiem.SelectedIndex = 1; // Đưa về mặc định tìm theo Tên LHP
+            cboKieuSX.SelectedIndex = 0;  // Đưa về mặc định sắp xếp theo Mã LHP
+            radTang.Checked = true;
+            LoadData();
+        }
+
+        private void cboKieuSX_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            LoadData();
+        }
+
+        private void radTang_CheckedChanged(object sender, EventArgs e)
+        {
+            if (radTang.Checked) LoadData();
+        }
+
+        private void radGiam_CheckedChanged(object sender, EventArgs e)
+        {
+            if (radGiam.Checked) LoadData();
+        }
+
+        private void dgvLopHocPhan_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
+        {
+            // Kiểm tra xem có đúng là đang vẽ cột Giảng Viên không (Cột của bạn đặt tên là "MaGV")
+            if (dgvLopHocPhan.Columns[e.ColumnIndex].Name == "MaGV" && e.RowIndex >= 0)
+            {
+                // Lấy đối tượng Lớp Học Phần của dòng hiện tại
+                var lhp = dgvLopHocPhan.Rows[e.RowIndex].DataBoundItem as LopHocPhan;
+
+                // Nếu có thông tin liên kết Giảng viên, thay thế Mã GV bằng Họ Tên
+                if (lhp != null && lhp.MaGVNavigation != null)
+                {
+                    e.Value = lhp.MaGVNavigation.HoTen; // Hiển thị tên ra lưới
+                    e.FormattingApplied = true;
+                }
+            }
+        }
     }
 }

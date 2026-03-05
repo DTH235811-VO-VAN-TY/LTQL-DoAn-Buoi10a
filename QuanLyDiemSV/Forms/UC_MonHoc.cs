@@ -29,7 +29,55 @@ namespace GUI
             BatTatChucNang(false);
             LoadDuLieuKhoa();
             LoadDuLieuMonHoc();
-            LoadCboMonTienQuyet(); // Tải danh sách môn vào ComboBox chọn tiên quyết
+            //LoadCboMonTienQuyetTheoKhoa(); // Tải danh sách môn vào ComboBox chọn tiên quyết
+
+            txtTuKhoa.Enter += (s, ev) =>
+            {
+                if (txtTuKhoa.Text == "Vui lòng nhập tên môn")
+                {
+                    txtTuKhoa.Text = "";
+                    txtTuKhoa.ForeColor = System.Drawing.Color.Black; // Đổi lại màu đen khi gõ
+                }
+            };
+
+            txtTuKhoa.Leave += (s, ev) =>
+            {
+                if (string.IsNullOrWhiteSpace(txtTuKhoa.Text))
+                {
+                    txtTuKhoa.Text = "Vui lòng nhập tên môn";
+                    txtTuKhoa.ForeColor = System.Drawing.Color.Gray; // Mờ lại khi để trống
+                }
+            };
+        }
+        private void LocVaTimKiem()
+        {
+            try
+            {
+                var query = context.MonHoc.AsQueryable();
+
+                // 1. Lọc theo Khoa (nếu có chọn khoa)
+                if (cboLoc.SelectedValue != null)
+                {
+                    string maKhoa = cboLoc.SelectedValue.ToString();
+                    query = query.Where(m => m.MaKhoa == maKhoa);
+                }
+
+                // 2. Tìm kiếm theo Tên môn học
+                string tuKhoa = txtTuKhoa.Text.Trim().ToLower();
+
+                // Bỏ qua nếu từ khóa rỗng hoặc đang là dòng chữ mặc định
+                if (!string.IsNullOrEmpty(tuKhoa) && tuKhoa != "vui lòng nhập tên môn")
+                {
+                    query = query.Where(m => m.TenMon.ToLower().Contains(tuKhoa));
+                }
+
+                // 3. Gán dữ liệu đã lọc vào BindingSource
+                bsMonHoc.DataSource = query.ToList();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi tìm kiếm: " + ex.Message);
+            }
         }
 
         #region 1. HÀM HỖ TRỢ & LOAD DỮ LIỆU
@@ -135,6 +183,8 @@ namespace GUI
 
             // Load danh sách môn tiên quyết của môn này
             LoadMonTienQuyet(curMon.MaMon);
+
+            LoadCboMonTienQuyetTheoKhoa(curMon.MaKhoa, curMon.MaMon);
         }
 
         private void LoadMonTienQuyet(string maMon)
@@ -154,13 +204,19 @@ namespace GUI
             dgvMonTienQuyet.DataSource = listTQ.ToList();
         }
 
-        private void LoadCboMonTienQuyet()
+        // Thay đổi hàm: Truyền thêm mã khoa vào để lọc
+        private void LoadCboMonTienQuyetTheoKhoa(string maKhoa, string maMonHienTai)
         {
-            // Load tất cả môn học vào ComboBox chọn tiên quyết
-            var listMon = context.MonHoc.ToList();
+            if (string.IsNullOrEmpty(maKhoa)) return;
+
+            // Chỉ lấy các môn học thuộc cùng Khoa với môn đang chọn
+            var listMon = context.MonHoc.Where(m => m.MaKhoa == maKhoa
+                                                && m.MaMon != maMonHienTai).ToList();
+
             cbboMonTienQuyet.DataSource = listMon;
-            cbboMonTienQuyet.DisplayMember = "TenMon"; // Hiển thị tên
-            cbboMonTienQuyet.ValueMember = "MaMon";    // Giá trị là Mã
+            cbboMonTienQuyet.DisplayMember = "TenMon";
+            cbboMonTienQuyet.ValueMember = "MaMon";
+            cbboMonTienQuyet.SelectedIndex = -1; // Để trống cho đẹp
         }
 
         #endregion
@@ -261,7 +317,7 @@ namespace GUI
 
                 context.SaveChanges();
                 LoadDuLieuMonHoc(); // Tải lại để cập nhật list
-                LoadCboMonTienQuyet(); // Cập nhật lại combo môn tiên quyết nếu có môn mới
+                //LoadCboMonTienQuyet(); // Cập nhật lại combo môn tiên quyết nếu có môn mới
                 BatTatChucNang(false);
                 MessageBox.Show("Lưu thành công!");
             }
@@ -366,15 +422,36 @@ namespace GUI
         #endregion
 
         // Lọc danh sách môn theo Khoa (ComboBox ở trên cùng)
-        
 
+
+        // Khi đổi Khoa -> Gọi hàm lọc chung
         private void cboLoc_SelectedIndexChanged(object sender, EventArgs e)
         {
-            
-            
-            bsMonHoc.DataSource = cboLoc.SelectedValue == null
-                ? context.MonHoc.ToList()
-                : context.MonHoc.Where(m => m.MaKhoa == cboLoc.SelectedValue.ToString()).ToList();
+            // Cần kiểm tra để tránh lỗi khi Form vừa Load (chưa có dữ liệu)
+            if (cboLoc.Focused)
+            {
+                LocVaTimKiem();
+            }
+        }
+
+        // Khi bấm nút Tìm Kiếm
+        private void btnTimKiem_Click(object sender, EventArgs e)
+        {
+            LocVaTimKiem();
+        }
+
+        // Khi bấm nút Bỏ Lọc / Reset
+        private void btnReset_Click(object sender, EventArgs e)
+        {
+            // Reset ComboBox lọc Khoa
+            cboLoc.SelectedIndex = -1;
+
+            // Reset TextBox tìm kiếm về mặc định
+            txtTuKhoa.Text = "Vui lòng nhập tên môn";
+            txtTuKhoa.ForeColor = System.Drawing.Color.Gray;
+
+            // Load lại toàn bộ dữ liệu ban đầu
+            bsMonHoc.DataSource = context.MonHoc.ToList();
         }
     }
 }

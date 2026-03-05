@@ -28,7 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
-            DataGridViewCellStyle dataGridViewCellStyle2 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle1 = new DataGridViewCellStyle();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(UC_GiangVien));
             dtpNamSinhGV = new DateTimePicker();
             radNu = new RadioButton();
@@ -61,9 +61,9 @@
             txtTuKhoaTK = new TextBox();
             groupBoxSearch = new GroupBox();
             label3 = new Label();
-            comboBox2 = new ComboBox();
-            radioButton2 = new RadioButton();
-            radioButton1 = new RadioButton();
+            cboKieuSX = new ComboBox();
+            radGiam = new RadioButton();
+            radTang = new RadioButton();
             label11 = new Label();
             panelSearch = new Panel();
             cboKhoa = new ComboBox();
@@ -141,14 +141,14 @@
             dgvAdminGiangVien.BackgroundColor = SystemColors.ButtonHighlight;
             dgvAdminGiangVien.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             dgvAdminGiangVien.Columns.AddRange(new DataGridViewColumn[] { MaGV, HoTen, NgaySinh, GioiTinh, Email, SDT, HocVi, Khoa });
-            dataGridViewCellStyle2.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle2.BackColor = SystemColors.Window;
-            dataGridViewCellStyle2.Font = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            dataGridViewCellStyle2.ForeColor = SystemColors.ControlText;
-            dataGridViewCellStyle2.SelectionBackColor = SystemColors.Highlight;
-            dataGridViewCellStyle2.SelectionForeColor = SystemColors.HighlightText;
-            dataGridViewCellStyle2.WrapMode = DataGridViewTriState.False;
-            dgvAdminGiangVien.DefaultCellStyle = dataGridViewCellStyle2;
+            dataGridViewCellStyle1.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle1.BackColor = SystemColors.Window;
+            dataGridViewCellStyle1.Font = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            dataGridViewCellStyle1.ForeColor = SystemColors.ControlText;
+            dataGridViewCellStyle1.SelectionBackColor = SystemColors.Highlight;
+            dataGridViewCellStyle1.SelectionForeColor = SystemColors.HighlightText;
+            dataGridViewCellStyle1.WrapMode = DataGridViewTriState.False;
+            dgvAdminGiangVien.DefaultCellStyle = dataGridViewCellStyle1;
             dgvAdminGiangVien.Dock = DockStyle.Fill;
             dgvAdminGiangVien.Location = new Point(3, 24);
             dgvAdminGiangVien.Margin = new Padding(3, 4, 3, 4);
@@ -280,6 +280,7 @@
             btnShowAll.TabIndex = 21;
             btnShowAll.Text = "Hiện tất cả";
             btnShowAll.UseVisualStyleBackColor = false;
+            btnShowAll.Click += btnShowAll_Click;
             // 
             // btnTimKiem
             // 
@@ -292,6 +293,7 @@
             btnTimKiem.TabIndex = 20;
             btnTimKiem.Text = "Tìm Kiếm";
             btnTimKiem.UseVisualStyleBackColor = false;
+            btnTimKiem.Click += btnTimKiem_Click;
             // 
             // label5
             // 
@@ -415,9 +417,9 @@
             // groupBoxSearch
             // 
             groupBoxSearch.Controls.Add(label3);
-            groupBoxSearch.Controls.Add(comboBox2);
-            groupBoxSearch.Controls.Add(radioButton2);
-            groupBoxSearch.Controls.Add(radioButton1);
+            groupBoxSearch.Controls.Add(cboKieuSX);
+            groupBoxSearch.Controls.Add(radGiam);
+            groupBoxSearch.Controls.Add(radTang);
             groupBoxSearch.Controls.Add(txtTuKhoaTK);
             groupBoxSearch.Controls.Add(label11);
             groupBoxSearch.Controls.Add(label12);
@@ -444,35 +446,38 @@
             label3.TabIndex = 80;
             label3.Text = "Kiểu Sắp Xếp";
             // 
-            // comboBox2
+            // cboKieuSX
             // 
-            comboBox2.FormattingEnabled = true;
-            comboBox2.Location = new Point(1288, 35);
-            comboBox2.Name = "comboBox2";
-            comboBox2.Size = new Size(151, 28);
-            comboBox2.TabIndex = 79;
+            cboKieuSX.FormattingEnabled = true;
+            cboKieuSX.Location = new Point(1288, 35);
+            cboKieuSX.Name = "cboKieuSX";
+            cboKieuSX.Size = new Size(151, 28);
+            cboKieuSX.TabIndex = 79;
+            cboKieuSX.SelectedIndexChanged += cboKieuSX_SelectedIndexChanged;
             // 
-            // radioButton2
+            // radGiam
             // 
-            radioButton2.AutoSize = true;
-            radioButton2.Location = new Point(1551, 36);
-            radioButton2.Name = "radioButton2";
-            radioButton2.Size = new Size(67, 24);
-            radioButton2.TabIndex = 77;
-            radioButton2.Text = "Giảm";
-            radioButton2.UseVisualStyleBackColor = true;
+            radGiam.AutoSize = true;
+            radGiam.Location = new Point(1551, 36);
+            radGiam.Name = "radGiam";
+            radGiam.Size = new Size(67, 24);
+            radGiam.TabIndex = 77;
+            radGiam.Text = "Giảm";
+            radGiam.UseVisualStyleBackColor = true;
+            radGiam.CheckedChanged += radGiam_CheckedChanged;
             // 
-            // radioButton1
+            // radTang
             // 
-            radioButton1.AutoSize = true;
-            radioButton1.Checked = true;
-            radioButton1.Location = new Point(1464, 36);
-            radioButton1.Name = "radioButton1";
-            radioButton1.Size = new Size(64, 24);
-            radioButton1.TabIndex = 78;
-            radioButton1.TabStop = true;
-            radioButton1.Text = "Tăng";
-            radioButton1.UseVisualStyleBackColor = true;
+            radTang.AutoSize = true;
+            radTang.Checked = true;
+            radTang.Location = new Point(1464, 36);
+            radTang.Name = "radTang";
+            radTang.Size = new Size(64, 24);
+            radTang.TabIndex = 78;
+            radTang.TabStop = true;
+            radTang.Text = "Tăng";
+            radTang.UseVisualStyleBackColor = true;
+            radTang.CheckedChanged += radTang_CheckedChanged;
             // 
             // label11
             // 
@@ -681,9 +686,9 @@
         private Label label2;
         private ComboBox cboHocVi;
         private Label label3;
-        private ComboBox comboBox2;
-        private RadioButton radioButton2;
-        private RadioButton radioButton1;
+        private ComboBox cboKieuSX;
+        private RadioButton radGiam;
+        private RadioButton radTang;
         private DataGridViewTextBoxColumn MaGV;
         private DataGridViewTextBoxColumn HoTen;
         private DataGridViewTextBoxColumn NgaySinh;

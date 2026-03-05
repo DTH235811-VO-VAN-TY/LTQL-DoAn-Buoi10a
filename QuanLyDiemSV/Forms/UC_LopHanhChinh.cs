@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Windows.Forms;
+using Microsoft.EntityFrameworkCore;
 using QuanLyDiemSV.Data; // Namespace chứa Context và Models
 using QuanLyDiemSV.Forms; // Namespace chứa FrmNganh
 
@@ -25,7 +26,20 @@ namespace QuanLyDiemSV.Forms
         {
             BatTatChucNang(false);
             LoadComboBoxData();
+            KhoiTaoCboTimKiemSapXep();
             LoadData();
+        }
+        private void KhoiTaoCboTimKiemSapXep()
+        {
+            // 1. ComboBox Loại Tìm Kiếm (cboLoaiTK)
+            cboAdTimKiem_SV.Items.Clear();
+            cboAdTimKiem_SV.Items.AddRange(new string[] { "Mã Lớp", "Tên Lớp", "Cố vấn học tập" });
+            cboAdTimKiem_SV.SelectedIndex = 1; // Mặc định tìm theo Tên Lớp
+
+            // 2. ComboBox Kiểu Sắp Xếp
+            cboKieuSX.Items.Clear();
+            cboKieuSX.Items.AddRange(new string[] { "Mã Lớp", "Tên Lớp", "Cố vấn học tập" });
+            cboKieuSX.SelectedIndex = 0; // Mặc định sắp xếp theo Mã Lớp
         }
 
         #region 1. HÀM HỖ TRỢ VÀ LOAD DỮ LIỆU
@@ -81,8 +95,44 @@ namespace QuanLyDiemSV.Forms
         {
             try
             {
-                // --- SỬA ĐOẠN NÀY: Dùng LINQ để lấy Tên Giảng Viên ---
-                var listLop = (from lop in context.LopHanhChinh
+                var query = context.LopHanhChinh.Include(l => l.MaGVCNNavigation).AsQueryable();
+                string tuKhoa = txtAdTuKhoa_SV.Text.Trim().ToLower();
+                if (!string.IsNullOrEmpty(tuKhoa) && cboAdTimKiem_SV.SelectedIndex != -1)
+                {
+                    string loaiTK = cboAdTimKiem_SV.SelectedItem.ToString();
+                    switch (loaiTK)
+                    {
+                        case "Mã Lớp":
+                            query = query.Where(g => g.MaLop.ToLower().Contains(tuKhoa));
+                            break;
+                        case "Tên Lớp":
+                            query = query.Where(g => g.TenLop.ToLower().Contains(tuKhoa));
+                            break;
+                        case "Cố vấn học tập":
+                            query = query.Where(g => g.MaGVCNNavigation.HoTen.ToLower() == tuKhoa);
+                            break;
+                    }
+                }
+                bool isTang = radTang.Checked;
+                if (cboKieuSX.SelectedIndex != -1)
+                {
+                    string kieuSX = cboKieuSX.SelectedItem.ToString();
+                    switch (kieuSX)
+                    {
+                        case "Mã Lớp":
+                            query = isTang ? query.OrderBy(g => g.MaLop) : query.OrderByDescending(g => g.MaLop);
+                            break;
+                        case "Tên Lớp":
+                            query = isTang ? query.OrderBy(g => g.TenLop) : query.OrderByDescending(g => g.TenLop);
+                            break;
+                        case "Cố vấn học tập":
+                            query = isTang ? query.OrderBy(g => g.MaGVCNNavigation.HoTen) : query.OrderByDescending(g => g.MaGVCNNavigation.HoTen);
+                            break;
+                    }
+                }
+
+                // ---Dùng LINQ để lấy Tên Giảng Viên ---
+              /*  var listLop = (from lop in context.LopHanhChinh
                                join gv in context.GiangVien on lop.MaGVCN equals gv.MaGV into groupGV
                                from subGV in groupGV.DefaultIfEmpty() // Left Join (Để lớp chưa có GV vẫn hiện ra)
                                select new
@@ -95,7 +145,9 @@ namespace QuanLyDiemSV.Forms
 
                                    // Tạo cột mới hiển thị Tên GV
                                    TenGV = (subGV == null) ? "Chưa phân công" : subGV.HoTen
-                               }).ToList();
+                               }).ToList();*/
+
+                var listLop = query.ToList();
 
                 // Gán dữ liệu vào BindingSource
                 bsLop.DataSource = listLop;
@@ -261,5 +313,34 @@ namespace QuanLyDiemSV.Forms
         }
 
         #endregion
+
+        private void btnAdTimKiem_SV_Click(object sender, EventArgs e)
+        {
+            LoadData();
+        }
+
+        private void btnAdShowAll_SV_Click(object sender, EventArgs e)
+        {
+            txtAdTuKhoa_SV.Clear();
+            cboAdTimKiem_SV.SelectedIndex = 1;
+            cboKieuSX.SelectedIndex = 0;
+            radTang.Checked = true;
+            LoadData();
+        }
+
+        private void cboKieuSX_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            LoadData();
+        }
+
+        private void radTang_CheckedChanged(object sender, EventArgs e)
+        {
+            if (radTang.Checked) LoadData();
+        }
+
+        private void radGiam_CheckedChanged(object sender, EventArgs e)
+        {
+            if (radGiam.Checked) LoadData();
+        }
     }
 }

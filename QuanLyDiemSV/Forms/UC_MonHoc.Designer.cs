@@ -65,6 +65,10 @@
             label3 = new Label();
             panel2 = new Panel();
             panel3 = new Panel();
+            btnReset = new Button();
+            btnTimKiem = new Button();
+            txtTuKhoa = new TextBox();
+            label4 = new Label();
             cboLoc = new ComboBox();
             label2 = new Label();
             label1 = new Label();
@@ -356,6 +360,7 @@
             dgvMonTienQuyet.AllowUserToAddRows = false;
             dgvMonTienQuyet.AllowUserToDeleteRows = false;
             dgvMonTienQuyet.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+            dgvMonTienQuyet.BackgroundColor = SystemColors.ButtonFace;
             dgvMonTienQuyet.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             dgvMonTienQuyet.Columns.AddRange(new DataGridViewColumn[] { ID, MaMonTQ, TenMonTQ });
             dgvMonTienQuyet.Dock = DockStyle.Fill;
@@ -476,9 +481,9 @@
             label12.AutoSize = true;
             label12.Location = new Point(23, 113);
             label12.Name = "label12";
-            label12.Size = new Size(173, 23);
+            label12.Size = new Size(263, 23);
             label12.TabIndex = 0;
-            label12.Text = "Chọn môn tiên quyết";
+            label12.Text = "Chọn môn tiên quyết(cùng khoa)";
             // 
             // label3
             // 
@@ -502,6 +507,10 @@
             // 
             // panel3
             // 
+            panel3.Controls.Add(btnReset);
+            panel3.Controls.Add(btnTimKiem);
+            panel3.Controls.Add(txtTuKhoa);
+            panel3.Controls.Add(label4);
             panel3.Controls.Add(cboLoc);
             panel3.Controls.Add(label2);
             panel3.Controls.Add(label1);
@@ -511,11 +520,50 @@
             panel3.Size = new Size(946, 126);
             panel3.TabIndex = 4;
             // 
+            // btnReset
+            // 
+            btnReset.Location = new Point(832, 88);
+            btnReset.Name = "btnReset";
+            btnReset.Size = new Size(94, 29);
+            btnReset.TabIndex = 5;
+            btnReset.Text = "Tải lại";
+            btnReset.UseVisualStyleBackColor = true;
+            btnReset.Click += btnReset_Click;
+            // 
+            // btnTimKiem
+            // 
+            btnTimKiem.Location = new Point(732, 88);
+            btnTimKiem.Name = "btnTimKiem";
+            btnTimKiem.Size = new Size(94, 29);
+            btnTimKiem.TabIndex = 5;
+            btnTimKiem.Text = "Tìm Kiếm";
+            btnTimKiem.UseVisualStyleBackColor = true;
+            btnTimKiem.Click += btnTimKiem_Click;
+            // 
+            // txtTuKhoa
+            // 
+            txtTuKhoa.ForeColor = Color.Gray;
+            txtTuKhoa.Location = new Point(454, 88);
+            txtTuKhoa.Name = "txtTuKhoa";
+            txtTuKhoa.Size = new Size(272, 27);
+            txtTuKhoa.TabIndex = 4;
+            txtTuKhoa.Text = "Vui lòng nhập tên môn";
+            // 
+            // label4
+            // 
+            label4.AutoSize = true;
+            label4.Font = new Font("Segoe UI", 10.2F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            label4.Location = new Point(364, 87);
+            label4.Name = "label4";
+            label4.Size = new Size(80, 23);
+            label4.TabIndex = 3;
+            label4.Text = "Tên môn:";
+            // 
             // cboLoc
             // 
             cboLoc.FormattingEnabled = true;
             cboLoc.Items.AddRange(new object[] { "--Tất cả khoa--" });
-            cboLoc.Location = new Point(185, 88);
+            cboLoc.Location = new Point(144, 84);
             cboLoc.Name = "cboLoc";
             cboLoc.Size = new Size(212, 28);
             cboLoc.TabIndex = 2;
@@ -524,9 +572,10 @@
             // label2
             // 
             label2.AutoSize = true;
-            label2.Location = new Point(51, 91);
+            label2.Font = new Font("Segoe UI", 10.2F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            label2.Location = new Point(11, 85);
             label2.Name = "label2";
-            label2.Size = new Size(109, 20);
+            label2.Size = new Size(127, 23);
             label2.TabIndex = 1;
             label2.Text = "Lọc theo khoa: ";
             // 
@@ -558,6 +607,7 @@
             dgvDSMon.AllowUserToDeleteRows = false;
             dgvDSMon.Anchor = AnchorStyles.Top;
             dgvDSMon.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+            dgvDSMon.BackgroundColor = SystemColors.ButtonFace;
             dgvDSMon.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             dgvDSMon.Columns.AddRange(new DataGridViewColumn[] { MaMon, TenMon, SoTinChi, SoTietLyThuyet, SoTietThucHanh, MaKhoa });
             dgvDSMon.Location = new Point(11, 35);
@@ -692,5 +742,9 @@
         private DataGridViewTextBoxColumn ID;
         private DataGridViewTextBoxColumn MaMonTQ;
         private DataGridViewTextBoxColumn TenMonTQ;
+        private Button btnReset;
+        private Button btnTimKiem;
+        private TextBox txtTuKhoa;
+        private Label label4;
     }
 }

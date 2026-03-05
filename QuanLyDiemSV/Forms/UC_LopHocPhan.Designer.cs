@@ -135,6 +135,7 @@
             dgvLopHocPhan.RowHeadersWidth = 51;
             dgvLopHocPhan.Size = new Size(1678, 765);
             dgvLopHocPhan.TabIndex = 0;
+            dgvLopHocPhan.CellFormatting += dgvLopHocPhan_CellFormatting;
             // 
             // MaLHP
             // 
@@ -233,37 +234,40 @@
             // radGiam
             // 
             radGiam.AutoSize = true;
-            radGiam.Location = new Point(1480, 62);
+            radGiam.Location = new Point(1578, 51);
             radGiam.Name = "radGiam";
             radGiam.Size = new Size(73, 27);
             radGiam.TabIndex = 85;
-            radGiam.TabStop = true;
             radGiam.Text = "Giảm";
             radGiam.UseVisualStyleBackColor = true;
+            radGiam.CheckedChanged += radGiam_CheckedChanged;
             // 
             // radTang
             // 
             radTang.AutoSize = true;
-            radTang.Location = new Point(1480, 29);
+            radTang.Checked = true;
+            radTang.Location = new Point(1502, 49);
             radTang.Name = "radTang";
             radTang.Size = new Size(70, 27);
             radTang.TabIndex = 85;
             radTang.TabStop = true;
             radTang.Text = "Tăng";
             radTang.UseVisualStyleBackColor = true;
+            radTang.CheckedChanged += radTang_CheckedChanged;
             // 
             // cboKieuSX
             // 
             cboKieuSX.FormattingEnabled = true;
-            cboKieuSX.Location = new Point(1302, 45);
+            cboKieuSX.Location = new Point(1278, 45);
             cboKieuSX.Name = "cboKieuSX";
-            cboKieuSX.Size = new Size(151, 31);
+            cboKieuSX.Size = new Size(198, 31);
             cboKieuSX.TabIndex = 84;
+            cboKieuSX.SelectedIndexChanged += cboKieuSX_SelectedIndexChanged;
             // 
             // label9
             // 
             label9.AutoSize = true;
-            label9.Location = new Point(1175, 47);
+            label9.Location = new Point(1161, 49);
             label9.Name = "label9";
             label9.Size = new Size(121, 23);
             label9.TabIndex = 83;
@@ -315,6 +319,7 @@
             btnShowAll.TabIndex = 80;
             btnShowAll.Text = "Hiện tất cả";
             btnShowAll.UseVisualStyleBackColor = false;
+            btnShowAll.Click += btnShowAll_Click;
             // 
             // btnTimKiem
             // 
@@ -327,6 +332,7 @@
             btnTimKiem.TabIndex = 79;
             btnTimKiem.Text = "Tìm Kiếm";
             btnTimKiem.UseVisualStyleBackColor = false;
+            btnTimKiem.Click += btnTimKiem_Click;
             // 
             // panel2
             // 

@@ -6,6 +6,8 @@ using System.Text.RegularExpressions; // Thư viện dùng để kiểm tra số
 using System.Windows.Forms;
 using Microsoft.EntityFrameworkCore; // Cần thư viện này để dùng .Include
 using QuanLyDiemSV.Data;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.Button;
 
 namespace QuanLyDiemSV
 {
@@ -28,6 +30,19 @@ namespace QuanLyDiemSV
             BatTatChucNang(false);
             LoadComboBoxLop();
             LoadDuLieuSinhVien(); // Hàm quan trọng nhất để Binding
+            KhoiTaoCboTimKiemSapXep();
+        }
+        private void KhoiTaoCboTimKiemSapXep()
+        {
+            // 1. ComboBox Loại Tìm Kiếm (cboLoaiTK)
+            cboAdTimKiem_SV.Items.Clear();
+            cboAdTimKiem_SV.Items.AddRange(new string[] { "Mã Sinh Viên", "Họ Tên", "Giới Tính", "Số Điện Thoại" });
+            cboAdTimKiem_SV.SelectedIndex = 1; // Mặc định tìm theo Họ Tên
+
+            // 2. ComboBox Kiểu Sắp Xếp (comboBox2)
+            cboKieuSX.Items.Clear();
+            cboKieuSX.Items.AddRange(new string[] { "Mã Sinh Viên", "Họ Tên", "Ngày Sinh" });
+            cboKieuSX.SelectedIndex = 0; // Mặc định sắp xếp theo Mã GV
         }
 
         #region 1. HÀM HỖ TRỢ & LOAD DỮ LIỆU (BINDING SOURCE)
@@ -46,15 +61,68 @@ namespace QuanLyDiemSV
         {
             try
             {
-                dgvAdminSinhVien.AutoGenerateColumns = false; // Tắt tự tạo cột
+                dgvAdminSinhVien.AutoGenerateColumns = false;
 
-                // 1. Lấy dữ liệu từ DB
-                var listSV = context.SinhVien.ToList();
+                // 1. Khởi tạo Query
+                var query = context.SinhVien.AsQueryable();
 
-                // 2. Gán vào BindingSource
+                // =====================================
+                // 2. XỬ LÝ TÌM KIẾM
+                // =====================================
+                string tuKhoa = txtAdTuKhoa_SV.Text.Trim().ToLower();
+
+                if (!string.IsNullOrEmpty(tuKhoa) && cboAdTimKiem_SV.SelectedIndex != -1)
+                {
+                    string loaiTK = cboAdTimKiem_SV.SelectedItem.ToString();
+                    switch (loaiTK)
+                    {
+                        case "Mã Sinh Viên": 
+                            query = query.Where(g => g.MaSV.ToLower().Contains(tuKhoa));
+                            break;
+                        case "Họ Tên":
+                            query = query.Where(g => g.HoTen.ToLower().Contains(tuKhoa));
+                            break;
+                        case "Giới Tính":
+                            query = query.Where(g => g.GioiTinh.ToLower() == tuKhoa);
+                            break;
+                        case "Số Điện Thoại":
+                            query = query.Where(g => g.SDT.Contains(tuKhoa));
+                            break;
+                    }
+                }
+
+                // =====================================
+                // 3. XỬ LÝ SẮP XẾP
+                // =====================================
+                bool isTang = radTang.Checked;
+                if (cboKieuSX.SelectedIndex != -1)
+                {
+                    string kieuSX = cboKieuSX.SelectedItem.ToString();
+                    switch (kieuSX)
+                    {
+                        case "Mã Sinh Viên": 
+                            query = isTang ? query.OrderBy(g => g.MaSV) : query.OrderByDescending(g => g.MaSV);
+                            break;
+                        case "Họ Tên":
+                            query = isTang ? query.OrderBy(g => g.HoTen) : query.OrderByDescending(g => g.HoTen);
+                            break;
+                        case "Ngày Sinh":
+                            query = isTang ? query.OrderBy(g => g.NgaySinh) : query.OrderByDescending(g => g.NgaySinh);
+                            break;
+                    }
+                }
+
+                // =====================================
+                // 4. CẬP NHẬT DỮ LIỆU VÀO LƯỚI
+                // =====================================
+
+               
+                var listSV = query.ToList();
+
+                // Gán vào BindingSource
                 bsSinhVien.DataSource = listSV;
 
-                // 3. Xóa các binding cũ (để tránh lỗi khi reload)
+                // Xóa các binding cũ
                 txtAdMaSV.DataBindings.Clear();
                 txtAdHoTenSV.DataBindings.Clear();
                 dtpAdNamSinhSV.DataBindings.Clear();
@@ -64,7 +132,7 @@ namespace QuanLyDiemSV
                 txtAdSV_DiaChi.DataBindings.Clear();
                 cboAdSV_TenLop.DataBindings.Clear();
 
-                // 4. BINDING DỮ LIỆU (Liên kết ô nhập với nguồn dữ liệu)
+                // Tạo BINDING mới
                 txtAdMaSV.DataBindings.Add("Text", bsSinhVien, "MaSV", true, DataSourceUpdateMode.OnPropertyChanged);
                 txtAdHoTenSV.DataBindings.Add("Text", bsSinhVien, "HoTen", true, DataSourceUpdateMode.OnPropertyChanged);
                 dtpAdNamSinhSV.DataBindings.Add("Value", bsSinhVien, "NgaySinh", true, DataSourceUpdateMode.OnPropertyChanged);
@@ -72,11 +140,8 @@ namespace QuanLyDiemSV
                 txtAdSDT_SV.DataBindings.Add("Text", bsSinhVien, "SDT", true, DataSourceUpdateMode.OnPropertyChanged);
                 txtAdSV_Email.DataBindings.Add("Text", bsSinhVien, "Email", true, DataSourceUpdateMode.OnPropertyChanged);
                 txtAdSV_DiaChi.DataBindings.Add("Text", bsSinhVien, "DiaChi", true, DataSourceUpdateMode.OnPropertyChanged);
-
-                // ComboBox chọn lớp cũng cần cập nhật lại
                 cboAdSV_TenLop.DataBindings.Add("SelectedValue", bsSinhVien, "MaLop", true, DataSourceUpdateMode.OnPropertyChanged);
 
-                // 5. Gán BindingSource vào DataGridView
                 dgvAdminSinhVien.DataSource = bsSinhVien;
 
                 if (dgvAdminSinhVien.Columns["NgaySinh"] != null)
@@ -84,9 +149,10 @@ namespace QuanLyDiemSV
                     dgvAdminSinhVien.Columns["NgaySinh"].DefaultCellStyle.Format = "dd/MM/yyyy";
                 }
 
-                // 6. Đăng ký sự kiện: Khi dòng chọn thay đổi -> Tự điền thông tin phụ (Khoa/Ngành)
+                // FIX CHỐNG LỖI TRÀN BỘ NHỚ: Gỡ sự kiện cũ trước khi đăng ký mới (Vì hàm này bị gọi lại nhiều lần khi tìm kiếm)
+                bsSinhVien.CurrentChanged -= BsSinhVien_CurrentChanged;
                 bsSinhVien.CurrentChanged += BsSinhVien_CurrentChanged;
-                BsSinhVien_CurrentChanged(null, null); // Gọi lần đầu để hiển thị ngay
+                BsSinhVien_CurrentChanged(null, null);
             }
             catch (Exception ex)
             {
@@ -94,7 +160,7 @@ namespace QuanLyDiemSV
             }
         }
 
-        // Sự kiện tự động chạy khi bạn click chuột vào lưới (Thay thế hoàn toàn CellClick)
+        // Sự kiện tự động chạy khi  click chuột vào lưới 
         private void BsSinhVien_CurrentChanged(object sender, EventArgs e)
         {
             if (bsSinhVien.Current == null) return;
@@ -107,7 +173,7 @@ namespace QuanLyDiemSV
             else radAdSV_Nu.Checked = true;
 
             // 2. Truy vấn ngược lên để lấy Tên Ngành, Tên Khoa, Niên Khóa
-            // Lưu ý: Sửa 'MaNganhNavigation' và 'MaKhoaNavigation' cho khớp với file Entity của bạn
+            
             var lop = context.LopHanhChinh
                              .Include(l => l.MaNganhNavigation).ThenInclude(n => n.MaKhoaNavigation)
                              .FirstOrDefault(l => l.MaLop == currentSV.MaLop);
@@ -206,6 +272,23 @@ namespace QuanLyDiemSV
                 txtAdSDT_SV.Focus();
                 return false;
             }
+            // 5. Kiểm tra email có rỗng không
+            string email = txtAdSV_Email.Text.Trim();
+            if (string.IsNullOrWhiteSpace(email))
+            {
+                MessageBox.Show("Email không được để trống!", "Lỗi nhập liệu", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                txtAdSV_Email.Focus();
+                return false;
+            }
+            //6. Kiểm tra đúng định dạng email không?
+            else if (!Regex.IsMatch(email, @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))
+            {
+                MessageBox.Show("Email không đúng định dạng!\nVí dụ hợp lệ: giangvien@gmail.com", "Ràng buộc dữ liệu", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                txtAdSV_Email.Focus();
+                return false;
+            }
+
+
 
             return true; // Dữ liệu hợp lệ
         }
@@ -320,7 +403,7 @@ namespace QuanLyDiemSV
         // --- SỰ KIỆN CLICK LƯỚI (ĐÃ BỎ CODE GÁN DỮ LIỆU VÌ BINDINGSOURCE ĐÃ LÀM THAY) ---
         private void dgvAdminSinhVien_CellClick(object sender, DataGridViewCellEventArgs e)
         {
-            // Để trống hoặc xóa đi cũng được. BindingSource lo hết rồi.
+
         }
 
         #endregion
@@ -365,6 +448,38 @@ namespace QuanLyDiemSV
                 }
             }
             catch { }
+        }
+
+        private void btnAdTimKiem_SV_Click(object sender, EventArgs e)
+        {
+            LoadDuLieuSinhVien();
+        }
+
+        private void btnAdShowAll_SV_Click(object sender, EventArgs e)
+        {
+            txtAdTuKhoa_SV.Clear();
+            cboAdTimKiem_SV.SelectedIndex = 1;
+            cboKieuSX.SelectedIndex = 0;
+            radTang.Checked = true;
+
+            LoadDuLieuSinhVien();
+        }
+
+        private void cboKieuSX_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            LoadDuLieuSinhVien();
+        }
+
+        private void radTang_CheckedChanged(object sender, EventArgs e)
+        {
+            if (radTang.Checked)
+                LoadDuLieuSinhVien();
+        }
+
+        private void radGiam_CheckedChanged(object sender, EventArgs e)
+        {
+            if (radGiam.Checked)
+                LoadDuLieuSinhVien();
         }
     }
 }

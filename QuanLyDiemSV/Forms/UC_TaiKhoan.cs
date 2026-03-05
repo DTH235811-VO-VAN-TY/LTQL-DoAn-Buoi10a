@@ -32,7 +32,22 @@ namespace QuanLyDiemSV.Forms
         {
             BatTatChucNang(false);
             LoadComboBoxData(); // Load quyền và trạng thái
+            KhoiTaoCboTimKiemSapXep();
             LoadData();         // Load danh sách tài khoản
+        }
+        private void KhoiTaoCboTimKiemSapXep()
+        {
+            // Nạp mục cho ComboBox Tìm Kiếm
+            cboLoaiTK.Items.Clear();
+            cboLoaiTK.Items.AddRange(new string[] { "Tên đăng nhập", "Mã ID" });
+            cboLoaiTK.SelectedIndex = 0;
+
+            // Nạp mục cho ComboBox Sắp Xếp
+            cboKieuSX.Items.Clear();
+            cboKieuSX.Items.AddRange(new string[] { "Tên đăng nhập", "Ngày tạo", "Trạng thái" });
+            cboKieuSX.SelectedIndex = 0;
+
+            radTang.Checked = true; // Mặc định chọn Tăng dần
         }
 
         #region 1. HÀM HỖ TRỢ & LOAD DỮ LIỆU
@@ -49,6 +64,7 @@ namespace QuanLyDiemSV.Forms
             txtMatKhau.Enabled = giaTri;
             cboQuyenHan.Enabled = giaTri;
             cboTrangThai.Enabled = giaTri;
+            cbKhoa.Enabled = giaTri;
             dtpNgayTao.Enabled = false; // Ngày tạo tự động lấy ngày hiện tại
 
             // Nút chức năng
@@ -70,6 +86,12 @@ namespace QuanLyDiemSV.Forms
                 cboQuyenHan.ValueMember = "RoleID";     // Giá trị (VD: ADMIN)
                 cboQuyenHan.SelectedIndex = -1;
 
+                var listKhoa = context.Khoa.ToList();
+                cbKhoa.DataSource = listKhoa;
+                cbKhoa.DisplayMember = "TenKhoa";
+                cbKhoa.ValueMember = "MaKhoa";
+                cbKhoa.SelectedIndex = -1;
+
                 // 2. Load Trạng thái (Hoạt động / Khóa)
                 List<TrangThaiItem> listTrangThai = new List<TrangThaiItem>()
                 {
@@ -90,7 +112,54 @@ namespace QuanLyDiemSV.Forms
         {
             try
             {
-                var listTK = context.UserAccount.ToList();
+                // 1. Khởi tạo truy vấn gốc
+                var query = context.UserAccount.AsQueryable();
+
+                // ==========================================
+                // 2. XỬ LÝ TÌM KIẾM
+                // ==========================================
+                string tuKhoa = txtTuKhoaTK.Text.Trim().ToLower();
+                if (!string.IsNullOrEmpty(tuKhoa) && cboLoaiTK.SelectedIndex != -1)
+                {
+                    string loaiTK = cboLoaiTK.SelectedItem.ToString();
+                    if (loaiTK == "Tên đăng nhập")
+                    {
+                        query = query.Where(u => u.Username.ToLower().Contains(tuKhoa));
+                    }
+                    else if (loaiTK == "Mã ID")
+                    {
+                        // Kiểm tra nếu người dùng nhập số thì mới tìm theo ID
+                        if (int.TryParse(tuKhoa, out int id))
+                        {
+                            query = query.Where(u => u.UserID == id);
+                        }
+                    }
+                }
+
+                // ==========================================
+                // 3. XỬ LÝ SẮP XẾP
+                // ==========================================
+                bool isTang = radTang.Checked;
+                if (cboKieuSX.SelectedIndex != -1)
+                {
+                    string kieuSX = cboKieuSX.SelectedItem.ToString();
+                    if (kieuSX == "Tên đăng nhập")
+                    {
+                        query = isTang ? query.OrderBy(u => u.Username) : query.OrderByDescending(u => u.Username);
+                    }
+                    else if (kieuSX == "Ngày tạo")
+                    {
+                        query = isTang ? query.OrderBy(u => u.NgayTao) : query.OrderByDescending(u => u.NgayTao);
+                    }
+                    else if (kieuSX == "Trạng thái")
+                    {
+                        // true (Hoạt động) xếp trước, false (Đã khóa) xếp sau hoặc ngược lại
+                        query = isTang ? query.OrderByDescending(u => u.IsActive) : query.OrderBy(u => u.IsActive);
+                    }
+                }
+
+                // 4. Lấy dữ liệu và Binding
+                var listTK = query.ToList();
                 bsTaiKhoan.DataSource = listTK;
 
                 // Xóa các Binding cũ
@@ -99,31 +168,32 @@ namespace QuanLyDiemSV.Forms
                 dtpNgayTao.DataBindings.Clear();
                 cboQuyenHan.DataBindings.Clear();
                 cboTrangThai.DataBindings.Clear();
-                txtMatKhau.DataBindings.Clear(); // Đảm bảo xóa binding ô mật khẩu (nếu có)
+                txtMatKhau.DataBindings.Clear();
 
-                // Binding các ô khác bình thường
+                // Tạo Binding mới
                 txtUserID.DataBindings.Add("Text", bsTaiKhoan, "UserID", true, DataSourceUpdateMode.Never);
                 txtTenDangNhap.DataBindings.Add("Text", bsTaiKhoan, "Username", true, DataSourceUpdateMode.Never);
                 dtpNgayTao.DataBindings.Add("Value", bsTaiKhoan, "NgayTao", true, DataSourceUpdateMode.Never);
                 cboQuyenHan.DataBindings.Add("SelectedValue", bsTaiKhoan, "RoleID", true, DataSourceUpdateMode.Never);
                 cboTrangThai.DataBindings.Add("SelectedValue", bsTaiKhoan, "IsActive", true, DataSourceUpdateMode.Never);
 
-                // --- ĐOẠN QUAN TRỌNG: Đăng ký sự kiện xóa mật khẩu ---
-                bsTaiKhoan.CurrentChanged -= BsTaiKhoan_CurrentChanged; // Gỡ bỏ trước để tránh bị lặp
-                bsTaiKhoan.CurrentChanged += BsTaiKhoan_CurrentChanged; // Đăng ký mới
+                // Đăng ký sự kiện (Làm rỗng ô mật khẩu khi chọn dòng)
+                bsTaiKhoan.CurrentChanged -= BsTaiKhoan_CurrentChanged;
+                bsTaiKhoan.CurrentChanged += BsTaiKhoan_CurrentChanged;
+                BsTaiKhoan_CurrentChanged(null, null);
 
+                // Hiển thị lên lưới
                 dataGridView1.AutoGenerateColumns = false;
                 dataGridView1.DataSource = bsTaiKhoan;
 
-                
                 if (dataGridView1.Columns["PasswordHash"] != null)
                 {
-                    dataGridView1.Columns["PasswordHash"].Visible = false;
+                    dataGridView1.Columns["PasswordHash"].Visible = false; // Ẩn cột mật khẩu mã hóa
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Lỗi tải dữ liệu: " + ex.Message);
+                // Bỏ qua lỗi lúc form mới load
             }
         }
 
@@ -266,9 +336,9 @@ namespace QuanLyDiemSV.Forms
         // Nút thêm nhanh Quyền hạn (Giả sử bạn có Form Role)
         private void btnThemQuyenHan_Click(object sender, EventArgs e)
         {
-             FrmRole frm = new FrmRole();
-             frm.ShowDialog();
-             LoadComboBoxData(); 
+            FrmRole frm = new FrmRole();
+            frm.ShowDialog();
+            LoadComboBoxData();
         }
 
         #endregion
@@ -289,6 +359,37 @@ namespace QuanLyDiemSV.Forms
         {
             // Ép ô mật khẩu phải rỗng, bất kể có binding hay không
             txtMatKhau.Text = "";
+        }
+
+        private void btnTimKiem_Click_1(object sender, EventArgs e)
+        {
+            LoadData(); // Gọi hàm LoadData() vì logic tìm kiếm đã được viết bên trong đó
+        }
+
+        private void btnShowAll_Click_1(object sender, EventArgs e)
+        {
+            // Reset các giá trị lọc về mặc định
+            txtTuKhoaTK.Clear();
+            cboLoaiTK.SelectedIndex = 0;
+            cboKieuSX.SelectedIndex = 0;
+            radTang.Checked = true;
+
+            LoadData(); // Load lại toàn bộ tài khoản
+        }
+
+        private void cboKieuSX_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (cboKieuSX.Focused) LoadData(); // Tự động sắp xếp khi chọn combobox
+        }
+
+        private void radTang_CheckedChanged(object sender, EventArgs e)
+        {
+            if (radTang.Checked) LoadData(); // Tự động sắp xếp lại khi nhấn Tăng
+        }
+
+        private void radGiam_CheckedChanged(object sender, EventArgs e)
+        {
+            if (radGiam.Checked) LoadData(); // Tự động sắp xếp lại khi nhấn Giảm
         }
     }
 }

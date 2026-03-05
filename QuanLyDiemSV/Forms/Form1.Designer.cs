@@ -30,6 +30,7 @@
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
             panel1 = new Panel();
+            button1 = new Button();
             btnTaiKhoan = new Button();
             btnTraCuuDiem = new Button();
             button5 = new Button();
@@ -46,6 +47,7 @@
             panel4 = new Panel();
             label1 = new Label();
             panel2 = new Panel();
+            uC_TraCuu_ChiTiet1 = new QuanLyDiemSV.Forms.UC_TraCuu_ChiTiet();
             uC_TraCuuDiem_Container1 = new QuanLyDiemSV.Forms.UC_TraCuuDiem_Container();
             uC_TaiKhoan1 = new QuanLyDiemSV.Forms.UC_TaiKhoan();
             uC_LopHanhChinh1 = new QuanLyDiemSV.Forms.UC_LopHanhChinh();
@@ -56,7 +58,6 @@
             uC_MonHoc1 = new GUI.UC_MonHoc();
             uC_SinhVien1 = new UC_SinhVien();
             uC_Home1 = new UC_LopHocPhan();
-            uC_TraCuu_ChiTiet1 = new QuanLyDiemSV.Forms.UC_TraCuu_ChiTiet();
             panel1.SuspendLayout();
             panel3.SuspendLayout();
             panel4.SuspendLayout();
@@ -66,6 +67,7 @@
             // panel1
             // 
             panel1.BackColor = Color.FromArgb(52, 73, 94);
+            panel1.Controls.Add(button1);
             panel1.Controls.Add(btnTaiKhoan);
             panel1.Controls.Add(btnTraCuuDiem);
             panel1.Controls.Add(button5);
@@ -82,6 +84,18 @@
             panel1.Name = "panel1";
             panel1.Size = new Size(220, 1025);
             panel1.TabIndex = 0;
+            // 
+            // button1
+            // 
+            button1.BackColor = Color.Salmon;
+            button1.Dock = DockStyle.Top;
+            button1.Font = new Font("Century Gothic", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            button1.Location = new Point(0, 896);
+            button1.Name = "button1";
+            button1.Size = new Size(220, 47);
+            button1.TabIndex = 13;
+            button1.Text = "Đăng xuất";
+            button1.UseVisualStyleBackColor = false;
             // 
             // btnTaiKhoan
             // 
@@ -371,6 +385,14 @@
             panel2.Size = new Size(1694, 954);
             panel2.TabIndex = 1;
             // 
+            // uC_TraCuu_ChiTiet1
+            // 
+            uC_TraCuu_ChiTiet1.Dock = DockStyle.Fill;
+            uC_TraCuu_ChiTiet1.Location = new Point(0, 0);
+            uC_TraCuu_ChiTiet1.Name = "uC_TraCuu_ChiTiet1";
+            uC_TraCuu_ChiTiet1.Size = new Size(1694, 954);
+            uC_TraCuu_ChiTiet1.TabIndex = 10;
+            // 
             // uC_TraCuuDiem_Container1
             // 
             uC_TraCuuDiem_Container1.Dock = DockStyle.Fill;
@@ -454,14 +476,6 @@
             uC_Home1.Size = new Size(1694, 954);
             uC_Home1.TabIndex = 0;
             // 
-            // uC_TraCuu_ChiTiet1
-            // 
-            uC_TraCuu_ChiTiet1.Dock = DockStyle.Fill;
-            uC_TraCuu_ChiTiet1.Location = new Point(0, 0);
-            uC_TraCuu_ChiTiet1.Name = "uC_TraCuu_ChiTiet1";
-            uC_TraCuu_ChiTiet1.Size = new Size(1694, 954);
-            uC_TraCuu_ChiTiet1.TabIndex = 10;
-            // 
             // Form1
             // 
             AutoScaleMode = AutoScaleMode.None;
@@ -516,6 +530,7 @@
         private Forms.UC_TaiKhoan uC_TaiKhoan1;
         private Forms.UC_TraCuuDiem_Container uC_TraCuuDiem_Container1;
         private Forms.UC_TraCuu_ChiTiet uC_TraCuu_ChiTiet1;
+        private Button button1;
     }
 }
 

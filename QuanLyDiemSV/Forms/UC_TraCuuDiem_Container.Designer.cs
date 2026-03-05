@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            DataGridViewCellStyle dataGridViewCellStyle2 = new DataGridViewCellStyle();
             panel1 = new Panel();
             panel3 = new Panel();
             groupBox2 = new GroupBox();
@@ -38,7 +39,7 @@
             TenKhoa = new DataGridViewTextBoxColumn();
             DiemTrungBinh = new DataGridViewTextBoxColumn();
             SoTinChi = new DataGridViewTextBoxColumn();
-            ThaoTac = new DataGridViewTextBoxColumn();
+            ThaoTac = new DataGridViewLinkColumn();
             panel2 = new Panel();
             groupBox1 = new GroupBox();
             btnXemChitiet = new Button();
@@ -153,10 +154,15 @@
             // 
             // ThaoTac
             // 
+            ThaoTac.DataPropertyName = "ThaoTac";
+            dataGridViewCellStyle2.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            ThaoTac.DefaultCellStyle = dataGridViewCellStyle2;
             ThaoTac.HeaderText = "Thao Tác";
             ThaoTac.MinimumWidth = 6;
             ThaoTac.Name = "ThaoTac";
             ThaoTac.ReadOnly = true;
+            ThaoTac.Resizable = DataGridViewTriState.True;
+            ThaoTac.SortMode = DataGridViewColumnSortMode.Automatic;
             // 
             // panel2
             // 
@@ -208,13 +214,14 @@
             radGiam.Name = "radGiam";
             radGiam.Size = new Size(71, 27);
             radGiam.TabIndex = 8;
-            radGiam.TabStop = true;
             radGiam.Text = "Giảm";
             radGiam.UseVisualStyleBackColor = true;
+            radGiam.CheckedChanged += radGiam_CheckedChanged;
             // 
             // radTang
             // 
             radTang.AutoSize = true;
+            radTang.Checked = true;
             radTang.Location = new Point(1378, 133);
             radTang.Name = "radTang";
             radTang.Size = new Size(67, 27);
@@ -222,6 +229,7 @@
             radTang.TabStop = true;
             radTang.Text = "Tăng";
             radTang.UseVisualStyleBackColor = true;
+            radTang.CheckedChanged += radTang_CheckedChanged;
             // 
             // cboLoaiSX
             // 
@@ -231,6 +239,7 @@
             cboLoaiSX.Name = "cboLoaiSX";
             cboLoaiSX.Size = new Size(283, 31);
             cboLoaiSX.TabIndex = 7;
+            cboLoaiSX.SelectedIndexChanged += cboLoaiSX_SelectedIndexChanged;
             // 
             // label3
             // 
@@ -249,6 +258,7 @@
             btnReset.TabIndex = 5;
             btnReset.Text = "Tải lại";
             btnReset.UseVisualStyleBackColor = true;
+            btnReset.Click += btnReset_Click;
             // 
             // btnTimKiem
             // 
@@ -258,6 +268,7 @@
             btnTimKiem.TabIndex = 5;
             btnTimKiem.Text = "Tìm Kiếm";
             btnTimKiem.UseVisualStyleBackColor = true;
+            btnTimKiem.Click += btnTimKiem_Click;
             // 
             // txtTuKhoa
             // 
@@ -344,6 +355,6 @@
         private DataGridViewTextBoxColumn TenKhoa;
         private DataGridViewTextBoxColumn DiemTrungBinh;
         private DataGridViewTextBoxColumn SoTinChi;
-        private DataGridViewTextBoxColumn ThaoTac;
+        private DataGridViewLinkColumn ThaoTac;
     }
 }

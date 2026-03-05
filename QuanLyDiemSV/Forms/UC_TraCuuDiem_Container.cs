@@ -58,6 +58,10 @@ namespace QuanLyDiemSV.Forms
                 cboKhoa.DisplayMember = "TenKhoa";
                 cboKhoa.ValueMember = "MaKhoa";
                 cboKhoa.SelectedIndex = 0;
+
+                cboLoaiSX.Items.Clear();
+                cboLoaiSX.Items.AddRange(new string[] { "Mã Sinh Viên", "Họ Tên", "Điểm Tích Lũy" });
+                cboLoaiSX.SelectedIndex = 0;
             }
             catch { }
         }
@@ -103,6 +107,8 @@ namespace QuanLyDiemSV.Forms
                     .Include(s => s.MaLopNavigation).ThenInclude(l => l.MaNganhNavigation).ThenInclude(n => n.MaKhoaNavigation)
                     .Include(s => s.KetQuaHocTap).ThenInclude(k => k.MaLHPNavigation).ThenInclude(h => h.MaMonNavigation)
                     .AsQueryable();
+                
+
 
                 // Lọc
                 if (cboKhoa.SelectedValue is string maKhoa && maKhoa != "ALL")
@@ -116,7 +122,7 @@ namespace QuanLyDiemSV.Forms
                 if (!string.IsNullOrEmpty(txtTuKhoa.Text))
                 {
                     string k = txtTuKhoa.Text.ToLower().Trim();
-                    query = query.Where(s => s.MaSV.Contains(k) || s.HoTen.ToLower().Contains(k));
+                    query = query.Where(s => s.MaSV.ToLower().Contains(k) || s.HoTen.ToLower().Contains(k));
                 }
 
                 var rawList = query.ToList();
@@ -147,10 +153,29 @@ namespace QuanLyDiemSV.Forms
                 }).ToList();
 
                 // Sắp xếp
-                if (cboLoaiSX.SelectedIndex == 1)
-                    listHienThi = radTang.Checked ? listHienThi.OrderBy(x => x.DiemTrungBinh).ToList() : listHienThi.OrderByDescending(x => x.DiemTrungBinh).ToList();
-                else
-                    listHienThi = radTang.Checked ? listHienThi.OrderBy(x => x.HoTen).ToList() : listHienThi.OrderByDescending(x => x.HoTen).ToList();
+                if (cboLoaiSX.SelectedItem != null)
+                {
+                    string kieuSX = cboLoaiSX.SelectedItem.ToString();
+
+                    if (kieuSX == "Họ Tên")
+                    {
+                        listHienThi = radTang.Checked
+                            ? listHienThi.OrderBy(x => x.HoTen).ToList()
+                            : listHienThi.OrderByDescending(x => x.HoTen).ToList();
+                    }
+                    else if (kieuSX == "Điểm Tích Lũy" || kieuSX == "Điểm số")
+                    {
+                        listHienThi = radTang.Checked
+                            ? listHienThi.OrderBy(x => x.DiemTrungBinh).ToList()
+                            : listHienThi.OrderByDescending(x => x.DiemTrungBinh).ToList();
+                    }
+                    else // Mặc định là sắp xếp theo Mã Sinh Viên
+                    {
+                        listHienThi = radTang.Checked
+                            ? listHienThi.OrderBy(x => x.MaSV).ToList()
+                            : listHienThi.OrderByDescending(x => x.MaSV).ToList();
+                    }
+                }
 
                 dgvDanhSachSV.DataSource = listHienThi;
 
@@ -161,6 +186,37 @@ namespace QuanLyDiemSV.Forms
                 if (dgvDanhSachSV.Columns["TenKhoa"] != null) dgvDanhSachSV.Columns["TenKhoa"].DataPropertyName = "TenKhoa";
                 if (dgvDanhSachSV.Columns["DiemTrungBinh"] != null) dgvDanhSachSV.Columns["DiemTrungBinh"].DataPropertyName = "DiemTrungBinh";
                 if (dgvDanhSachSV.Columns["SoTinChi"] != null) dgvDanhSachSV.Columns["SoTinChi"].DataPropertyName = "TinChiTichLuy";
+                // CẤU HÌNH CỘT NÚT BẤM "NHẬP ĐIỂM" BẰNG CODE
+                // =========================================================
+                if (dgvDanhSachSV.Columns["ThaoTac"] is DataGridViewButtonColumn btnCol)
+                {
+                    // Nếu đã là cột Button thì chỉ cần ép nó hiện chữ
+                    btnCol.Text = "Xem chi tiết";
+                    btnCol.UseColumnTextForButtonValue = true;
+                }
+                else if (dgvDanhSachSV.Columns["ThaoTac"] != null)
+                {
+                    // Nếu lỡ tạo nhầm thành cột Text trong Designer thì xóa đi tạo lại
+                    int index = dgvDanhSachSV.Columns["ThaoTac"].Index;
+                    dgvDanhSachSV.Columns.Remove("ThaoTac");
+
+                    DataGridViewButtonColumn newBtnCol = new DataGridViewButtonColumn();
+                    newBtnCol.Name = "ThaoTac";
+                    newBtnCol.HeaderText = "Thao Tác";
+                    newBtnCol.Text = "Xem chi tiết";
+                    newBtnCol.UseColumnTextForButtonValue = true; // Bắt buộc = true để hiện chữ
+                    dgvDanhSachSV.Columns.Insert(index, newBtnCol);
+                }
+                else
+                {
+                    // Nếu chưa có cột nào tên ThaoTac, tự tạo mới ở cuối lưới
+                    DataGridViewButtonColumn newBtnCol = new DataGridViewButtonColumn();
+                    newBtnCol.Name = "ThaoTac";
+                    newBtnCol.HeaderText = "Thao Tác";
+                    newBtnCol.Text = "Xem chi tiết";
+                    newBtnCol.UseColumnTextForButtonValue = true;
+                    dgvDanhSachSV.Columns.Add(newBtnCol);
+                }
             }
             catch { }
         }
@@ -213,6 +269,21 @@ namespace QuanLyDiemSV.Forms
             cboKhoa.SelectedIndex = 0;
             txtTuKhoa.Clear();
             LoadDanhSachSinhVien();
+        }
+
+        private void radTang_CheckedChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void radGiam_CheckedChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void cboLoaiSX_SelectedIndexChanged(object sender, EventArgs e)
+        {
+
         }
     }
 }

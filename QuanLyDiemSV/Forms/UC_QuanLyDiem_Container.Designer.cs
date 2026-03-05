@@ -30,17 +30,20 @@
         {
             panel1 = new Panel();
             groupBox1 = new GroupBox();
-            txtAdTuKhoa_SV = new TextBox();
+            txtTuKhoa = new TextBox();
+            label1 = new Label();
             label11 = new Label();
             label12 = new Label();
-            cboAdTimKiem_SV = new ComboBox();
-            btnAdShowAll_SV = new Button();
-            btnAdTimKiem_SV = new Button();
             cboKhoa = new ComboBox();
-            label1 = new Label();
+            cboTimKiem = new ComboBox();
+            btnShowAll = new Button();
+            btnTimKiem = new Button();
             panel2 = new Panel();
             groupBox2 = new GroupBox();
-            radioButton1 = new RadioButton();
+            radGiam = new RadioButton();
+            radTang = new RadioButton();
+            cboKieuSX = new ComboBox();
+            label9 = new Label();
             panel3 = new Panel();
             groupBox3 = new GroupBox();
             dgvDanhSachSV = new DataGridView();
@@ -72,14 +75,14 @@
             // 
             // groupBox1
             // 
-            groupBox1.Controls.Add(txtAdTuKhoa_SV);
+            groupBox1.Controls.Add(txtTuKhoa);
+            groupBox1.Controls.Add(label1);
             groupBox1.Controls.Add(label11);
             groupBox1.Controls.Add(label12);
-            groupBox1.Controls.Add(cboAdTimKiem_SV);
-            groupBox1.Controls.Add(btnAdShowAll_SV);
-            groupBox1.Controls.Add(btnAdTimKiem_SV);
             groupBox1.Controls.Add(cboKhoa);
-            groupBox1.Controls.Add(label1);
+            groupBox1.Controls.Add(cboTimKiem);
+            groupBox1.Controls.Add(btnShowAll);
+            groupBox1.Controls.Add(btnTimKiem);
             groupBox1.Dock = DockStyle.Fill;
             groupBox1.Font = new Font("Segoe UI", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
             groupBox1.Location = new Point(0, 0);
@@ -89,81 +92,84 @@
             groupBox1.TabStop = false;
             groupBox1.Text = "Tìm Kiếm";
             // 
-            // txtAdTuKhoa_SV
+            // txtTuKhoa
             // 
-            txtAdTuKhoa_SV.Location = new Point(817, 59);
-            txtAdTuKhoa_SV.Margin = new Padding(3, 4, 3, 4);
-            txtAdTuKhoa_SV.Name = "txtAdTuKhoa_SV";
-            txtAdTuKhoa_SV.Size = new Size(400, 30);
-            txtAdTuKhoa_SV.TabIndex = 78;
+            txtTuKhoa.Location = new Point(848, 57);
+            txtTuKhoa.Margin = new Padding(3, 4, 3, 4);
+            txtTuKhoa.Name = "txtTuKhoa";
+            txtTuKhoa.Size = new Size(400, 30);
+            txtTuKhoa.TabIndex = 84;
+            // 
+            // label1
+            // 
+            label1.AutoSize = true;
+            label1.Location = new Point(44, 55);
+            label1.Name = "label1";
+            label1.Size = new Size(55, 23);
+            label1.TabIndex = 87;
+            label1.Text = "Khoa:";
             // 
             // label11
             // 
             label11.AutoSize = true;
-            label11.Location = new Point(374, 61);
+            label11.Location = new Point(398, 58);
             label11.Name = "label11";
             label11.Size = new Size(130, 23);
-            label11.TabIndex = 81;
+            label11.TabIndex = 87;
             label11.Text = "Loại Tìm Kiếm:";
             // 
             // label12
             // 
             label12.AutoSize = true;
-            label12.Location = new Point(730, 61);
+            label12.Location = new Point(756, 61);
             label12.Name = "label12";
-            label12.Size = new Size(81, 23);
-            label12.TabIndex = 82;
-            label12.Text = "Từ Khóa:";
-            // 
-            // cboAdTimKiem_SV
-            // 
-            cboAdTimKiem_SV.FormattingEnabled = true;
-            cboAdTimKiem_SV.Location = new Point(505, 58);
-            cboAdTimKiem_SV.Margin = new Padding(3, 4, 3, 4);
-            cboAdTimKiem_SV.Name = "cboAdTimKiem_SV";
-            cboAdTimKiem_SV.Size = new Size(200, 31);
-            cboAdTimKiem_SV.TabIndex = 77;
-            // 
-            // btnAdShowAll_SV
-            // 
-            btnAdShowAll_SV.BackColor = Color.White;
-            btnAdShowAll_SV.FlatStyle = FlatStyle.Flat;
-            btnAdShowAll_SV.Location = new Point(1436, 59);
-            btnAdShowAll_SV.Margin = new Padding(3, 4, 3, 4);
-            btnAdShowAll_SV.Name = "btnAdShowAll_SV";
-            btnAdShowAll_SV.Size = new Size(120, 40);
-            btnAdShowAll_SV.TabIndex = 80;
-            btnAdShowAll_SV.Text = "Hiện tất cả";
-            btnAdShowAll_SV.UseVisualStyleBackColor = false;
-            // 
-            // btnAdTimKiem_SV
-            // 
-            btnAdTimKiem_SV.BackColor = Color.White;
-            btnAdTimKiem_SV.FlatStyle = FlatStyle.Flat;
-            btnAdTimKiem_SV.Location = new Point(1266, 58);
-            btnAdTimKiem_SV.Margin = new Padding(3, 4, 3, 4);
-            btnAdTimKiem_SV.Name = "btnAdTimKiem_SV";
-            btnAdTimKiem_SV.Size = new Size(120, 40);
-            btnAdTimKiem_SV.TabIndex = 79;
-            btnAdTimKiem_SV.Text = "Tìm Kiếm";
-            btnAdTimKiem_SV.UseVisualStyleBackColor = false;
+            label12.Size = new Size(76, 23);
+            label12.TabIndex = 88;
+            label12.Text = "Từ Khóa";
             // 
             // cboKhoa
             // 
             cboKhoa.FormattingEnabled = true;
-            cboKhoa.Location = new Point(103, 58);
+            cboKhoa.Location = new Point(151, 53);
+            cboKhoa.Margin = new Padding(3, 4, 3, 4);
             cboKhoa.Name = "cboKhoa";
-            cboKhoa.Size = new Size(249, 31);
-            cboKhoa.TabIndex = 1;
+            cboKhoa.Size = new Size(200, 31);
+            cboKhoa.TabIndex = 83;
             // 
-            // label1
+            // cboTimKiem
             // 
-            label1.AutoSize = true;
-            label1.Location = new Point(37, 56);
-            label1.Name = "label1";
-            label1.Size = new Size(55, 23);
-            label1.TabIndex = 0;
-            label1.Text = "Khoa:";
+            cboTimKiem.FormattingEnabled = true;
+            cboTimKiem.Location = new Point(546, 58);
+            cboTimKiem.Margin = new Padding(3, 4, 3, 4);
+            cboTimKiem.Name = "cboTimKiem";
+            cboTimKiem.Size = new Size(200, 31);
+            cboTimKiem.TabIndex = 83;
+            // 
+            // btnShowAll
+            // 
+            btnShowAll.BackColor = Color.White;
+            btnShowAll.FlatStyle = FlatStyle.Flat;
+            btnShowAll.Location = new Point(1398, 52);
+            btnShowAll.Margin = new Padding(3, 4, 3, 4);
+            btnShowAll.Name = "btnShowAll";
+            btnShowAll.Size = new Size(120, 40);
+            btnShowAll.TabIndex = 86;
+            btnShowAll.Text = "Hiện tất cả";
+            btnShowAll.UseVisualStyleBackColor = false;
+            btnShowAll.Click += btnShowAll_Click;
+            // 
+            // btnTimKiem
+            // 
+            btnTimKiem.BackColor = Color.White;
+            btnTimKiem.FlatStyle = FlatStyle.Flat;
+            btnTimKiem.Location = new Point(1263, 51);
+            btnTimKiem.Margin = new Padding(3, 4, 3, 4);
+            btnTimKiem.Name = "btnTimKiem";
+            btnTimKiem.Size = new Size(120, 40);
+            btnTimKiem.TabIndex = 85;
+            btnTimKiem.Text = "Tìm Kiếm";
+            btnTimKiem.UseVisualStyleBackColor = false;
+            btnTimKiem.Click += btnTimKiem_Click;
             // 
             // panel2
             // 
@@ -177,7 +183,10 @@
             // 
             // groupBox2
             // 
-            groupBox2.Controls.Add(radioButton1);
+            groupBox2.Controls.Add(radGiam);
+            groupBox2.Controls.Add(radTang);
+            groupBox2.Controls.Add(cboKieuSX);
+            groupBox2.Controls.Add(label9);
             groupBox2.Dock = DockStyle.Fill;
             groupBox2.Font = new Font("Segoe UI", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
             groupBox2.Location = new Point(0, 0);
@@ -187,16 +196,47 @@
             groupBox2.TabStop = false;
             groupBox2.Text = "Sắp xếp theo";
             // 
-            // radioButton1
+            // radGiam
             // 
-            radioButton1.AutoSize = true;
-            radioButton1.Location = new Point(51, 30);
-            radioButton1.Name = "radioButton1";
-            radioButton1.Size = new Size(215, 27);
-            radioButton1.TabIndex = 0;
-            radioButton1.TabStop = true;
-            radioButton1.Text = "Sắp xếp theo họ và tên";
-            radioButton1.UseVisualStyleBackColor = true;
+            radGiam.AutoSize = true;
+            radGiam.Location = new Point(603, 33);
+            radGiam.Name = "radGiam";
+            radGiam.Size = new Size(73, 27);
+            radGiam.TabIndex = 88;
+            radGiam.Text = "Giảm";
+            radGiam.UseVisualStyleBackColor = true;
+            radGiam.CheckedChanged += radGiam_CheckedChanged;
+            // 
+            // radTang
+            // 
+            radTang.AutoSize = true;
+            radTang.Checked = true;
+            radTang.Location = new Point(506, 33);
+            radTang.Name = "radTang";
+            radTang.Size = new Size(70, 27);
+            radTang.TabIndex = 89;
+            radTang.TabStop = true;
+            radTang.Text = "Tăng";
+            radTang.UseVisualStyleBackColor = true;
+            radTang.CheckedChanged += radTang_CheckedChanged;
+            // 
+            // cboKieuSX
+            // 
+            cboKieuSX.FormattingEnabled = true;
+            cboKieuSX.Location = new Point(170, 29);
+            cboKieuSX.Name = "cboKieuSX";
+            cboKieuSX.Size = new Size(198, 31);
+            cboKieuSX.TabIndex = 87;
+            cboKieuSX.SelectedIndexChanged += cboKieuSX_SelectedIndexChanged;
+            // 
+            // label9
+            // 
+            label9.AutoSize = true;
+            label9.Location = new Point(23, 33);
+            label9.Name = "label9";
+            label9.Size = new Size(121, 23);
+            label9.TabIndex = 86;
+            label9.Text = "Kiểu Sắp Xếp:";
             // 
             // panel3
             // 
@@ -323,17 +363,8 @@
 
         private Panel panel1;
         private GroupBox groupBox1;
-        private ComboBox cboKhoa;
-        private Label label1;
-        private TextBox txtAdTuKhoa_SV;
-        private Label label11;
-        private Label label12;
-        private ComboBox cboAdTimKiem_SV;
-        private Button btnAdShowAll_SV;
-        private Button btnAdTimKiem_SV;
         private Panel panel2;
         private GroupBox groupBox2;
-        private RadioButton radioButton1;
         private Panel panel3;
         private GroupBox groupBox3;
         private DataGridView dgvDanhSachSV;
@@ -345,5 +376,17 @@
         private DataGridViewTextBoxColumn MaKhoa;
         private DataGridViewTextBoxColumn TrangThai;
         private DataGridViewTextBoxColumn ThaoTac;
+        private TextBox txtTuKhoa;
+        private Label label11;
+        private Label label12;
+        private ComboBox cboTimKiem;
+        private Button btnShowAll;
+        private Button btnTimKiem;
+        private RadioButton radGiam;
+        private RadioButton radTang;
+        private ComboBox cboKieuSX;
+        private Label label9;
+        private Label label1;
+        private ComboBox cboKhoa;
     }
 }

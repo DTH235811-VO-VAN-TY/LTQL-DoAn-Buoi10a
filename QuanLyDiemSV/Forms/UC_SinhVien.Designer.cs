@@ -29,7 +29,7 @@
         private void InitializeComponent()
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(UC_SinhVien));
-            DataGridViewCellStyle dataGridViewCellStyle1 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle5 = new DataGridViewCellStyle();
             panelInput = new Panel();
             groupBoxInfo = new GroupBox();
             dtpAdNamSinhSV = new DateTimePicker();
@@ -504,6 +504,7 @@
             radGiam.TabStop = true;
             radGiam.Text = "Giảm";
             radGiam.UseVisualStyleBackColor = true;
+            radGiam.CheckedChanged += radGiam_CheckedChanged;
             // 
             // radTang
             // 
@@ -515,6 +516,7 @@
             radTang.TabStop = true;
             radTang.Text = "Tăng";
             radTang.UseVisualStyleBackColor = true;
+            radTang.CheckedChanged += radTang_CheckedChanged;
             // 
             // cboKieuSX
             // 
@@ -523,6 +525,7 @@
             cboKieuSX.Name = "cboKieuSX";
             cboKieuSX.Size = new Size(151, 28);
             cboKieuSX.TabIndex = 87;
+            cboKieuSX.SelectedIndexChanged += cboKieuSX_SelectedIndexChanged;
             // 
             // label14
             // 
@@ -579,6 +582,7 @@
             btnAdShowAll_SV.TabIndex = 21;
             btnAdShowAll_SV.Text = "Hiện tất cả";
             btnAdShowAll_SV.UseVisualStyleBackColor = false;
+            btnAdShowAll_SV.Click += btnAdShowAll_SV_Click;
             // 
             // btnAdTimKiem_SV
             // 
@@ -591,6 +595,7 @@
             btnAdTimKiem_SV.TabIndex = 20;
             btnAdTimKiem_SV.Text = "Tìm Kiếm";
             btnAdTimKiem_SV.UseVisualStyleBackColor = false;
+            btnAdTimKiem_SV.Click += btnAdTimKiem_SV_Click;
             // 
             // panelGrid
             // 
@@ -624,14 +629,14 @@
             dgvAdminSinhVien.BackgroundColor = SystemColors.ButtonHighlight;
             dgvAdminSinhVien.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             dgvAdminSinhVien.Columns.AddRange(new DataGridViewColumn[] { MaSV, HoTen, NgaySinh, GioiTinh, DiaChi, Email, SDT, MaLop, CCCD });
-            dataGridViewCellStyle1.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle1.BackColor = SystemColors.Window;
-            dataGridViewCellStyle1.Font = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            dataGridViewCellStyle1.ForeColor = SystemColors.ControlText;
-            dataGridViewCellStyle1.SelectionBackColor = SystemColors.Highlight;
-            dataGridViewCellStyle1.SelectionForeColor = SystemColors.HighlightText;
-            dataGridViewCellStyle1.WrapMode = DataGridViewTriState.False;
-            dgvAdminSinhVien.DefaultCellStyle = dataGridViewCellStyle1;
+            dataGridViewCellStyle5.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle5.BackColor = SystemColors.Window;
+            dataGridViewCellStyle5.Font = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            dataGridViewCellStyle5.ForeColor = SystemColors.ControlText;
+            dataGridViewCellStyle5.SelectionBackColor = SystemColors.Highlight;
+            dataGridViewCellStyle5.SelectionForeColor = SystemColors.HighlightText;
+            dataGridViewCellStyle5.WrapMode = DataGridViewTriState.False;
+            dgvAdminSinhVien.DefaultCellStyle = dataGridViewCellStyle5;
             dgvAdminSinhVien.Dock = DockStyle.Fill;
             dgvAdminSinhVien.Location = new Point(3, 24);
             dgvAdminSinhVien.Margin = new Padding(3, 4, 3, 4);
