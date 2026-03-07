@@ -28,7 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
-            DataGridViewCellStyle dataGridViewCellStyle2 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle1 = new DataGridViewCellStyle();
             panel1 = new Panel();
             panel3 = new Panel();
             groupBox2 = new GroupBox();
@@ -42,6 +42,8 @@
             ThaoTac = new DataGridViewLinkColumn();
             panel2 = new Panel();
             groupBox1 = new GroupBox();
+            btnInDanhSach = new Button();
+            btnXuat = new Button();
             btnXemChitiet = new Button();
             radGiam = new RadioButton();
             radTang = new RadioButton();
@@ -54,6 +56,7 @@
             label2 = new Label();
             cboKhoa = new ComboBox();
             label1 = new Label();
+            label4 = new Label();
             panel1.SuspendLayout();
             panel3.SuspendLayout();
             groupBox2.SuspendLayout();
@@ -155,8 +158,8 @@
             // ThaoTac
             // 
             ThaoTac.DataPropertyName = "ThaoTac";
-            dataGridViewCellStyle2.Alignment = DataGridViewContentAlignment.MiddleCenter;
-            ThaoTac.DefaultCellStyle = dataGridViewCellStyle2;
+            dataGridViewCellStyle1.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            ThaoTac.DefaultCellStyle = dataGridViewCellStyle1;
             ThaoTac.HeaderText = "Thao Tác";
             ThaoTac.MinimumWidth = 6;
             ThaoTac.Name = "ThaoTac";
@@ -176,10 +179,13 @@
             // 
             // groupBox1
             // 
+            groupBox1.Controls.Add(btnInDanhSach);
+            groupBox1.Controls.Add(btnXuat);
             groupBox1.Controls.Add(btnXemChitiet);
             groupBox1.Controls.Add(radGiam);
             groupBox1.Controls.Add(radTang);
             groupBox1.Controls.Add(cboLoaiSX);
+            groupBox1.Controls.Add(label4);
             groupBox1.Controls.Add(label3);
             groupBox1.Controls.Add(btnReset);
             groupBox1.Controls.Add(btnTimKiem);
@@ -197,11 +203,47 @@
             groupBox1.TabStop = false;
             groupBox1.Text = "Tìm Kiếm";
             // 
+            // btnInDanhSach
+            // 
+            btnInDanhSach.Anchor = AnchorStyles.Left;
+            btnInDanhSach.FlatAppearance.BorderColor = Color.Blue;
+            btnInDanhSach.FlatAppearance.MouseDownBackColor = Color.Blue;
+            btnInDanhSach.FlatAppearance.MouseOverBackColor = Color.Blue;
+            btnInDanhSach.Font = new Font("Microsoft Sans Serif", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            btnInDanhSach.ImageAlign = ContentAlignment.MiddleLeft;
+            btnInDanhSach.Location = new Point(1357, 127);
+            btnInDanhSach.Margin = new Padding(3, 4, 3, 4);
+            btnInDanhSach.Name = "btnInDanhSach";
+            btnInDanhSach.Padding = new Padding(5, 0, 0, 0);
+            btnInDanhSach.Size = new Size(199, 43);
+            btnInDanhSach.TabIndex = 142;
+            btnInDanhSach.Text = "In Danh Sách";
+            btnInDanhSach.UseVisualStyleBackColor = true;
+            btnInDanhSach.Click += btnInDanhSach_Click;
+            // 
+            // btnXuat
+            // 
+            btnXuat.Anchor = AnchorStyles.Left;
+            btnXuat.FlatAppearance.BorderColor = Color.Blue;
+            btnXuat.FlatAppearance.MouseDownBackColor = Color.Blue;
+            btnXuat.FlatAppearance.MouseOverBackColor = Color.Blue;
+            btnXuat.Font = new Font("Microsoft Sans Serif", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            btnXuat.ImageAlign = ContentAlignment.MiddleLeft;
+            btnXuat.Location = new Point(1141, 127);
+            btnXuat.Margin = new Padding(3, 4, 3, 4);
+            btnXuat.Name = "btnXuat";
+            btnXuat.Padding = new Padding(5, 0, 0, 0);
+            btnXuat.Size = new Size(199, 43);
+            btnXuat.TabIndex = 143;
+            btnXuat.Text = "Xuất File";
+            btnXuat.UseVisualStyleBackColor = true;
+            btnXuat.Click += btnXuat_Click;
+            // 
             // btnXemChitiet
             // 
-            btnXemChitiet.Location = new Point(42, 134);
+            btnXemChitiet.Location = new Point(15, 133);
             btnXemChitiet.Name = "btnXemChitiet";
-            btnXemChitiet.Size = new Size(166, 29);
+            btnXemChitiet.Size = new Size(124, 29);
             btnXemChitiet.TabIndex = 9;
             btnXemChitiet.Text = "Xem chi tiết";
             btnXemChitiet.UseVisualStyleBackColor = true;
@@ -210,7 +252,7 @@
             // radGiam
             // 
             radGiam.AutoSize = true;
-            radGiam.Location = new Point(1468, 133);
+            radGiam.Location = new Point(1036, 133);
             radGiam.Name = "radGiam";
             radGiam.Size = new Size(71, 27);
             radGiam.TabIndex = 8;
@@ -222,7 +264,7 @@
             // 
             radTang.AutoSize = true;
             radTang.Checked = true;
-            radTang.Location = new Point(1378, 133);
+            radTang.Location = new Point(946, 133);
             radTang.Name = "radTang";
             radTang.Size = new Size(67, 27);
             radTang.TabIndex = 8;
@@ -235,7 +277,7 @@
             // 
             cboLoaiSX.FormattingEnabled = true;
             cboLoaiSX.Items.AddRange(new object[] { "Mã Số SV", "Điểm số", "Họ Tên" });
-            cboLoaiSX.Location = new Point(1062, 133);
+            cboLoaiSX.Location = new Point(630, 133);
             cboLoaiSX.Name = "cboLoaiSX";
             cboLoaiSX.Size = new Size(283, 31);
             cboLoaiSX.TabIndex = 7;
@@ -244,7 +286,7 @@
             // label3
             // 
             label3.AutoSize = true;
-            label3.Location = new Point(966, 137);
+            label3.Location = new Point(539, 135);
             label3.Name = "label3";
             label3.Size = new Size(75, 23);
             label3.TabIndex = 6;
@@ -252,7 +294,7 @@
             // 
             // btnReset
             // 
-            btnReset.Location = new Point(1399, 64);
+            btnReset.Location = new Point(1416, 60);
             btnReset.Name = "btnReset";
             btnReset.Size = new Size(140, 38);
             btnReset.TabIndex = 5;
@@ -262,7 +304,7 @@
             // 
             // btnTimKiem
             // 
-            btnTimKiem.Location = new Point(1231, 64);
+            btnTimKiem.Location = new Point(1270, 60);
             btnTimKiem.Name = "btnTimKiem";
             btnTimKiem.Size = new Size(140, 38);
             btnTimKiem.TabIndex = 5;
@@ -272,7 +314,7 @@
             // 
             // txtTuKhoa
             // 
-            txtTuKhoa.Location = new Point(834, 63);
+            txtTuKhoa.Location = new Point(877, 64);
             txtTuKhoa.Name = "txtTuKhoa";
             txtTuKhoa.Size = new Size(361, 30);
             txtTuKhoa.TabIndex = 4;
@@ -280,7 +322,7 @@
             // cboLop
             // 
             cboLop.FormattingEnabled = true;
-            cboLop.Location = new Point(505, 60);
+            cboLop.Location = new Point(445, 61);
             cboLop.Name = "cboLop";
             cboLop.Size = new Size(295, 31);
             cboLop.TabIndex = 3;
@@ -288,7 +330,7 @@
             // label2
             // 
             label2.AutoSize = true;
-            label2.Location = new Point(433, 63);
+            label2.Location = new Point(397, 64);
             label2.Name = "label2";
             label2.Size = new Size(42, 23);
             label2.TabIndex = 2;
@@ -297,7 +339,7 @@
             // cboKhoa
             // 
             cboKhoa.FormattingEnabled = true;
-            cboKhoa.Location = new Point(102, 60);
+            cboKhoa.Location = new Point(84, 60);
             cboKhoa.Name = "cboKhoa";
             cboKhoa.Size = new Size(294, 31);
             cboKhoa.TabIndex = 1;
@@ -306,11 +348,20 @@
             // label1
             // 
             label1.AutoSize = true;
-            label1.Location = new Point(33, 60);
+            label1.Location = new Point(15, 60);
             label1.Name = "label1";
             label1.Size = new Size(53, 23);
             label1.TabIndex = 0;
             label1.Text = "Khoa:";
+            // 
+            // label4
+            // 
+            label4.AutoSize = true;
+            label4.Location = new Point(778, 69);
+            label4.Name = "label4";
+            label4.Size = new Size(77, 23);
+            label4.TabIndex = 6;
+            label4.Text = "Từ khóa:";
             // 
             // UC_TraCuuDiem_Container
             // 
@@ -356,5 +407,8 @@
         private DataGridViewTextBoxColumn DiemTrungBinh;
         private DataGridViewTextBoxColumn SoTinChi;
         private DataGridViewLinkColumn ThaoTac;
+        private Button btnInDanhSach;
+        private Button btnXuat;
+        private Label label4;
     }
 }

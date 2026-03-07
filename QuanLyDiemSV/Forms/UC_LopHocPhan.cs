@@ -6,6 +6,8 @@ using System.Windows.Forms;
 using Microsoft.EntityFrameworkCore;
 using QuanLyDiemSV.Data;
 using QuanLyDiemSV.Forms;
+using System.Text.RegularExpressions;
+using ClosedXML.Excel;
 
 namespace QuanLyDiemSV
 {
@@ -14,19 +16,51 @@ namespace QuanLyDiemSV
         QLDSVDbContext context = new QLDSVDbContext();
         BindingSource bsLopHP = new BindingSource();
         bool xuLyThem = false;
+        bool daTaiDuLieu = false; // Biến cờ
 
         public UC_LopHocPhan()
         {
             InitializeComponent();
             this.Load += UC_LopHocPhan_Load;
+            this.VisibleChanged += UC_LopHocPhan_VisibleChanged;
         }
 
         private void UC_LopHocPhan_Load(object sender, EventArgs e)
         {
             BatTatChucNang(false);
-            LoadComboBoxData();
             KhoiTaoCboTimKiemSapXep();
-            LoadData();
+        }
+
+        private void UC_LopHocPhan_VisibleChanged(object sender, EventArgs e)
+        {
+            if (this.DesignMode || System.ComponentModel.LicenseManager.UsageMode == System.ComponentModel.LicenseUsageMode.Designtime) return;
+
+            // Mỗi khi tab Lớp Học Phần được hiện lên màn hình
+            if (this.Visible)
+            {
+                Cursor.Current = Cursors.WaitCursor;
+
+                // --- 1. COMBOBOX: LUÔN LUÔN TẢI LẠI ĐỂ CẬP NHẬT DỮ LIỆU MỚI NHẤT ---
+                // (Mẹo nhỏ: Lưu lại giá trị đang chọn để không bị mất khi reload)
+                var oldMaGV = cboMaGV.SelectedValue;
+                var oldMaMon = cboMaMon.SelectedValue;
+
+                LoadComboBoxData(); // Cập nhật lại danh sách Giảng viên, Môn học... từ SQL
+
+                // Phục hồi lại giá trị đang chọn (nếu có)
+                if (oldMaGV != null) cboMaGV.SelectedValue = oldMaGV;
+                if (oldMaMon != null) cboMaMon.SelectedValue = oldMaMon;
+
+
+                // --- 2. LƯỚI DATAGRIDVIEW: CHỈ TẢI 1 LẦN DUY NHẤT KHI MỞ APP ---
+                if (!daTaiDuLieu)
+                {
+                    LoadData();
+                    daTaiDuLieu = true;
+                }
+
+                Cursor.Current = Cursors.Default;
+            }
         }
 
         #region 1. HÀM HỖ TRỢ VÀ LOAD DỮ LIỆU
@@ -64,26 +98,25 @@ namespace QuanLyDiemSV
         }
         private void LoadComboBoxData()
         {
-            try
+            using (var freshContext = new QLDSVDbContext())
             {
-                cboMaMon.DataSource = context.MonHoc.ToList();
-                cboMaMon.DisplayMember = "TenMon";
-                cboMaMon.ValueMember = "MaMon";
-                cboMaMon.SelectedIndex = -1;
-
-                cboMaGV.DataSource = context.GiangVien.ToList();
+                // -- NẠP GIẢNG VIÊN --
+                cboMaGV.DataSource = null; // Ép reset
+                cboMaGV.DataSource = freshContext.GiangVien.ToList();
                 cboMaGV.DisplayMember = "HoTen";
                 cboMaGV.ValueMember = "MaGV";
-                cboMaGV.SelectedIndex = -1;
 
-                cboHocKy.DataSource = context.HocKy.ToList();
+                // -- NẠP MÔN HỌC --
+                cboMaMon.DataSource = null;
+                cboMaMon.DataSource = freshContext.MonHoc.ToList();
+                cboMaMon.DisplayMember = "TenMon";
+                cboMaMon.ValueMember = "MaMon";
+
+                // -- NẠP HỌC KỲ (Nếu có ComboBox Học Kỳ) --
+                cboHocKy.DataSource = null;
+                cboHocKy.DataSource = freshContext.HocKy.ToList();
                 cboHocKy.DisplayMember = "TenHK";
                 cboHocKy.ValueMember = "MaHK";
-                cboHocKy.SelectedIndex = -1;
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Lỗi tải danh mục: " + ex.Message);
             }
         }
 
@@ -232,19 +265,37 @@ namespace QuanLyDiemSV
         {
             if (string.IsNullOrWhiteSpace(txtMaLHP.Text) || string.IsNullOrWhiteSpace(txtTenLHP.Text))
             {
-                MessageBox.Show("Vui lòng nhập Mã lớp và Tên lớp!");
+                MessageBox.Show("Vui lòng nhập Mã lớp và Tên lớp!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
             if (cboMaMon.SelectedValue == null || cboMaGV.SelectedValue == null || cboHocKy.SelectedValue == null)
             {
-                MessageBox.Show("Vui lòng chọn đầy đủ Môn, Giảng viên và Học kỳ!");
+                MessageBox.Show("Vui lòng chọn đầy đủ Môn, Giảng viên và Học kỳ!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
-            // --- QUAN TRỌNG: Ép kiểu string sang int ---
+            // 1. Kiểm tra định dạng Mã Lớp Học Phần (Phải là số nguyên)
             if (!int.TryParse(txtMaLHP.Text.Trim(), out int maLHP))
             {
-                MessageBox.Show("Mã Lớp Học Phần phải là số nguyên!");
+                MessageBox.Show("Mã Lớp Học Phần phải là số nguyên!", "Ràng buộc dữ liệu", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                txtMaLHP.Focus();
+                return;
+            }
+
+            // 2. Kiểm tra định dạng Sĩ số (Phải là số và >= 0)
+            if (!int.TryParse(txtSiSo.Text.Trim(), out int siSo) || siSo < 0)
+            {
+                MessageBox.Show("Sĩ số tối đa phải là số nguyên và không được âm!", "Ràng buộc dữ liệu", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                txtSiSo.Focus();
+                return;
+            }
+
+            // 3. Kiểm tra định dạng Phòng học (1 chữ cái đứng đầu, theo sau là 3 số. VD: A401)
+            string phongHoc = txtPhongHoc.Text.Trim();
+            if (!Regex.IsMatch(phongHoc, @"^[a-zA-Z]\d{3}$"))
+            {
+                MessageBox.Show("Phòng học không hợp lệ!\n(Định dạng đúng: Bắt đầu bằng 1 chữ cái và 3 chữ số. Ví dụ: A401, B302)", "Ràng buộc dữ liệu", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                txtPhongHoc.Focus();
                 return;
             }
 
@@ -252,19 +303,17 @@ namespace QuanLyDiemSV
             {
                 if (xuLyThem) // --- THÊM ---
                 {
-                    // Check trùng mã (So sánh int với int)
                     if (context.LopHocPhan.Any(x => x.MaLHP == maLHP))
                     {
-                        MessageBox.Show("Mã lớp học phần đã tồn tại!");
+                        MessageBox.Show("Mã lớp học phần đã tồn tại!", "Cảnh báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                         return;
                     }
 
                     LopHocPhan lhp = new LopHocPhan();
-                    lhp.MaLHP = maLHP; // Gán giá trị int đã parse
+                    lhp.MaLHP = maLHP;
                     lhp.TenLopHP = txtTenLHP.Text.Trim();
-                    lhp.PhongHoc = txtPhongHoc.Text.Trim();
-                    lhp.SiSoToiDa = int.TryParse(txtSiSo.Text, out int ss) ? ss : 0;
-
+                    lhp.PhongHoc = phongHoc.ToUpper(); // Viết hoa chữ cái phòng học cho đẹp (VD: a401 -> A401)
+                    lhp.SiSoToiDa = siSo;
                     lhp.MaMon = cboMaMon.SelectedValue.ToString();
                     lhp.MaGV = cboMaGV.SelectedValue.ToString();
                     lhp.MaHK = cboHocKy.SelectedValue.ToString();
@@ -274,13 +323,12 @@ namespace QuanLyDiemSV
                 }
                 else // --- SỬA ---
                 {
-                    // Tìm theo int
                     var lhp = context.LopHocPhan.Find(maLHP);
                     if (lhp != null)
                     {
                         lhp.TenLopHP = txtTenLHP.Text.Trim();
-                        lhp.PhongHoc = txtPhongHoc.Text.Trim();
-                        lhp.SiSoToiDa = int.TryParse(txtSiSo.Text, out int ss) ? ss : 0;
+                        lhp.PhongHoc = phongHoc.ToUpper();
+                        lhp.SiSoToiDa = siSo;
                         lhp.MaMon = cboMaMon.SelectedValue.ToString();
                         lhp.MaGV = cboMaGV.SelectedValue.ToString();
                         lhp.MaHK = cboHocKy.SelectedValue.ToString();
@@ -293,16 +341,17 @@ namespace QuanLyDiemSV
                 context.SaveChanges();
                 LoadData();
                 BatTatChucNang(false);
-                MessageBox.Show("Lưu thành công!");
+                MessageBox.Show("Lưu thành công!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Lỗi lưu dữ liệu: " + ex.Message);
+                MessageBox.Show("Lỗi lưu dữ liệu: " + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
         private void btnLamLai_Click(object sender, EventArgs e)
         {
+            
             BatTatChucNang(false);
             bsLopHP.ResetBindings(false);
             BsLopHP_CurrentChanged(null, null);
@@ -360,6 +409,134 @@ namespace QuanLyDiemSV
                     e.Value = lhp.MaGVNavigation.HoTen; // Hiển thị tên ra lưới
                     e.FormattingApplied = true;
                 }
+            }
+        }
+
+        private void btnNhap_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                using (OpenFileDialog ofd = new OpenFileDialog() { Filter = "Excel Workbook|*.xlsx|Excel 97-2003 Workbook|*.xls", Title = "Chọn file Excel Lớp Học Phần" })
+                {
+                    if (ofd.ShowDialog() == DialogResult.OK)
+                    {
+                        using (var workbook = new XLWorkbook(ofd.FileName))
+                        {
+                            var worksheet = workbook.Worksheet(1);
+                            var rows = worksheet.RangeUsed().RowsUsed().Skip(1); // Bỏ qua dòng tiêu đề
+
+                            int rowCount = 0;
+                            int duplicateCount = 0;
+
+                            foreach (var row in rows)
+                            {
+                                string maLhpStr = row.Cell(1).Value.ToString().Trim();
+
+                                // Bỏ qua nếu dòng trống hoặc Mã Lớp Học Phần không phải là số nguyên
+                                if (string.IsNullOrEmpty(maLhpStr) || !int.TryParse(maLhpStr, out int maLHP)) continue;
+
+                                // Bỏ qua nếu trùng mã
+                                if (context.LopHocPhan.Any(x => x.MaLHP == maLHP))
+                                {
+                                    duplicateCount++;
+                                    continue;
+                                }
+
+                                LopHocPhan lhp = new LopHocPhan();
+                                lhp.MaLHP = maLHP;
+                                lhp.TenLopHP = row.Cell(2).Value.ToString().Trim();
+                                lhp.PhongHoc = row.Cell(3).Value.ToString().Trim().ToUpper();
+
+                                if (int.TryParse(row.Cell(4).Value.ToString(), out int siSo) && siSo >= 0)
+                                    lhp.SiSoToiDa = siSo;
+                                else
+                                    lhp.SiSoToiDa = 0; // Mặc định nếu nhập sai format
+
+                                lhp.MaMon = row.Cell(5).Value.ToString().Trim();
+                                lhp.MaGV = row.Cell(6).Value.ToString().Trim();
+                                lhp.MaHK = row.Cell(7).Value.ToString().Trim();
+
+                                if (int.TryParse(row.Cell(8).Value.ToString(), out int trangThai))
+                                    lhp.TrangThai = trangThai;
+                                else
+                                    lhp.TrangThai = 1;
+
+                                context.LopHocPhan.Add(lhp);
+                                rowCount++;
+                            }
+
+                            context.SaveChanges();
+                            LoadData(); // Cập nhật lại DataGridView
+
+                            string msg = $"Đã nhập thành công {rowCount} lớp học phần mới.";
+                            if (duplicateCount > 0)
+                                msg += $"\nĐã bỏ qua {duplicateCount} lớp bị trùng mã.";
+
+                            MessageBox.Show(msg, "Hoàn tất", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi nhập file: Vui lòng kiểm tra lại cấu trúc file Excel.\nChi tiết: " + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void btnXuat_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                var listLHP = context.LopHocPhan.ToList();
+                if (listLHP.Count == 0)
+                {
+                    MessageBox.Show("Không có dữ liệu để xuất!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                using (SaveFileDialog sfd = new SaveFileDialog() { Filter = "Excel Workbook|*.xlsx", FileName = "DanhSachLopHocPhan_" + DateTime.Now.ToString("dd_MM_yyyy") + ".xlsx" })
+                {
+                    if (sfd.ShowDialog() == DialogResult.OK)
+                    {
+                        using (XLWorkbook workbook = new XLWorkbook())
+                        {
+                            var worksheet = workbook.Worksheets.Add("LopHocPhan");
+
+                            // 1. Tạo dòng Tiêu đề (Header)
+                            worksheet.Cell(1, 1).Value = "Mã Lớp Học Phần";
+                            worksheet.Cell(1, 2).Value = "Tên Lớp Học Phần";
+                            worksheet.Cell(1, 3).Value = "Phòng Học";
+                            worksheet.Cell(1, 4).Value = "Sĩ Số Tối Đa";
+                            worksheet.Cell(1, 5).Value = "Mã Môn";
+                            worksheet.Cell(1, 6).Value = "Mã Giảng Viên";
+                            worksheet.Cell(1, 7).Value = "Mã Học Kỳ";
+                            worksheet.Cell(1, 8).Value = "Trạng Thái (1:Mở, 0:Đóng)";
+
+                            // 2. Đổ dữ liệu vào
+                            int row = 2;
+                            foreach (var lhp in listLHP)
+                            {
+                                worksheet.Cell(row, 1).Value = lhp.MaLHP;
+                                worksheet.Cell(row, 2).Value = lhp.TenLopHP;
+                                worksheet.Cell(row, 3).Value = lhp.PhongHoc;
+                                worksheet.Cell(row, 4).Value = lhp.SiSoToiDa;
+                                worksheet.Cell(row, 5).Value = lhp.MaMon;
+                                worksheet.Cell(row, 6).Value = lhp.MaGV;
+                                worksheet.Cell(row, 7).Value = lhp.MaHK;
+                                worksheet.Cell(row, 8).Value = lhp.TrangThai;
+                                row++;
+                            }
+
+                            worksheet.Columns().AdjustToContents();
+                            workbook.SaveAs(sfd.FileName);
+                            MessageBox.Show("Xuất file Excel thành công!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi xuất file: " + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
     }

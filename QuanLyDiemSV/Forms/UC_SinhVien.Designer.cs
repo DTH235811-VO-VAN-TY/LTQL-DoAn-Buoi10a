@@ -29,7 +29,7 @@
         private void InitializeComponent()
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(UC_SinhVien));
-            DataGridViewCellStyle dataGridViewCellStyle5 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle1 = new DataGridViewCellStyle();
             panelInput = new Panel();
             groupBoxInfo = new GroupBox();
             dtpAdNamSinhSV = new DateTimePicker();
@@ -44,6 +44,7 @@
             label3 = new Label();
             label4 = new Label();
             label5 = new Label();
+            btnNhap = new Button();
             btnAdSua_SV = new Button();
             btnAdLamLai_SV = new Button();
             txtAdSV_NienKhoa = new TextBox();
@@ -51,6 +52,7 @@
             btnAdThem_SV = new Button();
             label1 = new Label();
             label23 = new Label();
+            btnXuat = new Button();
             btnAdXoa_SV = new Button();
             txtAdCCCDsv = new TextBox();
             txtAdMaSV = new TextBox();
@@ -122,6 +124,7 @@
             groupBoxInfo.Controls.Add(label3);
             groupBoxInfo.Controls.Add(label4);
             groupBoxInfo.Controls.Add(label5);
+            groupBoxInfo.Controls.Add(btnNhap);
             groupBoxInfo.Controls.Add(btnAdSua_SV);
             groupBoxInfo.Controls.Add(btnAdLamLai_SV);
             groupBoxInfo.Controls.Add(txtAdSV_NienKhoa);
@@ -129,6 +132,7 @@
             groupBoxInfo.Controls.Add(btnAdThem_SV);
             groupBoxInfo.Controls.Add(label1);
             groupBoxInfo.Controls.Add(label23);
+            groupBoxInfo.Controls.Add(btnXuat);
             groupBoxInfo.Controls.Add(btnAdXoa_SV);
             groupBoxInfo.Controls.Add(txtAdCCCDsv);
             groupBoxInfo.Controls.Add(txtAdMaSV);
@@ -261,6 +265,22 @@
             label5.TabIndex = 126;
             label5.Text = "Tên Lớp:";
             // 
+            // btnNhap
+            // 
+            btnNhap.BackColor = Color.White;
+            btnNhap.FlatStyle = FlatStyle.Flat;
+            btnNhap.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            btnNhap.ImageAlign = ContentAlignment.MiddleLeft;
+            btnNhap.Location = new Point(1158, 285);
+            btnNhap.Margin = new Padding(3, 4, 3, 4);
+            btnNhap.Name = "btnNhap";
+            btnNhap.Padding = new Padding(10, 0, 0, 0);
+            btnNhap.Size = new Size(195, 56);
+            btnNhap.TabIndex = 16;
+            btnNhap.Text = "Nhập..";
+            btnNhap.UseVisualStyleBackColor = false;
+            btnNhap.Click += btnNhap_Click;
+            // 
             // btnAdSua_SV
             // 
             btnAdSua_SV.BackColor = Color.White;
@@ -354,6 +374,22 @@
             label23.Size = new Size(60, 20);
             label23.TabIndex = 121;
             label23.Text = "Địa chỉ:";
+            // 
+            // btnXuat
+            // 
+            btnXuat.BackColor = Color.White;
+            btnXuat.FlatStyle = FlatStyle.Flat;
+            btnXuat.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            btnXuat.ImageAlign = ContentAlignment.MiddleLeft;
+            btnXuat.Location = new Point(1382, 285);
+            btnXuat.Margin = new Padding(3, 4, 3, 4);
+            btnXuat.Name = "btnXuat";
+            btnXuat.Padding = new Padding(10, 0, 0, 0);
+            btnXuat.Size = new Size(195, 56);
+            btnXuat.TabIndex = 17;
+            btnXuat.Text = "Xuất..";
+            btnXuat.UseVisualStyleBackColor = false;
+            btnXuat.Click += btnXuat_Click;
             // 
             // btnAdXoa_SV
             // 
@@ -501,7 +537,6 @@
             radGiam.Name = "radGiam";
             radGiam.Size = new Size(67, 24);
             radGiam.TabIndex = 88;
-            radGiam.TabStop = true;
             radGiam.Text = "Giảm";
             radGiam.UseVisualStyleBackColor = true;
             radGiam.CheckedChanged += radGiam_CheckedChanged;
@@ -509,6 +544,7 @@
             // radTang
             // 
             radTang.AutoSize = true;
+            radTang.Checked = true;
             radTang.Location = new Point(1478, 23);
             radTang.Name = "radTang";
             radTang.Size = new Size(64, 24);
@@ -629,14 +665,14 @@
             dgvAdminSinhVien.BackgroundColor = SystemColors.ButtonHighlight;
             dgvAdminSinhVien.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             dgvAdminSinhVien.Columns.AddRange(new DataGridViewColumn[] { MaSV, HoTen, NgaySinh, GioiTinh, DiaChi, Email, SDT, MaLop, CCCD });
-            dataGridViewCellStyle5.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle5.BackColor = SystemColors.Window;
-            dataGridViewCellStyle5.Font = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            dataGridViewCellStyle5.ForeColor = SystemColors.ControlText;
-            dataGridViewCellStyle5.SelectionBackColor = SystemColors.Highlight;
-            dataGridViewCellStyle5.SelectionForeColor = SystemColors.HighlightText;
-            dataGridViewCellStyle5.WrapMode = DataGridViewTriState.False;
-            dgvAdminSinhVien.DefaultCellStyle = dataGridViewCellStyle5;
+            dataGridViewCellStyle1.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle1.BackColor = SystemColors.Window;
+            dataGridViewCellStyle1.Font = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            dataGridViewCellStyle1.ForeColor = SystemColors.ControlText;
+            dataGridViewCellStyle1.SelectionBackColor = SystemColors.Highlight;
+            dataGridViewCellStyle1.SelectionForeColor = SystemColors.HighlightText;
+            dataGridViewCellStyle1.WrapMode = DataGridViewTriState.False;
+            dgvAdminSinhVien.DefaultCellStyle = dataGridViewCellStyle1;
             dgvAdminSinhVien.Dock = DockStyle.Fill;
             dgvAdminSinhVien.Location = new Point(3, 24);
             dgvAdminSinhVien.Margin = new Padding(3, 4, 3, 4);
@@ -810,5 +846,7 @@
         private RadioButton radTang;
         private ComboBox cboKieuSX;
         private Label label14;
+        private Button btnNhap;
+        private Button btnXuat;
     }
 }

@@ -7,6 +7,10 @@ using Microsoft.EntityFrameworkCore;
 using QuanLyDiemSV.Data;
 using QuanLyDiemSV.DTO;
 using GUI;
+using ClosedXML.Excel;
+using iTextSharp.text;
+using iTextSharp.text.pdf;
+using System.IO;
 
 namespace QuanLyDiemSV.Forms
 {
@@ -107,7 +111,7 @@ namespace QuanLyDiemSV.Forms
                     .Include(s => s.MaLopNavigation).ThenInclude(l => l.MaNganhNavigation).ThenInclude(n => n.MaKhoaNavigation)
                     .Include(s => s.KetQuaHocTap).ThenInclude(k => k.MaLHPNavigation).ThenInclude(h => h.MaMonNavigation)
                     .AsQueryable();
-                
+
 
 
                 // Lọc
@@ -284,6 +288,169 @@ namespace QuanLyDiemSV.Forms
         private void cboLoaiSX_SelectedIndexChanged(object sender, EventArgs e)
         {
 
+        }
+
+        private void btnXuat_Click(object sender, EventArgs e)
+        {
+            if (dgvDanhSachSV.Rows.Count == 0)
+            {
+                MessageBox.Show("Không có dữ liệu để xuất!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            using (SaveFileDialog sfd = new SaveFileDialog() { Filter = "Excel Workbook|*.xlsx", FileName = "TraCuuDiemSinhVien.xlsx" })
+            {
+                if (sfd.ShowDialog() == DialogResult.OK)
+                {
+                    try
+                    {
+                        using (XLWorkbook workbook = new XLWorkbook())
+                        {
+                            var worksheet = workbook.Worksheets.Add("TraCuuDiem");
+
+                            // Tạo Header
+                            worksheet.Cell(1, 1).Value = "Mã SV";
+                            worksheet.Cell(1, 2).Value = "Họ Tên";
+                            worksheet.Cell(1, 3).Value = "Lớp";
+                            worksheet.Cell(1, 4).Value = "Khoa";
+                            worksheet.Cell(1, 5).Value = "ĐTB Tích Lũy";
+                            worksheet.Cell(1, 6).Value = "STC Tích Lũy";
+
+                            // Bôi đậm Header
+                            worksheet.Range("A1:F1").Style.Font.Bold = true;
+                            worksheet.Range("A1:F1").Style.Fill.BackgroundColor = XLColor.LightGray;
+
+                            // Đổ dữ liệu từ danh sách đang hiển thị (đã được lọc)
+                            var listData = (List<SinhVienTraCuuDTO>)dgvDanhSachSV.DataSource;
+                            int row = 2;
+                            foreach (var sv in listData)
+                            {
+                                worksheet.Cell(row, 1).Value = sv.MaSV;
+                                worksheet.Cell(row, 2).Value = sv.HoTen;
+                                worksheet.Cell(row, 3).Value = sv.TenLop;
+                                worksheet.Cell(row, 4).Value = sv.TenKhoa;
+                                worksheet.Cell(row, 5).Value = sv.DiemTrungBinh;
+                                worksheet.Cell(row, 6).Value = sv.TinChiTichLuy;
+                                row++;
+                            }
+
+                            worksheet.Columns().AdjustToContents();
+                            workbook.SaveAs(sfd.FileName);
+                            MessageBox.Show("Xuất file Excel thành công!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show("Lỗi xuất file: " + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                }
+            }
+        }
+
+        private void btnInDanhSach_Click(object sender, EventArgs e)
+        {
+            if (dgvDanhSachSV.Rows.Count == 0)
+            {
+                MessageBox.Show("Không có dữ liệu để in!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            using (SaveFileDialog sfd = new SaveFileDialog() { Filter = "PDF files|*.pdf", FileName = "BaoCaoDiem_In.pdf" })
+            {
+                if (sfd.ShowDialog() == DialogResult.OK)
+                {
+                    try
+                    {
+                        // 1. Cấu hình Font Tiếng Việt (Arial) để PDF không bị lỗi font
+                        string fontPath = Environment.GetFolderPath(Environment.SpecialFolder.Fonts) + "\\arial.ttf";
+                        BaseFont bf = BaseFont.CreateFont(fontPath, BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
+                        iTextSharp.text.Font fontTitle = new iTextSharp.text.Font(bf, 16, iTextSharp.text.Font.BOLD);
+                        iTextSharp.text.Font fontHeader = new iTextSharp.text.Font(bf, 11, iTextSharp.text.Font.BOLD);
+                        iTextSharp.text.Font fontNormal = new iTextSharp.text.Font(bf, 10, iTextSharp.text.Font.NORMAL);
+                        iTextSharp.text.Font fontItalic = new iTextSharp.text.Font(bf, 11, iTextSharp.text.Font.ITALIC);
+
+                        // 2. Khởi tạo Document PDF (Khổ A4 xoay ngang: PageSize.A4.Rotate())
+                        Document pdfDoc = new Document(PageSize.A4.Rotate(), 30f, 30f, 40f, 40f);
+                        PdfWriter.GetInstance(pdfDoc, new FileStream(sfd.FileName, FileMode.Create));
+                        pdfDoc.Open();
+
+                        // --- 3. VIẾT PHẦN HEADER (TIÊU ĐỀ BÁO CÁO) ---
+                        Paragraph p1 = new Paragraph("BỘ GIÁO DỤC VÀ ĐÀO TẠO\nTRƯỜNG ĐẠI HỌC ...", fontHeader);
+                        p1.Alignment = Element.ALIGN_CENTER;
+                        pdfDoc.Add(p1);
+
+                        pdfDoc.Add(new Paragraph("\n")); // Dòng trống
+
+                        Paragraph p2 = new Paragraph("BẢNG TỔNG KẾT ĐIỂM SINH VIÊN", fontTitle);
+                        p2.Alignment = Element.ALIGN_CENTER;
+                        pdfDoc.Add(p2);
+
+                        // Lấy thông tin lọc hiện tại
+                        string tenKhoa = cboKhoa.SelectedIndex > 0 ? cboKhoa.Text : "Tất cả các Khoa";
+                        string tenLop = cboLop.SelectedIndex > 0 ? cboLop.Text : "Tất cả các Lớp";
+
+                        Paragraph p3 = new Paragraph($"Khoa: {tenKhoa}  |  Lớp: {tenLop}", fontItalic);
+                        p3.Alignment = Element.ALIGN_CENTER;
+                        pdfDoc.Add(p3);
+
+                        pdfDoc.Add(new Paragraph("\n\n")); // Dòng trống cách bảng
+
+                        // --- 4. TẠO BẢNG DỮ LIỆU ---
+                        PdfPTable table = new PdfPTable(6); // 6 cột
+                        table.WidthPercentage = 100;
+                        // Chỉnh tỷ lệ độ rộng các cột (STT nhỏ, Tên SV rộng hơn, v.v...)
+                        table.SetWidths(new float[] { 1f, 2.5f, 4.5f, 2.5f, 2f, 2f });
+
+                        // 4.1 Tạo Tiêu đề các cột
+                        string[] headers = { "STT", "Mã Sinh Viên", "Họ và Tên", "Lớp", "ĐTB Tích Lũy", "Tín Chỉ Đạt" };
+                        foreach (string header in headers)
+                        {
+                            PdfPCell cell = new PdfPCell(new Phrase(header, fontHeader));
+                            cell.BackgroundColor = new BaseColor(173, 216, 230); // Màu xanh dương nhạt
+                            cell.HorizontalAlignment = Element.ALIGN_CENTER;
+                            cell.VerticalAlignment = Element.ALIGN_MIDDLE;
+                            cell.MinimumHeight = 35f; // Chiều cao hàng tiêu đề
+                            table.AddCell(cell);
+                        }
+
+                        // 4.2 Đổ dữ liệu sinh viên vào bảng
+                        var listData = (List<SinhVienTraCuuDTO>)dgvDanhSachSV.DataSource;
+                        int stt = 1;
+                        foreach (var sv in listData)
+                        {
+                            AddCellToTable(table, stt.ToString(), fontNormal, Element.ALIGN_CENTER);
+                            AddCellToTable(table, sv.MaSV, fontNormal, Element.ALIGN_CENTER);
+                            AddCellToTable(table, sv.HoTen, fontNormal, Element.ALIGN_LEFT); // Tên canh trái
+                            AddCellToTable(table, sv.TenLop, fontNormal, Element.ALIGN_CENTER);
+                            AddCellToTable(table, sv.DiemTrungBinh.ToString(), fontNormal, Element.ALIGN_CENTER);
+                            AddCellToTable(table, sv.TinChiTichLuy.ToString(), fontNormal, Element.ALIGN_CENTER);
+                            stt++;
+                        }
+
+                        pdfDoc.Add(table);
+                        pdfDoc.Close();
+
+                        MessageBox.Show("Xuất file PDF thành công! Hãy mở file lên để xem và in.", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show("Lỗi xuất file: " + ex.Message + "\n(Vui lòng đảm bảo file PDF bạn định lưu không bị mở bởi phần mềm khác)", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                }
+            }
+        }
+        private void AddCellToTable(PdfPTable table, string text, iTextSharp.text.Font font, int alignment)
+        {
+            PdfPCell cell = new PdfPCell(new Phrase(text, font));
+            cell.HorizontalAlignment = alignment;
+            cell.VerticalAlignment = Element.ALIGN_MIDDLE;
+            cell.MinimumHeight = 25f; // Khoảng cách dòng dữ liệu
+
+            // Cách lề trái/phải một chút cho chữ đỡ bị dính vào viền kẻ
+            cell.PaddingLeft = 5f;
+            cell.PaddingRight = 5f;
+
+            table.AddCell(cell);
         }
     }
 }

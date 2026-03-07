@@ -15,19 +15,31 @@ namespace QuanLyDiemSV.Forms
         QLDSVDbContext context = new QLDSVDbContext();
         BindingSource bsLop = new BindingSource();
         bool xuLyThem = false;
+        bool daTaiDuLieu = false; // Biến cờ
 
         public UC_LopHanhChinh()
         {
             InitializeComponent();
             this.Load += UC_LopHanhChinh_Load;
+            this.VisibleChanged += UC_LopHanhChinh_VisibleChanged;
         }
 
         private void UC_LopHanhChinh_Load(object sender, EventArgs e)
         {
             BatTatChucNang(false);
-            LoadComboBoxData();
             KhoiTaoCboTimKiemSapXep();
-            LoadData();
+        }
+
+        private void UC_LopHanhChinh_VisibleChanged(object sender, EventArgs e)
+        {
+            if (this.Visible && !daTaiDuLieu)
+            {
+                Cursor.Current = Cursors.WaitCursor;
+                LoadComboBoxData();
+                LoadData();
+                daTaiDuLieu = true;
+                Cursor.Current = Cursors.Default;
+            }
         }
         private void KhoiTaoCboTimKiemSapXep()
         {

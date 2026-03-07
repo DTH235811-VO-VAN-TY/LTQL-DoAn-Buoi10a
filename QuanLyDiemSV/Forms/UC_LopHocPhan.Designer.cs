@@ -77,6 +77,8 @@
             cboMaGV = new ComboBox();
             txtTenLHP = new TextBox();
             cboMaMon = new ComboBox();
+            btnXuat = new Button();
+            btnNhap = new Button();
             panel1.SuspendLayout();
             panel4.SuspendLayout();
             groupBox3.SuspendLayout();
@@ -346,10 +348,12 @@
             // groupBox1
             // 
             groupBox1.Controls.Add(btnAddHocKy);
+            groupBox1.Controls.Add(btnNhap);
             groupBox1.Controls.Add(btnSua);
             groupBox1.Controls.Add(btnLamLai);
             groupBox1.Controls.Add(btnLuu);
             groupBox1.Controls.Add(btnThem);
+            groupBox1.Controls.Add(btnXuat);
             groupBox1.Controls.Add(btnXoa);
             groupBox1.Controls.Add(cboTrangThai);
             groupBox1.Controls.Add(txtSiSo);
@@ -617,6 +621,41 @@
             cboMaMon.Size = new Size(243, 31);
             cboMaMon.TabIndex = 127;
             // 
+            // btnXuat
+            // 
+            btnXuat.Anchor = AnchorStyles.Left;
+            btnXuat.FlatAppearance.BorderColor = Color.Blue;
+            btnXuat.FlatAppearance.MouseDownBackColor = Color.Blue;
+            btnXuat.FlatAppearance.MouseOverBackColor = Color.Blue;
+            btnXuat.Font = new Font("Microsoft Sans Serif", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            btnXuat.ImageAlign = ContentAlignment.MiddleLeft;
+            btnXuat.Location = new Point(1434, 208);
+            btnXuat.Margin = new Padding(3, 4, 3, 4);
+            btnXuat.Name = "btnXuat";
+            btnXuat.Padding = new Padding(5, 0, 0, 0);
+            btnXuat.Size = new Size(199, 43);
+            btnXuat.TabIndex = 146;
+            btnXuat.Text = "Xuất";
+            btnXuat.UseVisualStyleBackColor = true;
+            btnXuat.Click += btnXuat_Click;
+            // 
+            // btnNhap
+            // 
+            btnNhap.Anchor = AnchorStyles.Left;
+            btnNhap.FlatAppearance.BorderColor = Color.Blue;
+            btnNhap.FlatAppearance.MouseDownBackColor = Color.Blue;
+            btnNhap.FlatAppearance.MouseOverBackColor = Color.Blue;
+            btnNhap.ImageAlign = ContentAlignment.MiddleLeft;
+            btnNhap.Location = new Point(1212, 207);
+            btnNhap.Margin = new Padding(3, 4, 3, 4);
+            btnNhap.Name = "btnNhap";
+            btnNhap.Padding = new Padding(5, 0, 0, 0);
+            btnNhap.Size = new Size(199, 43);
+            btnNhap.TabIndex = 147;
+            btnNhap.Text = "Nhập";
+            btnNhap.UseVisualStyleBackColor = true;
+            btnNhap.Click += btnNhap_Click;
+            // 
             // UC_LopHocPhan
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
@@ -690,5 +729,7 @@
         private DataGridViewTextBoxColumn PhongHoc;
         private DataGridViewTextBoxColumn SiSoToiDa;
         private DataGridViewTextBoxColumn TrangThai;
+        private Button btnNhap;
+        private Button btnXuat;
     }
 }

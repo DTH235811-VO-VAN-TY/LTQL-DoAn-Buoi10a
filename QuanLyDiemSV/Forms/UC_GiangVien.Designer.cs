@@ -28,7 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
-            DataGridViewCellStyle dataGridViewCellStyle1 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle2 = new DataGridViewCellStyle();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(UC_GiangVien));
             dtpNamSinhGV = new DateTimePicker();
             radNu = new RadioButton();
@@ -77,6 +77,8 @@
             label2 = new Label();
             cboHocVi = new ComboBox();
             panelInput = new Panel();
+            btnNhap = new Button();
+            btnXuat = new Button();
             groupBoxList.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)dgvAdminGiangVien).BeginInit();
             panelGrid.SuspendLayout();
@@ -141,14 +143,14 @@
             dgvAdminGiangVien.BackgroundColor = SystemColors.ButtonHighlight;
             dgvAdminGiangVien.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             dgvAdminGiangVien.Columns.AddRange(new DataGridViewColumn[] { MaGV, HoTen, NgaySinh, GioiTinh, Email, SDT, HocVi, Khoa });
-            dataGridViewCellStyle1.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle1.BackColor = SystemColors.Window;
-            dataGridViewCellStyle1.Font = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            dataGridViewCellStyle1.ForeColor = SystemColors.ControlText;
-            dataGridViewCellStyle1.SelectionBackColor = SystemColors.Highlight;
-            dataGridViewCellStyle1.SelectionForeColor = SystemColors.HighlightText;
-            dataGridViewCellStyle1.WrapMode = DataGridViewTriState.False;
-            dgvAdminGiangVien.DefaultCellStyle = dataGridViewCellStyle1;
+            dataGridViewCellStyle2.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle2.BackColor = SystemColors.Window;
+            dataGridViewCellStyle2.Font = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            dataGridViewCellStyle2.ForeColor = SystemColors.ControlText;
+            dataGridViewCellStyle2.SelectionBackColor = SystemColors.Highlight;
+            dataGridViewCellStyle2.SelectionForeColor = SystemColors.HighlightText;
+            dataGridViewCellStyle2.WrapMode = DataGridViewTriState.False;
+            dgvAdminGiangVien.DefaultCellStyle = dataGridViewCellStyle2;
             dgvAdminGiangVien.Dock = DockStyle.Fill;
             dgvAdminGiangVien.Location = new Point(3, 24);
             dgvAdminGiangVien.Margin = new Padding(3, 4, 3, 4);
@@ -565,6 +567,8 @@
             // groupBoxInfo
             // 
             groupBoxInfo.BackColor = Color.LemonChiffon;
+            groupBoxInfo.Controls.Add(btnNhap);
+            groupBoxInfo.Controls.Add(btnXuat);
             groupBoxInfo.Controls.Add(dtpNamSinhGV);
             groupBoxInfo.Controls.Add(radNu);
             groupBoxInfo.Controls.Add(radNam);
@@ -627,6 +631,38 @@
             panelInput.Padding = new Padding(10, 12, 10, 12);
             panelInput.Size = new Size(1694, 329);
             panelInput.TabIndex = 4;
+            // 
+            // btnNhap
+            // 
+            btnNhap.BackColor = Color.White;
+            btnNhap.FlatStyle = FlatStyle.Flat;
+            btnNhap.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            btnNhap.ImageAlign = ContentAlignment.MiddleLeft;
+            btnNhap.Location = new Point(1153, 237);
+            btnNhap.Margin = new Padding(3, 4, 3, 4);
+            btnNhap.Name = "btnNhap";
+            btnNhap.Padding = new Padding(10, 0, 0, 0);
+            btnNhap.Size = new Size(195, 56);
+            btnNhap.TabIndex = 127;
+            btnNhap.Text = "Nhập..";
+            btnNhap.UseVisualStyleBackColor = false;
+            btnNhap.Click += btnNhap_Click;
+            // 
+            // btnXuat
+            // 
+            btnXuat.BackColor = Color.White;
+            btnXuat.FlatStyle = FlatStyle.Flat;
+            btnXuat.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            btnXuat.ImageAlign = ContentAlignment.MiddleLeft;
+            btnXuat.Location = new Point(1377, 237);
+            btnXuat.Margin = new Padding(3, 4, 3, 4);
+            btnXuat.Name = "btnXuat";
+            btnXuat.Padding = new Padding(10, 0, 0, 0);
+            btnXuat.Size = new Size(195, 56);
+            btnXuat.TabIndex = 128;
+            btnXuat.Text = "Xuất..";
+            btnXuat.UseVisualStyleBackColor = false;
+            btnXuat.Click += btnXuat_Click;
             // 
             // UC_GiangVien
             // 
@@ -697,5 +733,7 @@
         private DataGridViewTextBoxColumn SDT;
         private DataGridViewTextBoxColumn HocVi;
         private DataGridViewTextBoxColumn Khoa;
+        private Button btnNhap;
+        private Button btnXuat;
     }
 }

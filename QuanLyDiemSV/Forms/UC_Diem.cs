@@ -6,6 +6,7 @@ using System.Windows.Forms;
 using QuanLyDiemSV.Data;
 using GUI;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement;
+using ClosedXML.Excel;
 
 namespace GUI
 {
@@ -17,23 +18,33 @@ namespace GUI
 
         string currentMaSV = "";
         bool xuLyThem = false;
-
+        bool daTaiDuLieu = false;
         public UC_Diem()
         {
             InitializeComponent();
             this.Load += UC_Diem_Load;
+            this.VisibleChanged += UC_Diem_VisibleChanged;
         }
 
         private void UC_Diem_Load(object sender, EventArgs e)
         {
             BatTatChucNang(false);
-            LoadCboHocKy(); 
-            
             CauHinhCotGridDiem();
             bsDiem.CurrentChanged += BsDiem_CurrentChanged;
+        }
+        private void UC_Diem_VisibleChanged(object sender, EventArgs e)
+        {
+            if (this.Visible && !daTaiDuLieu)
+            {
+                Cursor.Current = Cursors.WaitCursor;
 
-            // Đăng ký sự kiện khi chọn học kỳ (nếu Designer chưa bắt)
-            cboHocKy.SelectedIndexChanged += cboHocKy_SelectedIndexChanged;
+                cboHocKy.SelectedIndexChanged -= cboHocKy_SelectedIndexChanged;
+                cboHocKy.SelectedIndexChanged += cboHocKy_SelectedIndexChanged;
+                LoadCboHocKy(); // Chỉ cần gọi Load Học Kỳ, nó sẽ tự kéo theo Load Điểm
+
+                daTaiDuLieu = true;
+                Cursor.Current = Cursors.Default;
+            }
         }
 
         #region 1. CẤU HÌNH & LOAD COMBOBOX
@@ -110,6 +121,7 @@ namespace GUI
         {
             public int ID { get; set; }
             public int MaLHP { get; set; }
+            public string MaHK { get; set; }
             public string MaMon { get; set; }
             public string TenMon { get; set; }
             public int SoTinChi { get; set; }
@@ -186,14 +198,20 @@ namespace GUI
 
         private void LoadBangDiemSinhVien(string maSV)
         {
+            // 1. Lấy mã học kỳ đang được chọn trên ComboBox
+            if (cboHocKy.SelectedValue == null) return;
+            string maHK_DuocChon = cboHocKy.SelectedValue.ToString();
+
+            // 2. Lấy điểm của sinh viên NHƯNG CHỈ TRONG HỌC KỲ ĐÓ
             var listDiemRaw = from kq in context.KetQuaHocTap
                               join lhp in context.LopHocPhan on kq.MaLHP equals lhp.MaLHP
                               join mh in context.MonHoc on lhp.MaMon equals mh.MaMon
-                              where kq.MaSV == maSV
+                              where kq.MaSV == maSV && lhp.MaHK == maHK_DuocChon // <--- Thêm điều kiện lọc ở đây
                               select new DiemViewModel
                               {
                                   ID = kq.MaKQ,
                                   MaLHP = kq.MaLHP,
+                                  MaHK = lhp.MaHK,
                                   MaMon = mh.MaMon,
                                   TenMon = mh.TenMon,
                                   SoTinChi = mh.SoTinChi,
@@ -204,7 +222,7 @@ namespace GUI
             bsDiem.DataSource = listDiemRaw.ToList();
             dgvBangDiem.DataSource = bsDiem;
 
-            // Xóa Binding cũ
+            // Xóa bỏ binding tự động
             txtDiemQT.DataBindings.Clear();
             txtDiemCK.DataBindings.Clear();
             txtSTC.DataBindings.Clear();
@@ -212,23 +230,39 @@ namespace GUI
             txtDiemThiLan1.DataBindings.Clear();
             txtDiemThiLan2.DataBindings.Clear();
 
-            // Binding mới
-            txtDiemQT.DataBindings.Add("Text", bsDiem, "DiemGK", true, DataSourceUpdateMode.OnPropertyChanged);
-            txtDiemCK.DataBindings.Add("Text", bsDiem, "DiemCK", true, DataSourceUpdateMode.OnPropertyChanged);
-            txtSTC.DataBindings.Add("Text", bsDiem, "SoTinChi", true);
-            txtTenMon.DataBindings.Add("Text", bsDiem, "TenMon", true);
-
+            // Cập nhật thống kê điểm (Bây giờ nó sẽ tính chuẩn xác cho riêng học kỳ này)
             TinhTongKetHocKy(bsDiem.DataSource as List<DiemViewModel>);
         }
 
         private void BsDiem_CurrentChanged(object sender, EventArgs e)
         {
-            if (bsDiem.Current != null && !xuLyThem)
-            {
-                var item = (DiemViewModel)bsDiem.Current;
-                cboMaMon.SelectedValue = item.MaLHP;
+            if (bsDiem.Current == null || xuLyThem) return;
 
-                // (Tùy chọn) Có thể tự động set lại comboBox1 (Học kỳ) theo môn đang chọn nếu muốn
+            var item = (DiemViewModel)bsDiem.Current;
+
+            // 1. ĐỔ DỮ LIỆU LÊN CÁC TEXTBOX
+            txtDiemQT.Text = item.DiemGK?.ToString();
+            txtDiemCK.Text = item.DiemCK?.ToString();
+            txtTenMon.Text = item.TenMon;
+            txtSTC.Text = item.SoTinChi.ToString();
+
+            // Reset các ô trống
+            txtDiemThiLan1.Text = "";
+            txtDiemThiLan2.Text = "";
+            txtGhichu.Text = "";
+
+            // 2. XỬ LÝ COMBOBOX: Đảm bảo môn học không bị trống
+            if (!string.IsNullOrEmpty(item.MaHK))
+            {
+                // Ép cboHocKy nhảy về học kỳ của điểm này
+                // (Hành động này sẽ tự động kích hoạt hàm LoadComboBoxMonHoc để nạp danh sách môn mới)
+                cboHocKy.SelectedValue = item.MaHK;
+            }
+
+            // Sau khi danh sách môn đã được nạp chuẩn, ta mới gán mã Lớp học phần
+            if (item.MaLHP > 0)
+            {
+                cboMaMon.SelectedValue = item.MaLHP;
             }
         }
 
@@ -254,8 +288,17 @@ namespace GUI
                 lblSTCTichLuy.Text = list.Sum(x => x.SoTinChi).ToString();
 
                 double td = list.Where(x => x.DiemTongKet != null).Sum(x => (double)x.DiemTongKet * x.SoTinChi);
+                double d4 = 0;
+
+                if (td >= 8.5) d4 = 4.0;       // A (Giỏi/Xuất sắc)
+                else if (td >= 7.0) d4 = 3.0;  // B (Khá)
+                else if (td >= 5.5) d4 = 2.0;  // C (Trung bình)
+                else if (td >= 4.0) d4 = 1.0;  // D (Trung bình yếu)
+                else d4 = 0.0;
+
                 int tc = list.Sum(x => x.SoTinChi);
                 lblDiemHe10.Text = tc > 0 ? Math.Round(td / tc, 2).ToString() : "0";
+                lblDiemHe4.Text = tc > 0 ? Math.Round(d4, 2).ToString() : "0";
 
                 return; // Dừng, không xếp loại
             }
@@ -410,8 +453,10 @@ namespace GUI
 
         private void btnAdLamLai_SV_Click(object sender, EventArgs e)
         {
+            xuLyThem = false;
             BatTatChucNang(false);
             bsDiem.ResetBindings(false);
+            BsDiem_CurrentChanged(null, null);
         }
 
         private void btnQuayLai_Click_1(object sender, EventArgs e) => OnQuayLai?.Invoke();
@@ -440,10 +485,196 @@ namespace GUI
 
         private void cboHocKy_SelectedIndexChanged(object sender, EventArgs e)
         {
+            // Kiểm tra an toàn: Đảm bảo Học kỳ đã được chọn và có giá trị
             if (cboHocKy.SelectedValue != null)
             {
-                string maHK = cboHocKy.SelectedValue.ToString();
-                LoadComboBoxMonHoc(maHK);
+                // Lấy mã học kỳ đang được chọn
+                string maHK_DuocChon = cboHocKy.SelectedValue.ToString();
+
+                // 1. Gọi hàm nạp danh sách Môn học (để combo môn học hiển thị đúng)
+                LoadComboBoxMonHoc(maHK_DuocChon);
+
+                // 2. GỌI LẠI HÀM LOAD ĐIỂM: Để lưới cập nhật lại các môn của học kỳ này
+                if (!string.IsNullOrEmpty(currentMaSV))
+                {
+                    LoadBangDiemSinhVien(currentMaSV);
+                }
+            }
+        }
+
+        private void dgvBangDiem_CellClick(object sender, DataGridViewCellEventArgs e)
+        {
+
+        }
+
+        private void btnXuat_Click(object sender, EventArgs e)
+        {
+            // 1. Kiểm tra xem có dữ liệu không
+            if (bsDiem.DataSource == null || ((List<DiemViewModel>)bsDiem.DataSource).Count == 0)
+            {
+                MessageBox.Show("Không có dữ liệu điểm để xuất!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            // 2. Tạo tên file mặc định: VD: Diem_Vo_Van_Ty_Hoc_ky_1.xlsx
+            string tenSV = lblHoTen.Text.Replace(" ", "_"); // Xóa khoảng trắng để tên file không bị lỗi
+            string hocKy = cboHocKy.Text.Replace(" ", "_");
+            string defaultFileName = $"Diem_{tenSV}_{hocKy}.xlsx";
+
+            // 3. Mở hộp thoại lưu file
+            using (SaveFileDialog sfd = new SaveFileDialog() { Filter = "Excel Workbook|*.xlsx", FileName = defaultFileName })
+            {
+                if (sfd.ShowDialog() == DialogResult.OK)
+                {
+                    try
+                    {
+                        using (XLWorkbook workbook = new XLWorkbook())
+                        {
+                            var worksheet = workbook.Worksheets.Add("BangDiem");
+
+                            // --- TẠO PHẦN THÔNG TIN SINH VIÊN (HEADER) ---
+                            worksheet.Cell(1, 1).Value = "BẢNG ĐIỂM SINH VIÊN";
+                            worksheet.Cell(1, 1).Style.Font.Bold = true;
+                            worksheet.Cell(1, 1).Style.Font.FontSize = 14;
+
+                            worksheet.Cell(2, 1).Value = "Mã SV: " + lblMaSV.Text;
+                            worksheet.Cell(2, 2).Value = "Họ tên: " + lblHoTen.Text;
+                            worksheet.Cell(3, 1).Value = "Lớp: " + lblLop.Text;
+                            worksheet.Cell(3, 2).Value = "Học kỳ: " + cboHocKy.Text;
+
+                            // --- TẠO TIÊU ĐỀ CÁC CỘT (Bắt đầu từ dòng 5) ---
+                            int startRow = 5;
+                            worksheet.Cell(startRow, 1).Value = "STT";
+                            worksheet.Cell(startRow, 2).Value = "Mã Môn";
+                            worksheet.Cell(startRow, 3).Value = "Tên Môn";
+                            worksheet.Cell(startRow, 4).Value = "Tín Chỉ";
+                            worksheet.Cell(startRow, 5).Value = "Điểm Quá Trình";
+                            worksheet.Cell(startRow, 6).Value = "Điểm Cuối Kỳ";
+                            worksheet.Cell(startRow, 7).Value = "Tổng Kết (10)";
+                            worksheet.Cell(startRow, 8).Value = "Điểm Chữ";
+
+                            // Bôi đậm dòng tiêu đề
+                            worksheet.Range(startRow, 1, startRow, 8).Style.Font.Bold = true;
+                            worksheet.Range(startRow, 1, startRow, 8).Style.Fill.BackgroundColor = XLColor.LightGray;
+
+                            // --- ĐỔ DỮ LIỆU ĐIỂM VÀO ---
+                            var listDiem = (List<DiemViewModel>)bsDiem.DataSource;
+                            int row = startRow + 1;
+                            int stt = 1;
+
+                            foreach (var diem in listDiem)
+                            {
+                                worksheet.Cell(row, 1).Value = stt++;
+                                worksheet.Cell(row, 2).Value = diem.MaMon;
+                                worksheet.Cell(row, 3).Value = diem.TenMon;
+                                worksheet.Cell(row, 4).Value = diem.SoTinChi;
+                                worksheet.Cell(row, 5).Value = diem.DiemGK?.ToString();
+                                worksheet.Cell(row, 6).Value = diem.DiemCK?.ToString();
+
+                                // Ép kiểu làm tròn điểm tổng kết
+                                worksheet.Cell(row, 7).Value = diem.DiemTongKet != null ? Math.Round((decimal)diem.DiemTongKet, 1).ToString() : "";
+                                worksheet.Cell(row, 8).Value = diem.DiemChu;
+
+                                row++;
+                            }
+
+                            // Căn chỉnh tự động cột cho đẹp
+                            worksheet.Columns().AdjustToContents();
+
+                            // Lưu và báo thành công
+                            workbook.SaveAs(sfd.FileName);
+                            MessageBox.Show("Xuất file Excel thành công!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show("Lỗi xuất file: " + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                }
+            }
+        }
+
+        private void btnNhap_Click(object sender, EventArgs e)
+        {
+            if (string.IsNullOrEmpty(currentMaSV))
+            {
+                MessageBox.Show("Vui lòng chọn sinh viên ở màn hình chính trước khi nhập điểm!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            string maHK = cboHocKy.SelectedValue?.ToString();
+            if (string.IsNullOrEmpty(maHK)) return;
+
+            try
+            {
+                using (OpenFileDialog ofd = new OpenFileDialog() { Filter = "Excel Workbook|*.xlsx", Title = "Chọn file Excel Bảng Điểm" })
+                {
+                    if (ofd.ShowDialog() == DialogResult.OK)
+                    {
+                        using (var workbook = new XLWorkbook(ofd.FileName))
+                        {
+                            var worksheet = workbook.Worksheet(1);
+                            var rows = worksheet.RangeUsed().RowsUsed();
+
+                            int rowCount = 0;
+
+                            foreach (var row in rows)
+                            {
+                                // Lấy Mã Môn ở cột số 2 (Dựa theo đúng cấu trúc file đã xuất ra)
+                                string maMon = row.Cell(2).Value.ToString().Trim();
+
+                                // Bỏ qua nếu là các dòng header, tiêu đề hoặc rỗng
+                                if (string.IsNullOrEmpty(maMon) || maMon == "Mã Môn" || maMon.Contains("Mã SV") || maMon.Contains("Họ tên"))
+                                    continue;
+
+                                // Đọc Điểm Quá Trình (Cột 5) và Điểm Cuối Kỳ (Cột 6)
+                                decimal? diemGK = null;
+                                decimal? diemCK = null;
+
+                                if (decimal.TryParse(row.Cell(5).Value.ToString(), out decimal gk)) diemGK = gk;
+                                if (decimal.TryParse(row.Cell(6).Value.ToString(), out decimal ck)) diemCK = ck;
+
+                                // 1. Tìm Lớp Học Phần tương ứng với Mã Môn và Học Kỳ này
+                                var lhp = context.LopHocPhan.FirstOrDefault(x => x.MaMon == maMon && x.MaHK == maHK);
+
+                                if (lhp != null)
+                                {
+                                    // 2. Tìm xem sinh viên đã có dòng Kết Quả cho Lớp Học Phần này chưa
+                                    var kq = context.KetQuaHocTap.FirstOrDefault(x => x.MaSV == currentMaSV && x.MaLHP == lhp.MaLHP);
+
+                                    if (kq != null)
+                                    {
+                                        // Đã có môn này -> Cập nhật điểm
+                                        if (diemGK.HasValue) kq.DiemGK = diemGK;
+                                        if (diemCK.HasValue) kq.DiemCK = diemCK;
+                                        context.KetQuaHocTap.Update(kq);
+                                    }
+                                    else
+                                    {
+                                        // Chưa có -> Thêm mới dòng kết quả
+                                        KetQuaHocTap newKq = new KetQuaHocTap();
+                                        newKq.MaSV = currentMaSV;
+                                        newKq.MaLHP = lhp.MaLHP;
+                                        newKq.DiemGK = diemGK;
+                                        newKq.DiemCK = diemCK;
+                                        context.KetQuaHocTap.Add(newKq);
+                                    }
+                                    rowCount++;
+                                }
+                            }
+
+                            // Lưu thay đổi và load lại lưới
+                            context.SaveChanges();
+                            LoadBangDiemSinhVien(currentMaSV);
+
+                            MessageBox.Show($"Đã cập nhật điểm thành công cho {rowCount} môn học!", "Hoàn tất", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi nhập file: Vui lòng đảm bảo bạn đang nhập đúng file Excel mẫu đã xuất ra.\nChi tiết: " + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
     }

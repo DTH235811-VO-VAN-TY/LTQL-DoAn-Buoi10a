@@ -44,7 +44,7 @@ namespace QuanLyDiemSV.Data
             {
                 // Chuỗi kết nối lấy từ App.config bạn gửi trước đó
                 //optionsBuilder.UseSqlServer(ConfigurationManager.ConnectionStrings["QLDSVConnection"].ConnectionString);
-                optionsBuilder.UseSqlServer("Server=REDMI-11\\SQLEXPRESS01;Database=QLDSV_;Integrated Security=True;TrustServerCertificate=True");
+                optionsBuilder.UseSqlServer("Server=REDMI-11\\SQLEXPRESS01;Database=QLDSV_;Integrated Security=True;Pooling=false;TrustServerCertificate=True;MultipleActiveResultSets=true;Connection Timeout=60;", builder => builder.EnableRetryOnFailure()); ;
             }
         }
         protected override void OnModelCreating(ModelBuilder modelBuilder)

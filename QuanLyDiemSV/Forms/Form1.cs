@@ -70,6 +70,7 @@ namespace QuanLyDiemSV
         {
             ActivateButton(sender);
             uC_SinhVien1.BringToFront();
+          //  uC_SinhVien1.LoadDuLieuSinhVien();
         }
 
         private void btnMonHoc_Click(object sender, EventArgs e)
@@ -82,6 +83,7 @@ namespace QuanLyDiemSV
         {
             ActivateButton(sender);
             uC_GiangVien1.BringToFront();
+           // uC_GiangVien1.LoadData();
         }
 
         private void btnLopHanhChinh_Click(object sender, EventArgs e)

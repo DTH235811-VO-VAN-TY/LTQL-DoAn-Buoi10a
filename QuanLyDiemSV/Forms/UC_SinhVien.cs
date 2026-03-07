@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore; // Cần thư viện này để dùng .Incl
 using QuanLyDiemSV.Data;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.Button;
+using ClosedXML.Excel;
 
 namespace QuanLyDiemSV
 {
@@ -18,19 +19,44 @@ namespace QuanLyDiemSV
         BindingSource bsSinhVien = new BindingSource();
 
         bool xuLyThem = false; // Cờ kiểm tra đang Thêm hay Sửa
+        bool daTaiDuLieu = false;
 
         public UC_SinhVien()
         {
             InitializeComponent();
             this.Load += UC_SinhVien_Load;
+            this.VisibleChanged += UC_SinhVien_VisibleChanged;
         }
 
         private void UC_SinhVien_Load(object sender, EventArgs e)
         {
             BatTatChucNang(false);
-            LoadComboBoxLop();
-            LoadDuLieuSinhVien(); // Hàm quan trọng nhất để Binding
+           // LoadComboBoxLop();
+           // LoadDuLieuSinhVien(); // Hàm quan trọng nhất để Binding
             KhoiTaoCboTimKiemSapXep();
+        }
+        private void UC_SinhVien_VisibleChanged(object sender, EventArgs e)
+        {
+            if (this.DesignMode || System.ComponentModel.LicenseManager.UsageMode == System.ComponentModel.LicenseUsageMode.Designtime) return;
+
+            if (this.Visible)
+            {
+                Cursor.Current = Cursors.WaitCursor;
+
+                // 1. Luôn tải lại danh sách Lớp để lấy lớp mới nhất
+                var oldMaLop = cboAdSV_TenLop.SelectedValue;
+                LoadComboBoxLop();
+                if (oldMaLop != null) cboAdSV_TenLop.SelectedValue = oldMaLop;
+
+                // 2. Chỉ tải lưới danh sách sinh viên 1 lần
+                if (!daTaiDuLieu)
+                {
+                    LoadDuLieuSinhVien();
+                    daTaiDuLieu = true;
+                }
+
+                Cursor.Current = Cursors.Default;
+            }
         }
         private void KhoiTaoCboTimKiemSapXep()
         {
@@ -49,15 +75,21 @@ namespace QuanLyDiemSV
 
         private void LoadComboBoxLop()
         {
-            // Tải danh sách Lớp vào ComboBox
-            var listLop = context.LopHanhChinh.ToList();
-            cboAdSV_TenLop.DataSource = listLop;
-            cboAdSV_TenLop.DisplayMember = "TenLop";
-            cboAdSV_TenLop.ValueMember = "MaLop";
-            cboAdSV_TenLop.SelectedIndex = -1;
+            using (var freshContext = new QLDSVDbContext())
+            {
+                var dsLop = freshContext.LopHanhChinh.ToList();
+
+                // 2. Ép ComboBox "quên" dữ liệu cũ đi để sẵn sàng nhận dữ liệu mới
+                cboAdSV_TenLop.DataSource = null; 
+
+                // 3. Đổ dữ liệu mới vào
+                cboAdSV_TenLop.DataSource = dsLop;
+                cboAdSV_TenLop.DisplayMember = "TenLop";  // Đảm bảo tên cột khớp với CSDL của bạn
+                cboAdSV_TenLop.ValueMember = "MaLop";
+            }
         }
 
-        private void LoadDuLieuSinhVien()
+        public void LoadDuLieuSinhVien()
         {
             try
             {
@@ -76,7 +108,7 @@ namespace QuanLyDiemSV
                     string loaiTK = cboAdTimKiem_SV.SelectedItem.ToString();
                     switch (loaiTK)
                     {
-                        case "Mã Sinh Viên": 
+                        case "Mã Sinh Viên":
                             query = query.Where(g => g.MaSV.ToLower().Contains(tuKhoa));
                             break;
                         case "Họ Tên":
@@ -100,7 +132,7 @@ namespace QuanLyDiemSV
                     string kieuSX = cboKieuSX.SelectedItem.ToString();
                     switch (kieuSX)
                     {
-                        case "Mã Sinh Viên": 
+                        case "Mã Sinh Viên":
                             query = isTang ? query.OrderBy(g => g.MaSV) : query.OrderByDescending(g => g.MaSV);
                             break;
                         case "Họ Tên":
@@ -116,7 +148,7 @@ namespace QuanLyDiemSV
                 // 4. CẬP NHẬT DỮ LIỆU VÀO LƯỚI
                 // =====================================
 
-               
+
                 var listSV = query.ToList();
 
                 // Gán vào BindingSource
@@ -173,7 +205,7 @@ namespace QuanLyDiemSV
             else radAdSV_Nu.Checked = true;
 
             // 2. Truy vấn ngược lên để lấy Tên Ngành, Tên Khoa, Niên Khóa
-            
+
             var lop = context.LopHanhChinh
                              .Include(l => l.MaNganhNavigation).ThenInclude(n => n.MaKhoaNavigation)
                              .FirstOrDefault(l => l.MaLop == currentSV.MaLop);
@@ -346,7 +378,8 @@ namespace QuanLyDiemSV
             }
         }
 
-        private void btnAdLua_SV_Click(object sender, EventArgs e)
+        // Đã thêm từ khóa 'async' vào khai báo hàm
+        private async void btnAdLua_SV_Click(object sender, EventArgs e)
         {
             // --- QUAN TRỌNG: GỌI HÀM KIỂM TRA RÀNG BUỘC TẠI ĐÂY ---
             if (!ValidateInput()) return; // Nếu dữ liệu sai, dừng lại không lưu
@@ -363,8 +396,9 @@ namespace QuanLyDiemSV
 
                 if (xuLyThem)
                 {
-                    // Kiểm tra trùng Mã SV trong Database
-                    if (context.SinhVien.Any(s => s.MaSV == sv.MaSV))
+                    // [TỐI ƯU 1]: Dùng await và AnyAsync thay vì Any để không đơ màn hình
+                    bool isExist = await context.SinhVien.AnyAsync(s => s.MaSV == sv.MaSV);
+                    if (isExist)
                     {
                         MessageBox.Show("Mã sinh viên này đã tồn tại!", "Lỗi trùng lặp", MessageBoxButtons.OK, MessageBoxIcon.Error);
                         txtAdMaSV.Focus();
@@ -381,7 +415,12 @@ namespace QuanLyDiemSV
                     context.SinhVien.Update(sv);
                 }
 
-                context.SaveChanges(); // Lưu xuống SQL
+                // [TỐI ƯU 2]: Dùng await và SaveChangesAsync thay vì SaveChanges để không đơ màn hình
+                await context.SaveChangesAsync();
+                context.SaveChanges();
+
+                // [CẬP NHẬT TỪ BƯỚC TRƯỚC]: Mở lại cơ chế đổ dữ liệu tự động lên Textbox
+                bsSinhVien.ResumeBinding();
 
                 MessageBox.Show("Lưu dữ liệu thành công!");
                 LoadDuLieuSinhVien(); // Tải lại để cập nhật thông tin phụ (Tên Khoa/Ngành)
@@ -395,9 +434,19 @@ namespace QuanLyDiemSV
 
         private void btnAdLamLai_SV_Click(object sender, EventArgs e)
         {
-            bsSinhVien.CancelEdit(); // Hủy bỏ các thay đổi tạm thời trên BindingSource
-            BatTatChucNang(false);
-            LoadDuLieuSinhVien(); // Tải lại dữ liệu gốc
+            xuLyThem = false; // Tắt trạng thái thêm
+            BatTatChucNang(false); // Khóa các ô nhập liệu
+
+            // --- 1. CODE PHỤC HỒI LẠI DỮ LIỆU GỐC TỪ DATABASE ---
+            if (bsSinhVien.Current != null)
+            {
+                // Ép Entity Framework vứt bỏ bản nháp và tải lại bản gốc từ SQL
+                context.Entry(bsSinhVien.Current).Reload();
+            }
+
+            // --- 2. MỞ LẠI LIÊN KẾT VÀ LÀM MỚI GIAO DIỆN ---
+            bsSinhVien.ResumeBinding(); // (Nếu ở nút Thêm bạn có dùng SuspendBinding)
+            bsSinhVien.ResetBindings(false); // F5 lại lưới và Textbox ngay lập tức
         }
 
         // --- SỰ KIỆN CLICK LƯỚI (ĐÃ BỎ CODE GÁN DỮ LIỆU VÌ BINDINGSOURCE ĐÃ LÀM THAY) ---
@@ -480,6 +529,148 @@ namespace QuanLyDiemSV
         {
             if (radGiam.Checked)
                 LoadDuLieuSinhVien();
+        }
+
+        private void btnNhap_Click(object sender, EventArgs e)
+        {
+
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+            openFileDialog.Title = "Nhập dữ liệu sinh viên từ Excel";
+            openFileDialog.Filter = "Excel Files|*.xls;*.xlsx";
+            openFileDialog.Multiselect = false;
+
+            if (openFileDialog.ShowDialog() == DialogResult.OK)
+            {
+
+                try
+                {
+                    using (XLWorkbook workbook = new XLWorkbook(openFileDialog.FileName))
+                    {
+                        IXLWorksheet worksheet = workbook.Worksheet(1);
+                        bool firstRow = true;
+                        int rowCount = 0;
+                        int duplicateCount = 0; // Đếm số lượng SV bị trùng mã
+
+                        foreach (IXLRow row in worksheet.RowsUsed())
+                        {
+                            if (firstRow)
+                            {
+                                firstRow = false;
+                                continue; // Bỏ qua dòng tiêu đề
+                            }
+
+                            // 1. Lấy Mã SV (Cột 1)
+                            string maSV = row.Cell(1).Value.ToString().Trim();
+
+                            if (string.IsNullOrEmpty(maSV)) continue; // Bỏ qua dòng rỗng
+
+                            // 2. Kiểm tra trùng lặp khóa chính (MaSV)
+                            if (context.SinhVien.Any(s => s.MaSV == maSV))
+                            {
+                                duplicateCount++;
+                                continue; // Đã tồn tại -> Bỏ qua không thêm dòng này
+                            }
+
+                            SinhVien sv = new SinhVien();
+                            sv.MaSV = maSV;
+                            sv.HoTen = row.Cell(2).Value.ToString().Trim();
+
+                            // 3. Xử lý an toàn cho cột Ngày Sinh (Cột 3)
+                            if (DateTime.TryParse(row.Cell(3).Value.ToString(), out DateTime ngaySinh))
+                                sv.NgaySinh = ngaySinh;
+                            else
+                                sv.NgaySinh = DateTime.Now.AddYears(-18); // Gán tuổi mặc định nếu file Excel nhập sai
+
+                            sv.GioiTinh = row.Cell(4).Value.ToString().Trim();
+                            sv.DiaChi = row.Cell(5).Value.ToString().Trim();
+                            sv.CCCD = row.Cell(6).Value.ToString().Trim();
+                            sv.Email = row.Cell(7).Value.ToString().Trim();
+                            sv.SDT = row.Cell(8).Value.ToString().Trim();
+                            sv.MaLop = row.Cell(9).Value.ToString().Trim(); // Lưu ý: Cần đảm bảo Mã Lớp này đã tồn tại trong bảng LopHanhChinh
+
+                            // 4. Xử lý trạng thái (Cột 10)
+                            if (int.TryParse(row.Cell(10).Value.ToString(), out int trangThai))
+                                sv.TrangThai = trangThai;
+                            else
+                                sv.TrangThai = 1;
+
+                            context.SinhVien.Add(sv);
+                            rowCount++;
+                        }
+
+                        context.SaveChanges(); // Lưu tất cả xuống SQL Server
+
+                        // Hiển thị thông báo chi tiết
+                        string msg = $"Đã nhập thành công {rowCount} sinh viên mới.";
+                        if (duplicateCount > 0)
+                            msg += $"\nĐã bỏ qua {duplicateCount} sinh viên bị trùng mã (MaSV).";
+
+                        MessageBox.Show(msg, "Hoàn tất", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+                        // Tải lại DataGridView để hiển thị dữ liệu mới
+                        LoadDuLieuSinhVien();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Lỗi nhập file: Vui lòng kiểm tra lại định dạng dữ liệu trong Excel.\nChi tiết: " + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
+            
+        }
+
+        private void btnXuat_Click(object sender, EventArgs e)
+        {
+            
+            SaveFileDialog saveFileDialog = new SaveFileDialog();
+            saveFileDialog.Title = "Xuất dữ liệu sinh viên ra Excel";
+            saveFileDialog.Filter = "Excel Files|*.xlsx";
+            // Tên file có kèm ngày tháng năm hiện tại
+            saveFileDialog.FileName = "DanhSachSinhVien_" + DateTime.Now.ToString("dd_MM_yyyy") + ".xlsx";
+
+            if (saveFileDialog.ShowDialog() == DialogResult.OK)
+            {
+                try
+                {
+                    DataTable table = new DataTable();
+
+                    // Khởi tạo các cột bám sát theo CSDL
+                    table.Columns.AddRange(new DataColumn[] {
+                new DataColumn("Mã SV", typeof(string)),
+                new DataColumn("Họ Tên", typeof(string)),
+                new DataColumn("Ngày Sinh", typeof(DateTime)),
+                new DataColumn("Giới Tính", typeof(string)),
+                new DataColumn("Địa Chỉ", typeof(string)),
+                new DataColumn("CCCD", typeof(string)),
+                new DataColumn("Email", typeof(string)),
+                new DataColumn("SĐT", typeof(string)),
+                new DataColumn("Mã Lớp", typeof(string)),
+                new DataColumn("Trạng Thái", typeof(int))
+            });
+
+                    // Lấy toàn bộ dữ liệu sinh viên từ DB
+                    var danhSachSV = context.SinhVien.ToList();
+                    foreach (var sv in danhSachSV)
+                    {
+                        // Truyền dữ liệu vào từng dòng
+                        table.Rows.Add(sv.MaSV, sv.HoTen, sv.NgaySinh, sv.GioiTinh, sv.DiaChi, sv.CCCD, sv.Email, sv.SDT, sv.MaLop, sv.TrangThai ?? 1);
+                    }
+
+                    using (XLWorkbook wb = new XLWorkbook())
+                    {
+                        var sheet = wb.Worksheets.Add(table, "SinhVien");
+                        sheet.Columns().AdjustToContents(); // Căn chỉnh cột tự động cho đẹp
+                        wb.SaveAs(saveFileDialog.FileName);
+
+                        MessageBox.Show("Xuất file Excel thành công!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Lỗi xuất file: " + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
+            
         }
     }
 }

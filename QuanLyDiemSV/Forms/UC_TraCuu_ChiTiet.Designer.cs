@@ -47,6 +47,7 @@
             label13 = new Label();
             label12 = new Label();
             label11 = new Label();
+            btnInBangDiem = new Button();
             panel1.SuspendLayout();
             panel3.SuspendLayout();
             panel2.SuspendLayout();
@@ -94,6 +95,7 @@
             // groupBox1
             // 
             groupBox1.Controls.Add(btnQuayLai);
+            groupBox1.Controls.Add(btnInBangDiem);
             groupBox1.Controls.Add(btnXuat);
             groupBox1.Controls.Add(lblCVHT);
             groupBox1.Controls.Add(lblNganh);
@@ -134,6 +136,7 @@
             btnXuat.TabIndex = 19;
             btnXuat.Text = "Xuất Bảng Điểm";
             btnXuat.UseVisualStyleBackColor = true;
+            btnXuat.Click += btnXuat_Click;
             // 
             // lblCVHT
             // 
@@ -249,6 +252,16 @@
             label11.TabIndex = 12;
             label11.Text = "Mã Số Sinh Viên:";
             // 
+            // btnInBangDiem
+            // 
+            btnInBangDiem.Location = new Point(1177, 41);
+            btnInBangDiem.Name = "btnInBangDiem";
+            btnInBangDiem.Size = new Size(223, 29);
+            btnInBangDiem.TabIndex = 19;
+            btnInBangDiem.Text = "In Bảng Điểm";
+            btnInBangDiem.UseVisualStyleBackColor = true;
+            btnInBangDiem.Click += btnInBangDiem_Click;
+            // 
             // UC_TraCuu_ChiTiet
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
@@ -285,5 +298,6 @@
         private Button btnQuayLai;
         private Panel panel3;
         private FlowLayoutPanel flowLayoutPanel1;
+        private Button btnInBangDiem;
     }
 }

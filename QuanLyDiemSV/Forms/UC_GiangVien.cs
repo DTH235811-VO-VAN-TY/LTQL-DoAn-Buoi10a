@@ -8,6 +8,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using ClosedXML.Excel;
 using QuanLyDiemSV.Data; // Đảm bảo namespace này đúng
 
 namespace QuanLyDiemSV.Forms
@@ -18,21 +19,33 @@ namespace QuanLyDiemSV.Forms
         QLDSVDbContext context = new QLDSVDbContext();
         BindingSource bsGiangVien = new BindingSource();
         bool xuLyThem = false;
+        bool daTaiDuLieu = false;
 
         public UC_GiangVien()
         {
             InitializeComponent();
             this.Load += UC_GiangVien_Load;
+            this.VisibleChanged += UC_GiangVien_VisibleChanged;
         }
 
         private void UC_GiangVien_Load(object sender, EventArgs e)
         {
             BatTatChucNang(false);
-            LoadCboKhoa();
-            LoadCboHocVi();
-            LoadData();
             KhoiTaoCboTimKiemSapXep();
+            // Đã ẩn các hàm Load dữ liệu khỏi đây
+        }
 
+        private void UC_GiangVien_VisibleChanged(object sender, EventArgs e)
+        {
+            if (this.Visible && !daTaiDuLieu)
+            {
+                Cursor.Current = Cursors.WaitCursor;
+                LoadCboKhoa();
+                LoadCboHocVi();
+                LoadData();
+                daTaiDuLieu = true;
+                Cursor.Current = Cursors.Default;
+            }
         }
         private void KhoiTaoCboTimKiemSapXep()
         {
@@ -88,7 +101,7 @@ namespace QuanLyDiemSV.Forms
             cboHocVi.DataSource = listHocVi;
         }
 
-        private void LoadData()
+        public void LoadData()
         {
             try
             {
@@ -266,6 +279,8 @@ namespace QuanLyDiemSV.Forms
             xuLyThem = true;
             BatTatChucNang(true);
 
+           // bsGiangVien.SuspendBinding();
+
             // Xóa trắng để nhập mới
             txtMaGV.Clear();
             txtHoTenGV.Clear();
@@ -360,6 +375,7 @@ namespace QuanLyDiemSV.Forms
                 }
 
                 context.SaveChanges();
+              //  bsGiangVien.ResumeBinding(); // Chặn đổ dữ liệu từ lưới khi thêm
                 LoadData();
                 BatTatChucNang(false);
                 MessageBox.Show("Lưu dữ liệu thành công!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -372,7 +388,11 @@ namespace QuanLyDiemSV.Forms
 
         private void btnLamLai_Click(object sender, EventArgs e)
         {
+           // xuLyThem = false;
             BatTatChucNang(false);
+
+            //bsGiangVien.ResumeBinding();
+
             bsGiangVien.ResetBindings(false); // Reset về giá trị cũ
 
             // Gọi lại hàm này để reset radio button về đúng dòng đang chọn
@@ -391,7 +411,7 @@ namespace QuanLyDiemSV.Forms
 
         private void radGiam_CheckedChanged(object sender, EventArgs e)
         {
-            if(radGiam.Checked)
+            if (radGiam.Checked)
                 LoadData();
         }
 
@@ -413,6 +433,149 @@ namespace QuanLyDiemSV.Forms
             radTang.Checked = true;
 
             LoadData();
+        }
+
+        private void btnNhap_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+            openFileDialog.Title = "Nhập dữ liệu sinh viên từ Excel";
+            openFileDialog.Filter = "Excel Files|*.xls;*.xlsx";
+            openFileDialog.Multiselect = false;
+
+            if (openFileDialog.ShowDialog() == DialogResult.OK)
+            {
+                try
+                {
+                    // Mở hộp thoại chọn file Excel
+                    using (OpenFileDialog ofd = new OpenFileDialog() { Filter = "Excel Workbook|*.xlsx|Excel 97-2003 Workbook|*.xls", Title = "Chọn file Excel Giảng Viên" })
+                    {
+                        if (ofd.ShowDialog() == DialogResult.OK)
+                        {
+                            using (var workbook = new XLWorkbook(ofd.FileName))
+                            {
+                                var worksheet = workbook.Worksheet(1); // Lấy sheet đầu tiên
+                                var rows = worksheet.RangeUsed().RowsUsed().Skip(1); // Bỏ qua dòng tiêu đề 1
+
+                                int rowCount = 0;
+                                int duplicateCount = 0;
+
+                                foreach (var row in rows)
+                                {
+                                    string maGV = row.Cell(1).Value.ToString().Trim();
+
+                                    // Bỏ qua các dòng trống
+                                    if (string.IsNullOrEmpty(maGV)) continue;
+
+                                    // Kiểm tra trùng lặp Mã GV
+                                    if (context.GiangVien.Any(x => x.MaGV == maGV))
+                                    {
+                                        duplicateCount++;
+                                        continue;
+                                    }
+
+                                    GiangVien gv = new GiangVien();
+                                    gv.MaGV = maGV;
+                                    gv.HoTen = row.Cell(2).Value.ToString().Trim();
+
+                                    // Xử lý Ngày Sinh (Chuyển thành DateOnly giống cách lưu thông thường)
+                                    if (DateTime.TryParse(row.Cell(3).Value.ToString(), out DateTime ngaySinh))
+                                        gv.NgaySinh = DateOnly.FromDateTime(ngaySinh);
+                                    else
+                                        gv.NgaySinh = DateOnly.FromDateTime(DateTime.Now); // Mặc định nếu nhập sai format
+
+                                    gv.GioiTinh = row.Cell(4).Value.ToString().Trim();
+                                    gv.Email = row.Cell(5).Value.ToString().Trim();
+                                    gv.SDT = row.Cell(6).Value.ToString().Trim();
+                                    gv.HocVi = row.Cell(7).Value.ToString().Trim();
+                                    gv.MaKhoa = row.Cell(8).Value.ToString().Trim();
+
+                                    context.GiangVien.Add(gv);
+                                    rowCount++;
+                                }
+
+                                // Lưu toàn bộ xuống DB
+                                context.SaveChanges();
+
+                                // Load lại DataGridView
+                                LoadData();
+
+                                // Hiển thị thống kê
+                                string msg = $"Đã nhập thành công {rowCount} giảng viên mới.";
+                                if (duplicateCount > 0)
+                                    msg += $"\nĐã bỏ qua {duplicateCount} giảng viên bị trùng mã.";
+
+                                MessageBox.Show(msg, "Hoàn tất", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Lỗi nhập file: Vui lòng kiểm tra lại cấu trúc file Excel.\nChi tiết: " + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
+        }
+
+        private void btnXuat_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                // Lấy dữ liệu giảng viên từ database
+                var listGV = context.GiangVien.ToList();
+                if (listGV.Count == 0)
+                {
+                    MessageBox.Show("Không có dữ liệu để xuất!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                // Mở hộp thoại chọn nơi lưu file
+                using (SaveFileDialog sfd = new SaveFileDialog() { Filter = "Excel Workbook|*.xlsx", FileName = "DanhSachGiangVien.xlsx" })
+                {
+                    if (sfd.ShowDialog() == DialogResult.OK)
+                    {
+                        using (XLWorkbook workbook = new XLWorkbook())
+                        {
+                            var worksheet = workbook.Worksheets.Add("GiangVien");
+
+                            // 1. Tạo dòng Tiêu đề (Header)
+                            worksheet.Cell(1, 1).Value = "Mã Giảng Viên";
+                            worksheet.Cell(1, 2).Value = "Họ Tên";
+                            worksheet.Cell(1, 3).Value = "Ngày Sinh";
+                            worksheet.Cell(1, 4).Value = "Giới Tính";
+                            worksheet.Cell(1, 5).Value = "Email";
+                            worksheet.Cell(1, 6).Value = "Số Điện Thoại";
+                            worksheet.Cell(1, 7).Value = "Học Vị";
+                            worksheet.Cell(1, 8).Value = "Mã Khoa";
+
+                            // 2. Đổ dữ liệu vào các dòng
+                            int row = 2;
+                            foreach (var gv in listGV)
+                            {
+                                worksheet.Cell(row, 1).Value = gv.MaGV;
+                                worksheet.Cell(row, 2).Value = gv.HoTen;
+                                worksheet.Cell(row, 3).Value = gv.NgaySinh.Value.ToString("dd/MM/yyyy");
+                                worksheet.Cell(row, 4).Value = gv.GioiTinh;
+                                worksheet.Cell(row, 5).Value = gv.Email;
+                                worksheet.Cell(row, 6).Value = gv.SDT;
+                                worksheet.Cell(row, 7).Value = gv.HocVi;
+                                worksheet.Cell(row, 8).Value = gv.MaKhoa;
+                                row++;
+                            }
+
+                            // Căn chỉnh tự động độ rộng các cột
+                            worksheet.Columns().AdjustToContents();
+
+                            // Lưu file
+                            workbook.SaveAs(sfd.FileName);
+                            MessageBox.Show("Xuất file Excel thành công!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi xuất file: " + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
     }
 }

@@ -17,37 +17,48 @@ namespace GUI
 
         // Biến cờ kiểm tra trạng thái Thêm/Sửa
         bool xuLyThem = false;
+        bool daTaiDuLieu = false; // Biến cờ
 
         public UC_MonHoc()
         {
             InitializeComponent();
             this.Load += UC_MonHoc_Load;
+            this.VisibleChanged += UC_MonHoc_VisibleChanged;
         }
 
         private void UC_MonHoc_Load(object sender, EventArgs e)
         {
             BatTatChucNang(false);
-            LoadDuLieuKhoa();
-            LoadDuLieuMonHoc();
-            //LoadCboMonTienQuyetTheoKhoa(); // Tải danh sách môn vào ComboBox chọn tiên quyết
 
+            // Giữ nguyên hiệu ứng Watermark cho ô tìm kiếm
             txtTuKhoa.Enter += (s, ev) =>
             {
                 if (txtTuKhoa.Text == "Vui lòng nhập tên môn")
                 {
                     txtTuKhoa.Text = "";
-                    txtTuKhoa.ForeColor = System.Drawing.Color.Black; // Đổi lại màu đen khi gõ
+                    txtTuKhoa.ForeColor = System.Drawing.Color.Black;
                 }
             };
-
             txtTuKhoa.Leave += (s, ev) =>
             {
                 if (string.IsNullOrWhiteSpace(txtTuKhoa.Text))
                 {
                     txtTuKhoa.Text = "Vui lòng nhập tên môn";
-                    txtTuKhoa.ForeColor = System.Drawing.Color.Gray; // Mờ lại khi để trống
+                    txtTuKhoa.ForeColor = System.Drawing.Color.Gray;
                 }
             };
+        }
+
+        private void UC_MonHoc_VisibleChanged(object sender, EventArgs e)
+        {
+            if (this.Visible && !daTaiDuLieu)
+            {
+                Cursor.Current = Cursors.WaitCursor;
+                LoadDuLieuKhoa();
+                LoadDuLieuMonHoc();
+                daTaiDuLieu = true;
+                Cursor.Current = Cursors.Default;
+            }
         }
         private void LocVaTimKiem()
         {

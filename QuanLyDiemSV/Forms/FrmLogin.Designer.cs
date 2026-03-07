@@ -191,6 +191,7 @@
             Controls.Add(panel2);
             Controls.Add(panel1);
             Name = "FrmLogin";
+            StartPosition = FormStartPosition.CenterScreen;
             Text = "FrmLogin";
             Load += FrmLogin_Load;
             tableLayoutPanel1.ResumeLayout(false);

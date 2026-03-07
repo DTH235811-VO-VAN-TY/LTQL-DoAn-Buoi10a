@@ -62,7 +62,8 @@
             btnAdLamLai_SV = new Button();
             btnAdLua_SV = new Button();
             btnAdThem_SV = new Button();
-            btnXuatExcel = new Button();
+            btnNhap = new Button();
+            btnXuat = new Button();
             btnAdXoa_SV = new Button();
             btnQuayLai = new Button();
             panel2 = new Panel();
@@ -316,6 +317,7 @@
             dgvBangDiem.RowHeadersWidth = 51;
             dgvBangDiem.Size = new Size(1668, 283);
             dgvBangDiem.TabIndex = 0;
+            dgvBangDiem.CellClick += dgvBangDiem_CellClick;
             // 
             // MaMon
             // 
@@ -402,7 +404,8 @@
             panel3.Controls.Add(btnAdLamLai_SV);
             panel3.Controls.Add(btnAdLua_SV);
             panel3.Controls.Add(btnAdThem_SV);
-            panel3.Controls.Add(btnXuatExcel);
+            panel3.Controls.Add(btnNhap);
+            panel3.Controls.Add(btnXuat);
             panel3.Controls.Add(btnAdXoa_SV);
             panel3.Controls.Add(btnQuayLai);
             panel3.Dock = DockStyle.Top;
@@ -483,23 +486,41 @@
             btnAdThem_SV.UseVisualStyleBackColor = true;
             btnAdThem_SV.Click += btnAdThem_SV_Click;
             // 
-            // btnXuatExcel
+            // btnNhap
             // 
-            btnXuatExcel.Anchor = AnchorStyles.Left;
-            btnXuatExcel.FlatAppearance.BorderColor = Color.Blue;
-            btnXuatExcel.FlatAppearance.MouseDownBackColor = Color.Blue;
-            btnXuatExcel.FlatAppearance.MouseOverBackColor = Color.Blue;
-            btnXuatExcel.Font = new Font("Microsoft Sans Serif", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            btnXuatExcel.Image = (Image)resources.GetObject("btnXuatExcel.Image");
-            btnXuatExcel.ImageAlign = ContentAlignment.MiddleLeft;
-            btnXuatExcel.Location = new Point(1070, 4);
-            btnXuatExcel.Margin = new Padding(3, 4, 3, 4);
-            btnXuatExcel.Name = "btnXuatExcel";
-            btnXuatExcel.Padding = new Padding(5, 0, 0, 0);
-            btnXuatExcel.Size = new Size(199, 43);
-            btnXuatExcel.TabIndex = 141;
-            btnXuatExcel.Text = "Xuất File";
-            btnXuatExcel.UseVisualStyleBackColor = true;
+            btnNhap.Anchor = AnchorStyles.Left;
+            btnNhap.FlatAppearance.BorderColor = Color.Blue;
+            btnNhap.FlatAppearance.MouseDownBackColor = Color.Blue;
+            btnNhap.FlatAppearance.MouseOverBackColor = Color.Blue;
+            btnNhap.Font = new Font("Microsoft Sans Serif", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            btnNhap.ImageAlign = ContentAlignment.MiddleLeft;
+            btnNhap.Location = new Point(1285, 5);
+            btnNhap.Margin = new Padding(3, 4, 3, 4);
+            btnNhap.Name = "btnNhap";
+            btnNhap.Padding = new Padding(5, 0, 0, 0);
+            btnNhap.Size = new Size(199, 43);
+            btnNhap.TabIndex = 141;
+            btnNhap.Text = "Nhập";
+            btnNhap.UseVisualStyleBackColor = true;
+            btnNhap.Click += btnNhap_Click;
+            // 
+            // btnXuat
+            // 
+            btnXuat.Anchor = AnchorStyles.Left;
+            btnXuat.FlatAppearance.BorderColor = Color.Blue;
+            btnXuat.FlatAppearance.MouseDownBackColor = Color.Blue;
+            btnXuat.FlatAppearance.MouseOverBackColor = Color.Blue;
+            btnXuat.Font = new Font("Microsoft Sans Serif", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            btnXuat.ImageAlign = ContentAlignment.MiddleLeft;
+            btnXuat.Location = new Point(1070, 4);
+            btnXuat.Margin = new Padding(3, 4, 3, 4);
+            btnXuat.Name = "btnXuat";
+            btnXuat.Padding = new Padding(5, 0, 0, 0);
+            btnXuat.Size = new Size(199, 43);
+            btnXuat.TabIndex = 141;
+            btnXuat.Text = "Xuất File";
+            btnXuat.UseVisualStyleBackColor = true;
+            btnXuat.Click += btnXuat_Click;
             // 
             // btnAdXoa_SV
             // 
@@ -679,7 +700,7 @@
             cboHocKy.Location = new Point(229, 37);
             cboHocKy.Margin = new Padding(3, 4, 3, 4);
             cboHocKy.Name = "cboHocKy";
-            cboHocKy.Size = new Size(88, 28);
+            cboHocKy.Size = new Size(145, 28);
             cboHocKy.TabIndex = 11;
             cboHocKy.SelectedIndexChanged += cboHocKy_SelectedIndexChanged;
             // 
@@ -727,11 +748,11 @@
             // 
             label7.AutoSize = true;
             label7.Font = new Font("Microsoft Sans Serif", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            label7.Location = new Point(365, 41);
+            label7.Location = new Point(430, 44);
             label7.Name = "label7";
-            label7.Size = new Size(75, 20);
+            label7.Size = new Size(81, 20);
             label7.TabIndex = 8;
-            label7.Text = "Mã Môn";
+            label7.Text = "Tên Môn";
             // 
             // label6
             // 
@@ -951,7 +972,7 @@
         private Button btnAdLua_SV;
         private Button btnAdThem_SV;
         private Button btnAdXoa_SV;
-        private Button btnXuatExcel;
+        private Button btnXuat;
         private Label lblXepLoaiHK;
         private Label lblSoMon;
         private Label lblSTCDat;
@@ -975,5 +996,6 @@
         private TextBox txtGhichu;
         private Label label20;
         private DataGridViewTextBoxColumn GhiChu;
+        private Button btnNhap;
     }
 }
