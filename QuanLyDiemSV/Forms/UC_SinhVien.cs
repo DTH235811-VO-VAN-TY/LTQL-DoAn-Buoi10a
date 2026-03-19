@@ -25,7 +25,7 @@ namespace QuanLyDiemSV
         {
             InitializeComponent();
             this.Load += UC_SinhVien_Load;
-            this.VisibleChanged += UC_SinhVien_VisibleChanged;
+           
         }
 
         private void UC_SinhVien_Load(object sender, EventArgs e)
@@ -35,28 +35,23 @@ namespace QuanLyDiemSV
            // LoadDuLieuSinhVien(); // Hàm quan trọng nhất để Binding
             KhoiTaoCboTimKiemSapXep();
         }
-        private void UC_SinhVien_VisibleChanged(object sender, EventArgs e)
+
+        public void CapNhatDuLieuMoiNhat()
         {
-            if (this.DesignMode || System.ComponentModel.LicenseManager.UsageMode == System.ComponentModel.LicenseUsageMode.Designtime) return;
-
-            if (this.Visible)
+            using (var freshContext = new QLDSVDbContext())
             {
-                Cursor.Current = Cursors.WaitCursor;
+                var oldLop = cboAdSV_TenLop.SelectedValue;
 
-                // 1. Luôn tải lại danh sách Lớp để lấy lớp mới nhất
-                var oldMaLop = cboAdSV_TenLop.SelectedValue;
-                LoadComboBoxLop();
-                if (oldMaLop != null) cboAdSV_TenLop.SelectedValue = oldMaLop;
+                cboAdSV_TenLop.DataSource = freshContext.LopHanhChinh.AsNoTracking().ToList();
+                cboAdSV_TenLop.DisplayMember = "TenLop";
+                cboAdSV_TenLop.ValueMember = "MaLop";
 
-                // 2. Chỉ tải lưới danh sách sinh viên 1 lần
-                if (!daTaiDuLieu)
-                {
-                    LoadDuLieuSinhVien();
-                    daTaiDuLieu = true;
-                }
-
-                Cursor.Current = Cursors.Default;
+                if (oldLop != null) cboAdSV_TenLop.SelectedValue = oldLop;
             }
+
+            // Ép xóa Cache và tải lại danh sách sinh viên
+            context.ChangeTracker.Clear();
+            LoadDuLieuSinhVien();
         }
         private void KhoiTaoCboTimKiemSapXep()
         {
@@ -368,7 +363,8 @@ namespace QuanLyDiemSV
                     context.SaveChanges();
 
                     // Xóa trên giao diện
-                    bsSinhVien.RemoveCurrent();
+                    // bsSinhVien.RemoveCurrent();
+                    LoadDuLieuSinhVien();
                     MessageBox.Show("Xóa thành công!");
                 }
                 catch (Exception ex)
@@ -410,8 +406,6 @@ namespace QuanLyDiemSV
                 }
                 else
                 {
-                    // Nếu sửa: Entity Framework tự biết đối tượng này đã thay đổi
-                    // thông qua BindingSource, chỉ cần Update trạng thái
                     context.SinhVien.Update(sv);
                 }
 
@@ -434,19 +428,36 @@ namespace QuanLyDiemSV
 
         private void btnAdLamLai_SV_Click(object sender, EventArgs e)
         {
+            // 1. Nếu đang Thêm mới mà bấm Làm lại -> Hủy dòng trắng vừa tạo ra
+            if (xuLyThem)
+            {
+                bsSinhVien.CancelEdit();
+            }
+            // 2. Nếu đang Sửa mà bấm Làm lại -> Phục hồi dữ liệu cũ từ SQL
+            else
+            {
+                if (bsSinhVien.Current != null)
+                {
+                    var currentSV = (SinhVien)bsSinhVien.Current;
+
+                    // Đảm bảo đối tượng này có Mã SV (đã tồn tại trong DB) thì mới Reload
+                    if (!string.IsNullOrEmpty(currentSV.MaSV))
+                    {
+                        try
+                        {
+                            context.Entry(currentSV).Reload();
+                        }
+                        catch { } // Bỏ qua lỗi ngầm nếu entity bị mất tracking
+                    }
+                }
+            }
+
+            // 3. Đưa giao diện về trạng thái ban đầu
             xuLyThem = false; // Tắt trạng thái thêm
             BatTatChucNang(false); // Khóa các ô nhập liệu
 
-            // --- 1. CODE PHỤC HỒI LẠI DỮ LIỆU GỐC TỪ DATABASE ---
-            if (bsSinhVien.Current != null)
-            {
-                // Ép Entity Framework vứt bỏ bản nháp và tải lại bản gốc từ SQL
-                context.Entry(bsSinhVien.Current).Reload();
-            }
-
-            // --- 2. MỞ LẠI LIÊN KẾT VÀ LÀM MỚI GIAO DIỆN ---
-            bsSinhVien.ResumeBinding(); // (Nếu ở nút Thêm bạn có dùng SuspendBinding)
-            bsSinhVien.ResetBindings(false); // F5 lại lưới và Textbox ngay lập tức
+            bsSinhVien.ResumeBinding();
+            bsSinhVien.ResetBindings(false); // F5 lại lưới ngay lập tức
         }
 
         // --- SỰ KIỆN CLICK LƯỚI (ĐÃ BỎ CODE GÁN DỮ LIỆU VÌ BINDINGSOURCE ĐÃ LÀM THAY) ---

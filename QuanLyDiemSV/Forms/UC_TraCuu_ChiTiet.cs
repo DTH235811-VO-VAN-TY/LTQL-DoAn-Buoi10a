@@ -23,6 +23,10 @@ namespace QuanLyDiemSV.Forms
         public UC_TraCuu_ChiTiet()
         {
             InitializeComponent();
+
+            flowLayoutPanel1.AutoScroll = true;
+            flowLayoutPanel1.WrapContents = false;
+            flowLayoutPanel1.FlowDirection = FlowDirection.TopDown;
         }
 
         public void LoadDuLieuChiTiet(string maSV)
@@ -48,6 +52,7 @@ namespace QuanLyDiemSV.Forms
         private void LoadDiemVaTaoGiaoDien(string maSV)
         {
             flowLayoutPanel1.Controls.Clear();
+            
 
             // 1. Lấy dữ liệu thô
             var listDiemRaw = (from kq in context.KetQuaHocTap
@@ -146,11 +151,13 @@ namespace QuanLyDiemSV.Forms
                 gbHocKy.Controls.Add(lblTongKet);
                 gbHocKy.Controls.Add(dgv);
                 gbHocKy.Height = gridHeight + 130;
+                gbHocKy.Width = flowLayoutPanel1.ClientSize.Width - 10;
                 flowLayoutPanel1.Controls.Add(gbHocKy);
             }
 
             // --- 4. TẠO GROUPBOX TỔNG KẾT TOÀN KHÓA (MỚI) ---
             ThemGroupTongKetToanKhoa(listDiemProcessed);
+            
         }
 
 
@@ -234,7 +241,7 @@ namespace QuanLyDiemSV.Forms
             lblNoiDung.Padding = new Padding(10, 10, 0, 0);
             lblNoiDung.Font = new System.Drawing.Font("Segoe UI", 10, FontStyle.Regular);
             lblNoiDung.ForeColor = Color.Black;
-
+            gbTongKet.Width = flowLayoutPanel1.ClientSize.Width - 10;
             gbTongKet.Controls.Add(lblNoiDung);
             flowLayoutPanel1.Controls.Add(gbTongKet);
         }

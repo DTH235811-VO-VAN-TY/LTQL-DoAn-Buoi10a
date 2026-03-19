@@ -301,7 +301,9 @@ namespace QuanLyDiemSV.Forms
 
                     if (acc != null)
                     {
-                        acc.RoleID = cboQuyenHan.SelectedIndex;
+                        // SỬA LỖI Ở ĐÂY: Dùng biến selectedRoleID đã lấy đúng Value ở phía trên
+                        acc.RoleID = selectedRoleID;
+
                         acc.IsActive = (bool)cboTrangThai.SelectedValue;
 
                         // Chỉ cập nhật mật khẩu nếu người dùng có nhập vào ô Textbox
@@ -309,9 +311,6 @@ namespace QuanLyDiemSV.Forms
                         {
                             acc.PasswordHash = BCrypt.Net.BCrypt.HashPassword(txtMatKhau.Text);
                         }
-                        // Nếu để trống thì giữ nguyên mật khẩu cũ
-
-                        context.UserAccount.Update(acc);
                     }
                 }
 

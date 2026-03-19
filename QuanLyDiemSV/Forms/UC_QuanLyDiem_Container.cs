@@ -19,6 +19,13 @@ namespace QuanLyDiemSV.Forms
             InitializeComponent();
             this.Load += UC_QuanLyDiem_Container_Load;
             dgvDanhSachSV.CellContentClick += dgvDanhSachSV_CellContentClick;
+
+           // ---ĐĂNG KÝ SỰ KIỆN GIAO DIỆN Ở ĐÂY-- -
+            StyleDataGridView(); // Gọi hàm làm đẹp lưới
+            dgvDanhSachSV.CellPainting += dgvDanhSachSV_CellPainting;
+            dgvDanhSachSV.CellMouseMove += dgvDanhSachSV_CellMouseMove;
+            dgvDanhSachSV.CellMouseLeave += dgvDanhSachSV_CellMouseLeave;
+
         }
 
         private void UC_QuanLyDiem_Container_Load(object sender, EventArgs e)
@@ -32,6 +39,25 @@ namespace QuanLyDiemSV.Forms
             cboKieuSX.SelectedIndexChanged += (s, ev) => LoadData();
             radTang.CheckedChanged += (s, ev) => { if (radTang.Checked) LoadData(); };
             radGiam.CheckedChanged += (s, ev) => { if (radGiam.Checked) LoadData(); };
+        }
+        public void CapNhatDuLieuMoiNhat()
+        {
+            using (var freshContext = new QLDSVDbContext())
+            {
+                var oldKhoa = cboKhoa.SelectedValue;
+
+                var listKhoa = freshContext.Khoa.AsNoTracking().ToList();
+                listKhoa.Insert(0, new Khoa { MaKhoa = "ALL", TenKhoa = "--- Tất cả Khoa ---" });
+
+                cboKhoa.DataSource = listKhoa;
+                cboKhoa.DisplayMember = "TenKhoa";
+                cboKhoa.ValueMember = "MaKhoa";
+
+                if (oldKhoa != null) cboKhoa.SelectedValue = oldKhoa;
+            }
+
+            context.ChangeTracker.Clear();
+            LoadData();
         }
 
         // ==========================================
@@ -127,9 +153,11 @@ namespace QuanLyDiemSV.Forms
             try
             {
                 // 1. Khởi tạo Query & Join các bảng liên quan (Include)
-                var query = context.SinhVien
-                    .Include(s => s.MaLopNavigation).ThenInclude(l => l.MaNganhNavigation).ThenInclude(n => n.MaKhoaNavigation)
-                    .AsQueryable();
+                var query = context.SinhVien.AsNoTracking()
+                            .Include(s => s.MaLopNavigation)
+                            .ThenInclude(l => l.MaNganhNavigation)
+                            .ThenInclude(n => n.MaKhoaNavigation)
+                            .AsQueryable();
 
                 // 2. Xử lý LỌC THEO KHOA
                 if (cboKhoa.SelectedValue != null && cboKhoa.SelectedValue.ToString() != "ALL")
@@ -244,6 +272,94 @@ namespace QuanLyDiemSV.Forms
         {
             if(radGiam.Checked)
                 LoadData();
+        }
+        private void StyleDataGridView()
+        {
+            // 0. Bật Double Buffering để lưới cuộn mượt mà, không bị giật lag nháy hình
+            typeof(DataGridView).InvokeMember("DoubleBuffered", System.Reflection.BindingFlags.NonPublic |
+            System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.SetProperty, null,
+            dgvDanhSachSV, new object[] { true });
+
+            // 1. TẮT Visual Styles mặc định để ép WinForms nghe theo màu của chúng ta
+            dgvDanhSachSV.EnableHeadersVisualStyles = false;
+
+            // 2. CHỈNH HEADER (Tiêu đề cột)
+            dgvDanhSachSV.ColumnHeadersDefaultCellStyle.BackColor = Color.FromArgb(41, 128, 185); // Màu xanh dương đậm hiện đại
+            dgvDanhSachSV.ColumnHeadersDefaultCellStyle.ForeColor = Color.White; // Chữ trắng
+            dgvDanhSachSV.ColumnHeadersDefaultCellStyle.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
+            dgvDanhSachSV.ColumnHeadersDefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            dgvDanhSachSV.ColumnHeadersHeight = 45; // Chiều cao tiêu đề thoáng hơn
+            dgvDanhSachSV.ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.None; // Bỏ viền tiêu đề
+
+            // 3. CHỈNH DÒNG XEN KẼ (Zebra striping)
+            dgvDanhSachSV.AlternatingRowsDefaultCellStyle.BackColor = Color.FromArgb(245, 247, 250); // Xám cực nhạt
+            dgvDanhSachSV.RowsDefaultCellStyle.BackColor = Color.White;
+
+            // 4. CHỈNH FONT CHỮ VÀ CHIỀU CAO DÒNG
+            dgvDanhSachSV.DefaultCellStyle.Font = new Font("Segoe UI", 10F, FontStyle.Regular);
+            dgvDanhSachSV.RowTemplate.Height = 40; // Dòng cao 40px cho dễ nhìn, dễ click
+
+            // 5. CHỈNH DÒNG KHI ĐƯỢC CHỌN (Highlight)
+            dgvDanhSachSV.DefaultCellStyle.SelectionBackColor = Color.FromArgb(212, 230, 241); // Xanh lơ nhạt
+            dgvDanhSachSV.DefaultCellStyle.SelectionForeColor = Color.Black; // Chữ vẫn màu đen cho dễ đọc
+
+            // 6. XÓA VIỀN THỪA (Flat Design)
+            dgvDanhSachSV.BackgroundColor = Color.White;
+            dgvDanhSachSV.BorderStyle = BorderStyle.None;
+            dgvDanhSachSV.CellBorderStyle = DataGridViewCellBorderStyle.SingleHorizontal; // Chỉ kẻ viền ngang mỏng
+            dgvDanhSachSV.GridColor = Color.FromArgb(230, 230, 230); // Màu kẻ ngang xám nhạt
+        }
+        // Sự kiện vẽ lên ô lưới
+        private void dgvDanhSachSV_CellPainting(object sender, DataGridViewCellPaintingEventArgs e)
+        {
+            // Cột ThaoTac nằm ở dữ liệu (RowIndex >= 0)
+            if (e.RowIndex >= 0 && e.ColumnIndex >= 0 && dgvDanhSachSV.Columns[e.ColumnIndex].Name == "ThaoTac")
+            {
+                e.Paint(e.CellBounds, DataGridViewPaintParts.All & ~DataGridViewPaintParts.ContentForeground);
+
+                string buttonText = "Nhập Điểm";
+                Color btnColor = Color.FromArgb(46, 204, 113); // Xanh lá cây ngọc
+                Color textColor = Color.White;
+
+                // Xử lý hiệu ứng Hover (chuột di chuyển vào ô sẽ đổi màu đậm hơn)
+                Point cursorPosition = dgvDanhSachSV.PointToClient(Cursor.Position);
+                bool isHover = e.CellBounds.Contains(cursorPosition);
+                if (isHover)
+                {
+                    btnColor = Color.FromArgb(39, 174, 96); // Xanh lá đậm khi hover
+                    dgvDanhSachSV.Cursor = Cursors.Hand; // Đổi con trỏ thành hình bàn tay
+                }
+
+                // Tạo khoảng đệm (Padding) cho nút nhỏ lại so với ô lưới 
+                Rectangle btnBounds = new Rectangle(e.CellBounds.X + 15, e.CellBounds.Y + 6, e.CellBounds.Width - 30, e.CellBounds.Height - 12);
+
+                // Vẽ màu nền nút
+                using (SolidBrush brush = new SolidBrush(btnColor))
+                {
+                    // Có thể dùng GraphicsPath để bo góc nếu muốn nâng cao, ở đây dùng Flat chữ nhật cho mượt
+                    e.Graphics.FillRectangle(brush, btnBounds);
+                }
+
+                // Vẽ Text canh giữa nút
+                TextRenderer.DrawText(e.Graphics, buttonText, new Font("Segoe UI", 9F, FontStyle.Bold), btnBounds, textColor, TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
+
+                e.Handled = true; // Báo cho WinForms là "Tôi đã tự vẽ xong rồi, đừng vẽ mặc định đè lên nữa"
+            }
+        }
+
+        // 2 Sự kiện này giúp lưới tự động làm mới giao diện khi chuột ra/vào ô để hiện hiệu ứng Hover
+        private void dgvDanhSachSV_CellMouseMove(object sender, DataGridViewCellMouseEventArgs e)
+        {
+            if (e.RowIndex >= 0 && e.ColumnIndex >= 0 && dgvDanhSachSV.Columns[e.ColumnIndex].Name == "ThaoTac")
+                dgvDanhSachSV.InvalidateCell(e.ColumnIndex, e.RowIndex);
+        }
+        private void dgvDanhSachSV_CellMouseLeave(object sender, DataGridViewCellEventArgs e)
+        {
+            if (e.RowIndex >= 0 && e.ColumnIndex >= 0 && dgvDanhSachSV.Columns[e.ColumnIndex].Name == "ThaoTac")
+            {
+                dgvDanhSachSV.InvalidateCell(e.ColumnIndex, e.RowIndex);
+                dgvDanhSachSV.Cursor = Cursors.Default;
+            }
         }
     }
 }

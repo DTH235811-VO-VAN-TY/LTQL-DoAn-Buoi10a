@@ -23,6 +23,8 @@ namespace QuanLyDiemSV.Forms
         {
             InitializeComponent();
             this.Load += UC_TraCuuDiem_Container_Load;
+           
+           
         }
 
         private void UC_TraCuuDiem_Container_Load(object sender, EventArgs e)
@@ -38,6 +40,34 @@ namespace QuanLyDiemSV.Forms
             radTang.CheckedChanged += (s, ev) => LoadDanhSachSinhVien();
             radGiam.CheckedChanged += (s, ev) => LoadDanhSachSinhVien();
         }
+        
+        public void CapNhatDuLieuMoiNhat()
+        {
+            using (var freshContext = new QLDSVDbContext())
+            {
+                var oldKhoa = cboKhoa.SelectedValue;
+
+                var listKhoa = freshContext.Khoa.AsNoTracking().ToList();
+                listKhoa.Insert(0, new Khoa { MaKhoa = "ALL", TenKhoa = "--- Tất cả Khoa ---" });
+
+                // Tạm thời gỡ sự kiện SelectedIndexChanged để không bị load data 2 lần
+                cboKhoa.SelectedIndexChanged -= cboKhoa_SelectedIndexChanged;
+
+                cboKhoa.DataSource = listKhoa;
+                cboKhoa.DisplayMember = "TenKhoa";
+                cboKhoa.ValueMember = "MaKhoa";
+
+                if (oldKhoa != null) cboKhoa.SelectedValue = oldKhoa;
+
+                // Gắn sự kiện lại
+                cboKhoa.SelectedIndexChanged += cboKhoa_SelectedIndexChanged;
+            }
+
+            // Tải lại lưới
+            context.ChangeTracker.Clear();
+            LoadDanhSachSinhVien();
+        }
+
 
         private void InitChiTietView()
         {
@@ -101,128 +131,108 @@ namespace QuanLyDiemSV.Forms
             }
         }
 
-        public void LoadDanhSachSinhVien()
+        private void LoadDanhSachSinhVien()
         {
+            // Bỏ qua lỗi lúc đang thiết kế giao diện (Design Mode)
+            if (this.DesignMode || System.ComponentModel.LicenseManager.UsageMode == System.ComponentModel.LicenseUsageMode.Designtime) return;
+
             try
             {
-                dgvDanhSachSV.AutoGenerateColumns = false;
-
-                var query = context.SinhVien
+                var query = context.SinhVien.AsNoTracking()
                     .Include(s => s.MaLopNavigation).ThenInclude(l => l.MaNganhNavigation).ThenInclude(n => n.MaKhoaNavigation)
                     .Include(s => s.KetQuaHocTap).ThenInclude(k => k.MaLHPNavigation).ThenInclude(h => h.MaMonNavigation)
                     .AsQueryable();
 
-
-
-                // Lọc
-                if (cboKhoa.SelectedValue is string maKhoa && maKhoa != "ALL")
+                // ==========================================================
+                // 1. LỌC THEO PHÂN QUYỀN VÀ TÌM KIẾM
+                // ==========================================================
+                if (Session.RoleID == 3) // Nếu là Sinh viên
                 {
-                    query = query.Where(s => s.MaLopNavigation.MaNganhNavigation.MaKhoa == maKhoa);
+                    // Lấy mã người dùng an toàn, cắt bỏ mọi khoảng trắng
+                    string maSVLog = Session.MaNguoiDung;
+
+                    query = query.Where(s => s.MaSV == maSVLog);
+
+                    txtTuKhoa.Visible = false; // Ẩn thanh tìm kiếm
+
                 }
-                if (cboLop.SelectedValue is string maLop && maLop != "ALL")
+                else // Nếu là Admin hoặc Giảng Viên
                 {
-                    query = query.Where(s => s.MaLop == maLop);
-                }
-                if (!string.IsNullOrEmpty(txtTuKhoa.Text))
-                {
-                    string k = txtTuKhoa.Text.ToLower().Trim();
-                    query = query.Where(s => s.MaSV.ToLower().Contains(k) || s.HoTen.ToLower().Contains(k));
+                    // Lọc theo Khoa
+                    if (cboKhoa.SelectedValue is string maKhoa && maKhoa != "ALL")
+                    {
+                        query = query.Where(s => s.MaLopNavigation != null &&
+                                                 s.MaLopNavigation.MaNganhNavigation != null &&
+                                                 s.MaLopNavigation.MaNganhNavigation.MaKhoa == maKhoa);
+                    }
+
+                    // Lọc theo Lớp
+                    if (cboLop.SelectedValue is string maLop && maLop != "ALL")
+                    {
+                        query = query.Where(s => s.MaLop == maLop);
+                    }
+
+                    // Tìm kiếm theo từ khóa
+                    string tuKhoa = txtTuKhoa.Text.Trim();
+                    if (!string.IsNullOrEmpty(tuKhoa))
+                    {
+                        query = query.Where(s => s.MaSV.Contains(tuKhoa) || s.HoTen.Contains(tuKhoa));
+                    }
                 }
 
+                // ==========================================================
+                // 2. LẤY DỮ LIỆU TỪ SQL SERVER LÊN RAM
+                // ==========================================================
                 var rawList = query.ToList();
 
-                var listHienThi = rawList.Select(sv =>
+                // ==========================================================
+                // 3. MAP DỮ LIỆU ĐỂ HIỂN THỊ LÊN LƯỚI
+                // ==========================================================
+                var listHienThi = rawList.Select(s => new
                 {
-                    var monCoDiem = sv.KetQuaHocTap.Where(k => k.DiemTongKet != null).ToList();
-                    double tongDiem = 0;
-                    int tongTC = 0;
+                    // Các tên biến bên trái (MaSV, HoTen,...) PHẢI KHỚP TUYỆT ĐỐI với DataPropertyName của cột trong DataGridView
+                    MaSV = s.MaSV,
+                    HoTen = s.HoTen,
+                    TenLop = s.MaLopNavigation?.TenLop ?? "Chưa xếp lớp",
+                    TenKhoa = s.MaLopNavigation?.MaNganhNavigation?.MaKhoaNavigation?.TenKhoa ?? "Chưa có",
 
-                    foreach (var k in monCoDiem)
-                    {
-                        int tinChi = k.MaLHPNavigation?.MaMonNavigation?.SoTinChi ?? 0;
-                        decimal diem = k.DiemTongKet ?? 0;
-                        tongDiem += (double)diem * tinChi;
-                        tongTC += tinChi;
-                    }
+                    // Tính Điểm trung bình hệ 10
+                    DiemTrungBinh = s.KetQuaHocTap.Any()
+                        ? Math.Round((double)s.KetQuaHocTap.Average(k => (k.DiemGK * 0.4m + k.DiemCK * 0.6m) ?? 0), 2)
+                        : 0,
 
-                    return new SinhVienTraCuuDTO
-                    {
-                        MaSV = sv.MaSV,
-                        HoTen = sv.HoTen,
-                        TenLop = sv.MaLopNavigation?.TenLop ?? "",
-                        TenKhoa = sv.MaLopNavigation?.MaNganhNavigation?.MaKhoaNavigation?.TenKhoa ?? "",
-                        TinChiTichLuy = tongTC,
-                        DiemTrungBinh = tongTC > 0 ? Math.Round(tongDiem / tongTC, 2) : 0
-                    };
+                    // Tính số tín chỉ đã đạt (Điểm tổng kết >= 4.0)
+                    SoTinChi = s.KetQuaHocTap
+                        .Where(k => (k.DiemGK * 0.4m + k.DiemCK * 0.6m) >= 4)
+                        .Sum(k => k.MaLHPNavigation?.MaMonNavigation?.SoTinChi ?? 0)
                 }).ToList();
 
-                // Sắp xếp
-                if (cboLoaiSX.SelectedItem != null)
+                // ==========================================================
+                // 4. SẮP XẾP DỮ LIỆU (Dành cho Admin/Giảng viên)
+                // ==========================================================
+                if (Session.RoleID != 3 && listHienThi.Count > 0)
                 {
-                    string kieuSX = cboLoaiSX.SelectedItem.ToString();
-
-                    if (kieuSX == "Họ Tên")
+                    bool tangDan = radTang.Checked;
+                    if (cboLoaiSX.SelectedIndex == 0) // Giả sử Index 0 là Sắp xếp theo Tên
                     {
-                        listHienThi = radTang.Checked
-                            ? listHienThi.OrderBy(x => x.HoTen).ToList()
-                            : listHienThi.OrderByDescending(x => x.HoTen).ToList();
+                        listHienThi = tangDan ? listHienThi.OrderBy(x => x.HoTen).ToList() : listHienThi.OrderByDescending(x => x.HoTen).ToList();
                     }
-                    else if (kieuSX == "Điểm Tích Lũy" || kieuSX == "Điểm số")
+                    else if (cboLoaiSX.SelectedIndex == 1) // Giả sử Index 1 là Sắp xếp theo Điểm
                     {
-                        listHienThi = radTang.Checked
-                            ? listHienThi.OrderBy(x => x.DiemTrungBinh).ToList()
-                            : listHienThi.OrderByDescending(x => x.DiemTrungBinh).ToList();
-                    }
-                    else // Mặc định là sắp xếp theo Mã Sinh Viên
-                    {
-                        listHienThi = radTang.Checked
-                            ? listHienThi.OrderBy(x => x.MaSV).ToList()
-                            : listHienThi.OrderByDescending(x => x.MaSV).ToList();
+                        listHienThi = tangDan ? listHienThi.OrderBy(x => x.DiemTrungBinh).ToList() : listHienThi.OrderByDescending(x => x.DiemTrungBinh).ToList();
                     }
                 }
-
+                // ==========================================================
+                // 5. GÁN DỮ LIỆU VÀO DATAGRIDVIEW
+                // ==========================================================
+                dgvDanhSachSV.DataSource = null; // Xóa sạch bộ nhớ tạm của DataGridView để ép tải lại
+                dgvDanhSachSV.AutoGenerateColumns = false; // Ngăn DataGridView tự động vẽ thêm cột thừa
                 dgvDanhSachSV.DataSource = listHienThi;
-
-                // Map cột
-                if (dgvDanhSachSV.Columns["MaSV"] != null) dgvDanhSachSV.Columns["MaSV"].DataPropertyName = "MaSV";
-                if (dgvDanhSachSV.Columns["HoTen"] != null) dgvDanhSachSV.Columns["HoTen"].DataPropertyName = "HoTen";
-                if (dgvDanhSachSV.Columns["TenLop"] != null) dgvDanhSachSV.Columns["TenLop"].DataPropertyName = "TenLop";
-                if (dgvDanhSachSV.Columns["TenKhoa"] != null) dgvDanhSachSV.Columns["TenKhoa"].DataPropertyName = "TenKhoa";
-                if (dgvDanhSachSV.Columns["DiemTrungBinh"] != null) dgvDanhSachSV.Columns["DiemTrungBinh"].DataPropertyName = "DiemTrungBinh";
-                if (dgvDanhSachSV.Columns["SoTinChi"] != null) dgvDanhSachSV.Columns["SoTinChi"].DataPropertyName = "TinChiTichLuy";
-                // CẤU HÌNH CỘT NÚT BẤM "NHẬP ĐIỂM" BẰNG CODE
-                // =========================================================
-                if (dgvDanhSachSV.Columns["ThaoTac"] is DataGridViewButtonColumn btnCol)
-                {
-                    // Nếu đã là cột Button thì chỉ cần ép nó hiện chữ
-                    btnCol.Text = "Xem chi tiết";
-                    btnCol.UseColumnTextForButtonValue = true;
-                }
-                else if (dgvDanhSachSV.Columns["ThaoTac"] != null)
-                {
-                    // Nếu lỡ tạo nhầm thành cột Text trong Designer thì xóa đi tạo lại
-                    int index = dgvDanhSachSV.Columns["ThaoTac"].Index;
-                    dgvDanhSachSV.Columns.Remove("ThaoTac");
-
-                    DataGridViewButtonColumn newBtnCol = new DataGridViewButtonColumn();
-                    newBtnCol.Name = "ThaoTac";
-                    newBtnCol.HeaderText = "Thao Tác";
-                    newBtnCol.Text = "Xem chi tiết";
-                    newBtnCol.UseColumnTextForButtonValue = true; // Bắt buộc = true để hiện chữ
-                    dgvDanhSachSV.Columns.Insert(index, newBtnCol);
-                }
-                else
-                {
-                    // Nếu chưa có cột nào tên ThaoTac, tự tạo mới ở cuối lưới
-                    DataGridViewButtonColumn newBtnCol = new DataGridViewButtonColumn();
-                    newBtnCol.Name = "ThaoTac";
-                    newBtnCol.HeaderText = "Thao Tác";
-                    newBtnCol.Text = "Xem chi tiết";
-                    newBtnCol.UseColumnTextForButtonValue = true;
-                    dgvDanhSachSV.Columns.Add(newBtnCol);
-                }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi khi tải danh sách sinh viên: " + ex.Message, "Cảnh báo hệ thống", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         private void btnXemChitiet_Click(object sender, EventArgs e)

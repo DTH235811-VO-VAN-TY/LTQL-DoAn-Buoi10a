@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            DataGridViewCellStyle dataGridViewCellStyle1 = new DataGridViewCellStyle();
             panel1 = new Panel();
             groupBox1 = new GroupBox();
             txtTuKhoa = new TextBox();
@@ -333,6 +334,9 @@
             // 
             // ThaoTac
             // 
+            ThaoTac.DataPropertyName = "ThaoTac";
+            dataGridViewCellStyle1.BackColor = Color.SpringGreen;
+            ThaoTac.DefaultCellStyle = dataGridViewCellStyle1;
             ThaoTac.HeaderText = "Thao Tác";
             ThaoTac.MinimumWidth = 6;
             ThaoTac.Name = "ThaoTac";
@@ -368,14 +372,6 @@
         private Panel panel3;
         private GroupBox groupBox3;
         private DataGridView dgvDanhSachSV;
-        private DataGridViewTextBoxColumn MaSV;
-        private DataGridViewTextBoxColumn HoTen;
-        private DataGridViewTextBoxColumn NgaySinh;
-        private DataGridViewTextBoxColumn GioiTinh;
-        private DataGridViewTextBoxColumn LopHanhChinh;
-        private DataGridViewTextBoxColumn MaKhoa;
-        private DataGridViewTextBoxColumn TrangThai;
-        private DataGridViewTextBoxColumn ThaoTac;
         private TextBox txtTuKhoa;
         private Label label11;
         private Label label12;
@@ -388,5 +384,13 @@
         private Label label9;
         private Label label1;
         private ComboBox cboKhoa;
+        private DataGridViewTextBoxColumn MaSV;
+        private DataGridViewTextBoxColumn HoTen;
+        private DataGridViewTextBoxColumn NgaySinh;
+        private DataGridViewTextBoxColumn GioiTinh;
+        private DataGridViewTextBoxColumn LopHanhChinh;
+        private DataGridViewTextBoxColumn MaKhoa;
+        private DataGridViewTextBoxColumn TrangThai;
+        private DataGridViewTextBoxColumn ThaoTac;
     }
 }

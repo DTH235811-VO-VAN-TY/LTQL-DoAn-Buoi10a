@@ -22,7 +22,6 @@ namespace QuanLyDiemSV
         {
             InitializeComponent();
             this.Load += UC_LopHocPhan_Load;
-            this.VisibleChanged += UC_LopHocPhan_VisibleChanged;
         }
 
         private void UC_LopHocPhan_Load(object sender, EventArgs e)
@@ -30,36 +29,35 @@ namespace QuanLyDiemSV
             BatTatChucNang(false);
             KhoiTaoCboTimKiemSapXep();
         }
-
-        private void UC_LopHocPhan_VisibleChanged(object sender, EventArgs e)
+        // Hàm này có chữ 'public' để Form1 có thể gọi được
+        public void CapNhatDuLieuMoiNhat()
         {
-            if (this.DesignMode || System.ComponentModel.LicenseManager.UsageMode == System.ComponentModel.LicenseUsageMode.Designtime) return;
-
-            // Mỗi khi tab Lớp Học Phần được hiện lên màn hình
-            if (this.Visible)
+            // 1. Tải lại danh sách ComboBox (Luôn tải mới)
+            using (var freshContext = new QLDSVDbContext())
             {
-                Cursor.Current = Cursors.WaitCursor;
+                // Lưu lại giá trị đang chọn để không bị nhảy lung tung khi reload
+                var oldGV = cboMaGV.SelectedValue;
+                var oldMon = cboMaMon.SelectedValue;
 
-                // --- 1. COMBOBOX: LUÔN LUÔN TẢI LẠI ĐỂ CẬP NHẬT DỮ LIỆU MỚI NHẤT ---
-                // (Mẹo nhỏ: Lưu lại giá trị đang chọn để không bị mất khi reload)
-                var oldMaGV = cboMaGV.SelectedValue;
-                var oldMaMon = cboMaMon.SelectedValue;
+                // TUYỆT CHIÊU AsNoTracking(): Ép EF Core phải xuống SQL lấy dữ liệu mới nhất, bỏ qua Cache!
+                cboMaGV.DataSource = freshContext.GiangVien.AsNoTracking().ToList();
+                cboMaGV.DisplayMember = "HoTen";
+                cboMaGV.ValueMember = "MaGV";
 
-                LoadComboBoxData(); // Cập nhật lại danh sách Giảng viên, Môn học... từ SQL
+                cboMaMon.DataSource = freshContext.MonHoc.AsNoTracking().ToList();
+                cboMaMon.DisplayMember = "TenMon";
+                cboMaMon.ValueMember = "MaMon";
 
                 // Phục hồi lại giá trị đang chọn (nếu có)
-                if (oldMaGV != null) cboMaGV.SelectedValue = oldMaGV;
-                if (oldMaMon != null) cboMaMon.SelectedValue = oldMaMon;
+                if (oldGV != null) cboMaGV.SelectedValue = oldGV;
+                if (oldMon != null) cboMaMon.SelectedValue = oldMon;
+            }
 
-
-                // --- 2. LƯỚI DATAGRIDVIEW: CHỈ TẢI 1 LẦN DUY NHẤT KHI MỞ APP ---
-                if (!daTaiDuLieu)
-                {
-                    LoadData();
-                    daTaiDuLieu = true;
-                }
-
-                Cursor.Current = Cursors.Default;
+            // 2. Lưới danh sách LHP: Chỉ tải 1 lần lúc mới mở app để chống đơ máy
+            if (!daTaiDuLieu)
+            {
+                LoadData();
+                daTaiDuLieu = true;
             }
         }
 
@@ -261,91 +259,62 @@ namespace QuanLyDiemSV
             }
         }
 
-        private void btnLuu_Click(object sender, EventArgs e)
+        private async void btnLuu_Click(object sender, EventArgs e)
         {
-            if (string.IsNullOrWhiteSpace(txtMaLHP.Text) || string.IsNullOrWhiteSpace(txtTenLHP.Text))
-            {
-                MessageBox.Show("Vui lòng nhập Mã lớp và Tên lớp!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
-            if (cboMaMon.SelectedValue == null || cboMaGV.SelectedValue == null || cboHocKy.SelectedValue == null)
-            {
-                MessageBox.Show("Vui lòng chọn đầy đủ Môn, Giảng viên và Học kỳ!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
-
-            // 1. Kiểm tra định dạng Mã Lớp Học Phần (Phải là số nguyên)
-            if (!int.TryParse(txtMaLHP.Text.Trim(), out int maLHP))
-            {
-                MessageBox.Show("Mã Lớp Học Phần phải là số nguyên!", "Ràng buộc dữ liệu", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                txtMaLHP.Focus();
-                return;
-            }
-
-            // 2. Kiểm tra định dạng Sĩ số (Phải là số và >= 0)
-            if (!int.TryParse(txtSiSo.Text.Trim(), out int siSo) || siSo < 0)
-            {
-                MessageBox.Show("Sĩ số tối đa phải là số nguyên và không được âm!", "Ràng buộc dữ liệu", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                txtSiSo.Focus();
-                return;
-            }
-
-            // 3. Kiểm tra định dạng Phòng học (1 chữ cái đứng đầu, theo sau là 3 số. VD: A401)
-            string phongHoc = txtPhongHoc.Text.Trim();
-            if (!Regex.IsMatch(phongHoc, @"^[a-zA-Z]\d{3}$"))
-            {
-                MessageBox.Show("Phòng học không hợp lệ!\n(Định dạng đúng: Bắt đầu bằng 1 chữ cái và 3 chữ số. Ví dụ: A401, B302)", "Ràng buộc dữ liệu", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                txtPhongHoc.Focus();
-                return;
-            }
-
             try
             {
-                if (xuLyThem) // --- THÊM ---
+                LopHocPhan lhp;
+
+                // --- ĐÂY LÀ CHÌA KHÓA GIẢI QUYẾT LỖI ---
+                if (xuLyThem)
                 {
-                    if (context.LopHocPhan.Any(x => x.MaLHP == maLHP))
-                    {
-                        MessageBox.Show("Mã lớp học phần đã tồn tại!", "Cảnh báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                        return;
-                    }
-
-                    LopHocPhan lhp = new LopHocPhan();
-                    lhp.MaLHP = maLHP;
-                    lhp.TenLopHP = txtTenLHP.Text.Trim();
-                    lhp.PhongHoc = phongHoc.ToUpper(); // Viết hoa chữ cái phòng học cho đẹp (VD: a401 -> A401)
-                    lhp.SiSoToiDa = siSo;
-                    lhp.MaMon = cboMaMon.SelectedValue.ToString();
-                    lhp.MaGV = cboMaGV.SelectedValue.ToString();
-                    lhp.MaHK = cboHocKy.SelectedValue.ToString();
-                    lhp.TrangThai = cboTrangThai.SelectedIndex == 0 ? 1 : 0;
-
-                    context.LopHocPhan.Add(lhp);
+                    // NẾU THÊM MỚI: Phải tạo một đối tượng hoàn toàn mới (Mã LHP sẽ trống để SQL tự sinh)
+                    lhp = new LopHocPhan();
                 }
-                else // --- SỬA ---
+                else
                 {
-                    var lhp = context.LopHocPhan.Find(maLHP);
-                    if (lhp != null)
-                    {
-                        lhp.TenLopHP = txtTenLHP.Text.Trim();
-                        lhp.PhongHoc = phongHoc.ToUpper();
-                        lhp.SiSoToiDa = siSo;
-                        lhp.MaMon = cboMaMon.SelectedValue.ToString();
-                        lhp.MaGV = cboMaGV.SelectedValue.ToString();
-                        lhp.MaHK = cboHocKy.SelectedValue.ToString();
-                        lhp.TrangThai = cboTrangThai.SelectedIndex == 0 ? 1 : 0;
-
-                        context.LopHocPhan.Update(lhp);
-                    }
+                    // NẾU SỬA: Mới được phép lấy đối tượng đang chọn trên lưới
+                    lhp = (LopHocPhan)bsLopHP.Current;
                 }
 
-                context.SaveChanges();
+                // Cập nhật các giá trị từ Combobox và Textbox vào đối tượng
+                if (cboHocKy.SelectedValue != null) lhp.MaHK = cboHocKy.SelectedValue.ToString();
+                if (cboMaGV.SelectedValue != null) lhp.MaGV = cboMaGV.SelectedValue.ToString();
+                if (cboMaMon.SelectedValue != null) lhp.MaMon = cboMaMon.SelectedValue.ToString();
+
+                lhp.TenLopHP = txtTenLHP.Text.Trim();
+                lhp.PhongHoc = txtPhongHoc.Text.Trim();
+
+                if (int.TryParse(txtSiSo.Text, out int siso)) lhp.SiSoToiDa = siso;
+                else lhp.SiSoToiDa = 40;
+
+                // Tiến hành lưu
+                if (xuLyThem)
+                {
+                    lhp.TrangThai = 1; // Mặc định mở
+                    context.LopHocPhan.Add(lhp); // Thêm mới tinh, không sợ lỗi Identity nữa!
+                }
+                else
+                {
+                    context.LopHocPhan.Update(lhp); // Cập nhật dòng cũ
+                }
+
+                await context.SaveChangesAsync();
+
+                bsLopHP.ResumeBinding();
                 LoadData();
                 BatTatChucNang(false);
-                MessageBox.Show("Lưu thành công!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show("Lưu lớp học phần thành công!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Lỗi lưu dữ liệu: " + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                // Móc lỗi sâu nhất từ SQL Server ra để hiển thị (như bước trước)
+                Exception realError = ex;
+                while (realError.InnerException != null)
+                {
+                    realError = realError.InnerException;
+                }
+                MessageBox.Show("Lỗi Database: \n" + realError.Message, "Phát Hiện Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 

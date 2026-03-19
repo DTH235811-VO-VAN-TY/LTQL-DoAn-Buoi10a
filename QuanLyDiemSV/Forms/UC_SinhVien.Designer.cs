@@ -29,6 +29,7 @@
         private void InitializeComponent()
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(UC_SinhVien));
+            DataGridViewCellStyle dataGridViewCellStyle2 = new DataGridViewCellStyle();
             DataGridViewCellStyle dataGridViewCellStyle1 = new DataGridViewCellStyle();
             panelInput = new Panel();
             groupBoxInfo = new GroupBox();
@@ -99,7 +100,7 @@
             // 
             // panelInput
             // 
-            panelInput.BackColor = Color.LemonChiffon;
+            panelInput.BackColor = Color.White;
             panelInput.Controls.Add(groupBoxInfo);
             panelInput.Dock = DockStyle.Top;
             panelInput.Location = new Point(0, 0);
@@ -111,7 +112,7 @@
             // 
             // groupBoxInfo
             // 
-            groupBoxInfo.BackColor = Color.LemonChiffon;
+            groupBoxInfo.BackColor = Color.White;
             groupBoxInfo.Controls.Add(dtpAdNamSinhSV);
             groupBoxInfo.Controls.Add(radAdSV_Nu);
             groupBoxInfo.Controls.Add(radAdSV_Nam);
@@ -665,14 +666,14 @@
             dgvAdminSinhVien.BackgroundColor = SystemColors.ButtonHighlight;
             dgvAdminSinhVien.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             dgvAdminSinhVien.Columns.AddRange(new DataGridViewColumn[] { MaSV, HoTen, NgaySinh, GioiTinh, DiaChi, Email, SDT, MaLop, CCCD });
-            dataGridViewCellStyle1.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle1.BackColor = SystemColors.Window;
-            dataGridViewCellStyle1.Font = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            dataGridViewCellStyle1.ForeColor = SystemColors.ControlText;
-            dataGridViewCellStyle1.SelectionBackColor = SystemColors.Highlight;
-            dataGridViewCellStyle1.SelectionForeColor = SystemColors.HighlightText;
-            dataGridViewCellStyle1.WrapMode = DataGridViewTriState.False;
-            dgvAdminSinhVien.DefaultCellStyle = dataGridViewCellStyle1;
+            dataGridViewCellStyle2.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle2.BackColor = SystemColors.Window;
+            dataGridViewCellStyle2.Font = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            dataGridViewCellStyle2.ForeColor = SystemColors.ControlText;
+            dataGridViewCellStyle2.SelectionBackColor = SystemColors.Highlight;
+            dataGridViewCellStyle2.SelectionForeColor = SystemColors.HighlightText;
+            dataGridViewCellStyle2.WrapMode = DataGridViewTriState.False;
+            dgvAdminSinhVien.DefaultCellStyle = dataGridViewCellStyle2;
             dgvAdminSinhVien.Dock = DockStyle.Fill;
             dgvAdminSinhVien.Location = new Point(3, 24);
             dgvAdminSinhVien.Margin = new Padding(3, 4, 3, 4);
@@ -688,6 +689,8 @@
             // MaSV
             // 
             MaSV.DataPropertyName = "MaSV";
+            dataGridViewCellStyle1.ForeColor = Color.Blue;
+            MaSV.DefaultCellStyle = dataGridViewCellStyle1;
             MaSV.HeaderText = "Mã SV";
             MaSV.MinimumWidth = 6;
             MaSV.Name = "MaSV";
@@ -833,6 +836,12 @@
         private System.Windows.Forms.Panel panelGrid;
         private System.Windows.Forms.GroupBox groupBoxList;
         private System.Windows.Forms.DataGridView dgvAdminSinhVien;
+        private RadioButton radGiam;
+        private RadioButton radTang;
+        private ComboBox cboKieuSX;
+        private Label label14;
+        private Button btnNhap;
+        private Button btnXuat;
         private DataGridViewTextBoxColumn MaSV;
         private DataGridViewTextBoxColumn HoTen;
         private DataGridViewTextBoxColumn NgaySinh;
@@ -842,11 +851,5 @@
         private DataGridViewTextBoxColumn SDT;
         private DataGridViewTextBoxColumn MaLop;
         private DataGridViewTextBoxColumn CCCD;
-        private RadioButton radGiam;
-        private RadioButton radTang;
-        private ComboBox cboKieuSX;
-        private Label label14;
-        private Button btnNhap;
-        private Button btnXuat;
     }
 }

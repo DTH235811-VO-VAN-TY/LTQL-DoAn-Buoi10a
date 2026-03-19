@@ -37,8 +37,8 @@
             pictureBox1 = new PictureBox();
             panel5 = new Panel();
             btnDangNhap = new Button();
-            textBox2 = new TextBox();
-            textBox1 = new TextBox();
+            txtTenDangNhap = new TextBox();
+            txtMatKhau = new TextBox();
             label3 = new Label();
             label2 = new Label();
             label1 = new Label();
@@ -111,8 +111,8 @@
             // panel5
             // 
             panel5.Controls.Add(btnDangNhap);
-            panel5.Controls.Add(textBox2);
-            panel5.Controls.Add(textBox1);
+            panel5.Controls.Add(txtTenDangNhap);
+            panel5.Controls.Add(txtMatKhau);
             panel5.Controls.Add(label3);
             panel5.Controls.Add(label2);
             panel5.Controls.Add(label1);
@@ -135,19 +135,19 @@
             btnDangNhap.UseVisualStyleBackColor = false;
             btnDangNhap.Click += btnDangNhap_Click;
             // 
-            // textBox2
+            // txtTenDangNhap
             // 
-            textBox2.Location = new Point(240, 220);
-            textBox2.Name = "textBox2";
-            textBox2.Size = new Size(290, 27);
-            textBox2.TabIndex = 1;
+            txtTenDangNhap.Location = new Point(240, 220);
+            txtTenDangNhap.Name = "txtTenDangNhap";
+            txtTenDangNhap.Size = new Size(290, 27);
+            txtTenDangNhap.TabIndex = 1;
             // 
-            // textBox1
+            // txtMatKhau
             // 
-            textBox1.Location = new Point(240, 288);
-            textBox1.Name = "textBox1";
-            textBox1.Size = new Size(290, 27);
-            textBox1.TabIndex = 1;
+            txtMatKhau.Location = new Point(240, 288);
+            txtMatKhau.Name = "txtMatKhau";
+            txtMatKhau.Size = new Size(290, 27);
+            txtMatKhau.TabIndex = 1;
             // 
             // label3
             // 
@@ -214,7 +214,7 @@
         private Label label2;
         private Label label1;
         private Button btnDangNhap;
-        private TextBox textBox2;
-        private TextBox textBox1;
+        private TextBox txtTenDangNhap;
+        private TextBox txtMatKhau;
     }
 }

@@ -21,7 +21,7 @@ namespace QuanLyDiemSV.Forms
         {
             InitializeComponent();
             this.Load += UC_LopHanhChinh_Load;
-            this.VisibleChanged += UC_LopHanhChinh_VisibleChanged;
+           
         }
 
         private void UC_LopHanhChinh_Load(object sender, EventArgs e)
@@ -29,18 +29,32 @@ namespace QuanLyDiemSV.Forms
             BatTatChucNang(false);
             KhoiTaoCboTimKiemSapXep();
         }
-
-        private void UC_LopHanhChinh_VisibleChanged(object sender, EventArgs e)
+        public void CapNhatDuLieuMoiNhat()
         {
-            if (this.Visible && !daTaiDuLieu)
+            // 1. Tải lại danh sách ComboBox bằng một Context mới hoàn toàn
+            using (var freshContext = new QLDSVDbContext())
             {
-                Cursor.Current = Cursors.WaitCursor;
-                LoadComboBoxData();
-                LoadData();
-                daTaiDuLieu = true;
-                Cursor.Current = Cursors.Default;
+                var oldNganh = cboNganh.SelectedValue;
+                var oldGV = cboGCVN.SelectedValue;
+
+                cboNganh.DataSource = freshContext.Nganh.AsNoTracking().ToList();
+                cboNganh.DisplayMember = "TenNganh";
+                cboNganh.ValueMember = "MaNganh";
+
+                cboGCVN.DataSource = freshContext.GiangVien.AsNoTracking().ToList();
+                cboGCVN.DisplayMember = "HoTen";
+                cboGCVN.ValueMember = "MaGV";
+
+                if (oldNganh != null) cboNganh.SelectedValue = oldNganh;
+                if (oldGV != null) cboGCVN.SelectedValue = oldGV;
             }
+
+            // 2. Ép Context chính xóa bộ nhớ đệm và tải lại lưới Lớp hành chính
+            context.ChangeTracker.Clear();
+            LoadData();
         }
+
+
         private void KhoiTaoCboTimKiemSapXep()
         {
             // 1. ComboBox Loại Tìm Kiếm (cboLoaiTK)
@@ -82,16 +96,15 @@ namespace QuanLyDiemSV.Forms
         {
             try
             {
-                // 1. Load danh sách NGÀNH vào cboNganh
-                // Dùng .ToList() để ngắt kết nối query, tránh lỗi binding
-                var listNganh = context.Nganh.ToList();
+                // Thêm AsNoTracking() vào đây
+                var listNganh = context.Nganh.AsNoTracking().ToList();
                 cboNganh.DataSource = listNganh;
                 cboNganh.DisplayMember = "TenNganh";
                 cboNganh.ValueMember = "MaNganh";
                 cboNganh.SelectedIndex = -1;
 
-                // 2. Load danh sách GIẢNG VIÊN vào cboGCVN (Giáo viên chủ nhiệm)
-                var listGV = context.GiangVien.ToList();
+                // Thêm AsNoTracking() vào đây
+                var listGV = context.GiangVien.AsNoTracking().ToList();
                 cboGCVN.DataSource = listGV;
                 cboGCVN.DisplayMember = "HoTen";
                 cboGCVN.ValueMember = "MaGV";

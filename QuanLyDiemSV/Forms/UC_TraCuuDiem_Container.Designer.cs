@@ -29,6 +29,7 @@
         private void InitializeComponent()
         {
             DataGridViewCellStyle dataGridViewCellStyle1 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle2 = new DataGridViewCellStyle();
             panel1 = new Panel();
             panel3 = new Panel();
             groupBox2 = new GroupBox();
@@ -48,6 +49,7 @@
             radGiam = new RadioButton();
             radTang = new RadioButton();
             cboLoaiSX = new ComboBox();
+            label4 = new Label();
             label3 = new Label();
             btnReset = new Button();
             btnTimKiem = new Button();
@@ -56,7 +58,6 @@
             label2 = new Label();
             cboKhoa = new ComboBox();
             label1 = new Label();
-            label4 = new Label();
             panel1.SuspendLayout();
             panel3.SuspendLayout();
             groupBox2.SuspendLayout();
@@ -103,6 +104,14 @@
             dgvDanhSachSV.AllowUserToDeleteRows = false;
             dgvDanhSachSV.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
             dgvDanhSachSV.BackgroundColor = Color.White;
+            dataGridViewCellStyle1.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            dataGridViewCellStyle1.BackColor = Color.DeepSkyBlue;
+            dataGridViewCellStyle1.Font = new Font("Segoe UI Semibold", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            dataGridViewCellStyle1.ForeColor = SystemColors.WindowText;
+            dataGridViewCellStyle1.SelectionBackColor = SystemColors.Highlight;
+            dataGridViewCellStyle1.SelectionForeColor = SystemColors.HighlightText;
+            dataGridViewCellStyle1.WrapMode = DataGridViewTriState.True;
+            dgvDanhSachSV.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
             dgvDanhSachSV.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             dgvDanhSachSV.Columns.AddRange(new DataGridViewColumn[] { MaSV, HoTen, TenLop, TenKhoa, DiemTrungBinh, SoTinChi, ThaoTac });
             dgvDanhSachSV.Dock = DockStyle.Fill;
@@ -115,6 +124,7 @@
             // 
             // MaSV
             // 
+            MaSV.DataPropertyName = "MaSV";
             MaSV.HeaderText = "Mã SV";
             MaSV.MinimumWidth = 6;
             MaSV.Name = "MaSV";
@@ -122,6 +132,7 @@
             // 
             // HoTen
             // 
+            HoTen.DataPropertyName = "HoTen";
             HoTen.HeaderText = "Họ Tên";
             HoTen.MinimumWidth = 6;
             HoTen.Name = "HoTen";
@@ -129,6 +140,7 @@
             // 
             // TenLop
             // 
+            TenLop.DataPropertyName = "TenLop";
             TenLop.HeaderText = "Lớp";
             TenLop.MinimumWidth = 6;
             TenLop.Name = "TenLop";
@@ -136,6 +148,7 @@
             // 
             // TenKhoa
             // 
+            TenKhoa.DataPropertyName = "TenKhoa";
             TenKhoa.HeaderText = "Khoa";
             TenKhoa.MinimumWidth = 6;
             TenKhoa.Name = "TenKhoa";
@@ -143,6 +156,7 @@
             // 
             // DiemTrungBinh
             // 
+            DiemTrungBinh.DataPropertyName = "DiemTrungBinh";
             DiemTrungBinh.HeaderText = "ĐTB Tích lũy";
             DiemTrungBinh.MinimumWidth = 6;
             DiemTrungBinh.Name = "DiemTrungBinh";
@@ -150,6 +164,7 @@
             // 
             // SoTinChi
             // 
+            SoTinChi.DataPropertyName = "SoTinChi";
             SoTinChi.HeaderText = "STC tích lũy";
             SoTinChi.MinimumWidth = 6;
             SoTinChi.Name = "SoTinChi";
@@ -158,14 +173,18 @@
             // ThaoTac
             // 
             ThaoTac.DataPropertyName = "ThaoTac";
-            dataGridViewCellStyle1.Alignment = DataGridViewContentAlignment.MiddleCenter;
-            ThaoTac.DefaultCellStyle = dataGridViewCellStyle1;
+            dataGridViewCellStyle2.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            dataGridViewCellStyle2.BackColor = Color.White;
+            dataGridViewCellStyle2.Font = new Font("Microsoft Sans Serif", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            ThaoTac.DefaultCellStyle = dataGridViewCellStyle2;
             ThaoTac.HeaderText = "Thao Tác";
             ThaoTac.MinimumWidth = 6;
             ThaoTac.Name = "ThaoTac";
             ThaoTac.ReadOnly = true;
             ThaoTac.Resizable = DataGridViewTriState.True;
             ThaoTac.SortMode = DataGridViewColumnSortMode.Automatic;
+            ThaoTac.Text = "Xem Chi tiết";
+            ThaoTac.UseColumnTextForLinkValue = true;
             // 
             // panel2
             // 
@@ -283,6 +302,15 @@
             cboLoaiSX.TabIndex = 7;
             cboLoaiSX.SelectedIndexChanged += cboLoaiSX_SelectedIndexChanged;
             // 
+            // label4
+            // 
+            label4.AutoSize = true;
+            label4.Location = new Point(778, 69);
+            label4.Name = "label4";
+            label4.Size = new Size(77, 23);
+            label4.TabIndex = 6;
+            label4.Text = "Từ khóa:";
+            // 
             // label3
             // 
             label3.AutoSize = true;
@@ -354,15 +382,6 @@
             label1.TabIndex = 0;
             label1.Text = "Khoa:";
             // 
-            // label4
-            // 
-            label4.AutoSize = true;
-            label4.Location = new Point(778, 69);
-            label4.Name = "label4";
-            label4.Size = new Size(77, 23);
-            label4.TabIndex = 6;
-            label4.Text = "Từ khóa:";
-            // 
             // UC_TraCuuDiem_Container
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
@@ -400,6 +419,9 @@
         private GroupBox groupBox2;
         private DataGridView dgvDanhSachSV;
         private Button btnXemChitiet;
+        private Button btnInDanhSach;
+        private Button btnXuat;
+        private Label label4;
         private DataGridViewTextBoxColumn MaSV;
         private DataGridViewTextBoxColumn HoTen;
         private DataGridViewTextBoxColumn TenLop;
@@ -407,8 +429,5 @@
         private DataGridViewTextBoxColumn DiemTrungBinh;
         private DataGridViewTextBoxColumn SoTinChi;
         private DataGridViewLinkColumn ThaoTac;
-        private Button btnInDanhSach;
-        private Button btnXuat;
-        private Label label4;
     }
 }

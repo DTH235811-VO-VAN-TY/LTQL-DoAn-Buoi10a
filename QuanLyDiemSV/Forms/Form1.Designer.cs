@@ -30,7 +30,7 @@
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
             panel1 = new Panel();
-            button1 = new Button();
+            btnDangXuat = new Button();
             btnTaiKhoan = new Button();
             btnTraCuuDiem = new Button();
             button5 = new Button();
@@ -43,7 +43,8 @@
             button2 = new Button();
             panel3 = new Panel();
             panel5 = new Panel();
-            label2 = new Label();
+            lblTenNguoiDung = new Label();
+            lblVaiTro = new Label();
             panel4 = new Panel();
             label1 = new Label();
             panel2 = new Panel();
@@ -67,7 +68,7 @@
             // panel1
             // 
             panel1.BackColor = Color.FromArgb(52, 73, 94);
-            panel1.Controls.Add(button1);
+            panel1.Controls.Add(btnDangXuat);
             panel1.Controls.Add(btnTaiKhoan);
             panel1.Controls.Add(btnTraCuuDiem);
             panel1.Controls.Add(button5);
@@ -85,17 +86,19 @@
             panel1.Size = new Size(220, 1025);
             panel1.TabIndex = 0;
             // 
-            // button1
+            // btnDangXuat
             // 
-            button1.BackColor = Color.Salmon;
-            button1.Dock = DockStyle.Top;
-            button1.Font = new Font("Century Gothic", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            button1.Location = new Point(0, 896);
-            button1.Name = "button1";
-            button1.Size = new Size(220, 47);
-            button1.TabIndex = 13;
-            button1.Text = "Đăng xuất";
-            button1.UseVisualStyleBackColor = false;
+            btnDangXuat.BackColor = Color.Salmon;
+            btnDangXuat.Dock = DockStyle.Bottom;
+            btnDangXuat.Font = new Font("Century Gothic", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            btnDangXuat.ForeColor = Color.White;
+            btnDangXuat.Location = new Point(0, 978);
+            btnDangXuat.Name = "btnDangXuat";
+            btnDangXuat.Size = new Size(220, 47);
+            btnDangXuat.TabIndex = 13;
+            btnDangXuat.Text = "Đăng xuất";
+            btnDangXuat.UseVisualStyleBackColor = false;
+            btnDangXuat.Click += btnDangXuat_Click;
             // 
             // btnTaiKhoan
             // 
@@ -315,7 +318,8 @@
             // panel3
             // 
             panel3.Controls.Add(panel5);
-            panel3.Controls.Add(label2);
+            panel3.Controls.Add(lblTenNguoiDung);
+            panel3.Controls.Add(lblVaiTro);
             panel3.Dock = DockStyle.Top;
             panel3.Location = new Point(0, 0);
             panel3.Name = "panel3";
@@ -331,16 +335,25 @@
             panel5.Size = new Size(220, 10);
             panel5.TabIndex = 1;
             // 
-            // label2
+            // lblTenNguoiDung
             // 
-            label2.AutoSize = true;
-            label2.Font = new Font("Century Gothic", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            label2.ForeColor = SystemColors.ButtonHighlight;
-            label2.Location = new Point(61, 107);
-            label2.Name = "label2";
-            label2.Size = new Size(73, 23);
-            label2.TabIndex = 0;
-            label2.Text = "Vai trò";
+            lblTenNguoiDung.Font = new Font("Century Gothic", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            lblTenNguoiDung.ForeColor = SystemColors.ButtonHighlight;
+            lblTenNguoiDung.Location = new Point(3, 71);
+            lblTenNguoiDung.Name = "lblTenNguoiDung";
+            lblTenNguoiDung.Size = new Size(211, 23);
+            lblTenNguoiDung.TabIndex = 0;
+            lblTenNguoiDung.Text = "Tên Người Dùng";
+            // 
+            // lblVaiTro
+            // 
+            lblVaiTro.Font = new Font("Century Gothic", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            lblVaiTro.ForeColor = SystemColors.ButtonHighlight;
+            lblVaiTro.Location = new Point(3, 106);
+            lblVaiTro.Name = "lblVaiTro";
+            lblVaiTro.Size = new Size(211, 25);
+            lblVaiTro.TabIndex = 0;
+            lblVaiTro.Text = "Vai trò";
             // 
             // panel4
             // 
@@ -487,11 +500,11 @@
             Font = new Font("Century Gothic", 7.8F, FontStyle.Regular, GraphicsUnit.Point, 0);
             Name = "Form1";
             Padding = new Padding(5, 25, 5, 5);
-            Text = "Form1";
+            Text = "HỆ THỐNG QUẢN LÝ ĐIỂM SINH VIÊN";
             WindowState = FormWindowState.Maximized;
+            Load += Form1_Load;
             panel1.ResumeLayout(false);
             panel3.ResumeLayout(false);
-            panel3.PerformLayout();
             panel4.ResumeLayout(false);
             panel4.PerformLayout();
             panel2.ResumeLayout(false);
@@ -514,7 +527,7 @@
         private Button btnTaiKhoan;
         private Button btnTraCuuDiem;
         private Button button5;
-        private Label label2;
+        private Label lblVaiTro;
         private Panel panel5;
         private UC_LopHocPhan uC_Home1;
         private UC_SinhVien uC_SinhVien1;
@@ -530,7 +543,8 @@
         private Forms.UC_TaiKhoan uC_TaiKhoan1;
         private Forms.UC_TraCuuDiem_Container uC_TraCuuDiem_Container1;
         private Forms.UC_TraCuu_ChiTiet uC_TraCuu_ChiTiet1;
-        private Button button1;
+        private Button btnDangXuat;
+        private Label lblTenNguoiDung;
     }
 }
 
