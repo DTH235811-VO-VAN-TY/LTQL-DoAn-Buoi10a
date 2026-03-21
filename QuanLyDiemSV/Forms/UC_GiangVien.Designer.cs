@@ -28,7 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
-            DataGridViewCellStyle dataGridViewCellStyle2 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle1 = new DataGridViewCellStyle();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(UC_GiangVien));
             dtpNamSinhGV = new DateTimePicker();
             radNu = new RadioButton();
@@ -74,11 +74,11 @@
             txtSDT = new TextBox();
             label6 = new Label();
             groupBoxInfo = new GroupBox();
+            btnNhap = new Button();
+            btnXuat = new Button();
             label2 = new Label();
             cboHocVi = new ComboBox();
             panelInput = new Panel();
-            btnNhap = new Button();
-            btnXuat = new Button();
             groupBoxList.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)dgvAdminGiangVien).BeginInit();
             panelGrid.SuspendLayout();
@@ -143,14 +143,14 @@
             dgvAdminGiangVien.BackgroundColor = SystemColors.ButtonHighlight;
             dgvAdminGiangVien.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             dgvAdminGiangVien.Columns.AddRange(new DataGridViewColumn[] { MaGV, HoTen, NgaySinh, GioiTinh, Email, SDT, HocVi, Khoa });
-            dataGridViewCellStyle2.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle2.BackColor = SystemColors.Window;
-            dataGridViewCellStyle2.Font = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            dataGridViewCellStyle2.ForeColor = SystemColors.ControlText;
-            dataGridViewCellStyle2.SelectionBackColor = SystemColors.Highlight;
-            dataGridViewCellStyle2.SelectionForeColor = SystemColors.HighlightText;
-            dataGridViewCellStyle2.WrapMode = DataGridViewTriState.False;
-            dgvAdminGiangVien.DefaultCellStyle = dataGridViewCellStyle2;
+            dataGridViewCellStyle1.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle1.BackColor = SystemColors.Window;
+            dataGridViewCellStyle1.Font = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            dataGridViewCellStyle1.ForeColor = SystemColors.ControlText;
+            dataGridViewCellStyle1.SelectionBackColor = SystemColors.Highlight;
+            dataGridViewCellStyle1.SelectionForeColor = SystemColors.HighlightText;
+            dataGridViewCellStyle1.WrapMode = DataGridViewTriState.False;
+            dgvAdminGiangVien.DefaultCellStyle = dataGridViewCellStyle1;
             dgvAdminGiangVien.Dock = DockStyle.Fill;
             dgvAdminGiangVien.Location = new Point(3, 24);
             dgvAdminGiangVien.Margin = new Padding(3, 4, 3, 4);
@@ -228,6 +228,7 @@
             // 
             // panelGrid
             // 
+            panelGrid.BackColor = Color.White;
             panelGrid.Controls.Add(groupBoxList);
             panelGrid.Dock = DockStyle.Fill;
             panelGrid.Location = new Point(0, 417);
@@ -418,6 +419,7 @@
             // 
             // groupBoxSearch
             // 
+            groupBoxSearch.BackColor = Color.White;
             groupBoxSearch.Controls.Add(label3);
             groupBoxSearch.Controls.Add(cboKieuSX);
             groupBoxSearch.Controls.Add(radGiam);
@@ -492,7 +494,7 @@
             // 
             // panelSearch
             // 
-            panelSearch.BackColor = SystemColors.ControlLight;
+            panelSearch.BackColor = Color.White;
             panelSearch.Controls.Add(groupBoxSearch);
             panelSearch.Dock = DockStyle.Top;
             panelSearch.Location = new Point(0, 329);
@@ -566,7 +568,7 @@
             // 
             // groupBoxInfo
             // 
-            groupBoxInfo.BackColor = Color.LemonChiffon;
+            groupBoxInfo.BackColor = Color.White;
             groupBoxInfo.Controls.Add(btnNhap);
             groupBoxInfo.Controls.Add(btnXuat);
             groupBoxInfo.Controls.Add(dtpNamSinhGV);
@@ -602,36 +604,6 @@
             groupBoxInfo.TabStop = false;
             groupBoxInfo.Text = "Thông tin giảng viên";
             // 
-            // label2
-            // 
-            label2.AutoSize = true;
-            label2.Location = new Point(604, 66);
-            label2.Name = "label2";
-            label2.Size = new Size(58, 20);
-            label2.TabIndex = 126;
-            label2.Text = "Học Vị:";
-            // 
-            // cboHocVi
-            // 
-            cboHocVi.FormattingEnabled = true;
-            cboHocVi.Location = new Point(686, 63);
-            cboHocVi.Margin = new Padding(3, 4, 3, 4);
-            cboHocVi.Name = "cboHocVi";
-            cboHocVi.Size = new Size(400, 28);
-            cboHocVi.TabIndex = 7;
-            // 
-            // panelInput
-            // 
-            panelInput.BackColor = Color.LemonChiffon;
-            panelInput.Controls.Add(groupBoxInfo);
-            panelInput.Dock = DockStyle.Top;
-            panelInput.Location = new Point(0, 0);
-            panelInput.Margin = new Padding(3, 4, 3, 4);
-            panelInput.Name = "panelInput";
-            panelInput.Padding = new Padding(10, 12, 10, 12);
-            panelInput.Size = new Size(1694, 329);
-            panelInput.TabIndex = 4;
-            // 
             // btnNhap
             // 
             btnNhap.BackColor = Color.White;
@@ -663,6 +635,36 @@
             btnXuat.Text = "Xuất..";
             btnXuat.UseVisualStyleBackColor = false;
             btnXuat.Click += btnXuat_Click;
+            // 
+            // label2
+            // 
+            label2.AutoSize = true;
+            label2.Location = new Point(604, 66);
+            label2.Name = "label2";
+            label2.Size = new Size(58, 20);
+            label2.TabIndex = 126;
+            label2.Text = "Học Vị:";
+            // 
+            // cboHocVi
+            // 
+            cboHocVi.FormattingEnabled = true;
+            cboHocVi.Location = new Point(686, 63);
+            cboHocVi.Margin = new Padding(3, 4, 3, 4);
+            cboHocVi.Name = "cboHocVi";
+            cboHocVi.Size = new Size(400, 28);
+            cboHocVi.TabIndex = 7;
+            // 
+            // panelInput
+            // 
+            panelInput.BackColor = Color.White;
+            panelInput.Controls.Add(groupBoxInfo);
+            panelInput.Dock = DockStyle.Top;
+            panelInput.Location = new Point(0, 0);
+            panelInput.Margin = new Padding(3, 4, 3, 4);
+            panelInput.Name = "panelInput";
+            panelInput.Padding = new Padding(10, 12, 10, 12);
+            panelInput.Size = new Size(1694, 329);
+            panelInput.TabIndex = 4;
             // 
             // UC_GiangVien
             // 

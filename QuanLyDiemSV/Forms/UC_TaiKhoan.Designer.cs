@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            DataGridViewCellStyle dataGridViewCellStyle1 = new DataGridViewCellStyle();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(UC_TaiKhoan));
             panel1 = new Panel();
             panel4 = new Panel();
@@ -126,12 +127,22 @@
             dataGridView1.BackgroundColor = Color.White;
             dataGridView1.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             dataGridView1.Columns.AddRange(new DataGridViewColumn[] { UserID, Username, PasswordHash, RoleID, IsActive, NgayTao });
+            dataGridViewCellStyle1.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            dataGridViewCellStyle1.BackColor = SystemColors.Window;
+            dataGridViewCellStyle1.Font = new Font("Segoe UI Semibold", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            dataGridViewCellStyle1.ForeColor = SystemColors.ControlText;
+            dataGridViewCellStyle1.SelectionBackColor = SystemColors.Highlight;
+            dataGridViewCellStyle1.SelectionForeColor = SystemColors.HighlightText;
+            dataGridViewCellStyle1.WrapMode = DataGridViewTriState.False;
+            dataGridView1.DefaultCellStyle = dataGridViewCellStyle1;
             dataGridView1.Dock = DockStyle.Fill;
             dataGridView1.Location = new Point(3, 26);
             dataGridView1.Name = "dataGridView1";
             dataGridView1.RowHeadersWidth = 51;
+            dataGridView1.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
             dataGridView1.Size = new Size(1668, 514);
             dataGridView1.TabIndex = 0;
+            dataGridView1.CellFormatting += dataGridView1_CellFormatting;
             // 
             // UserID
             // 
@@ -362,7 +373,6 @@
             btnXuat.BackColor = Color.White;
             btnXuat.FlatStyle = FlatStyle.Flat;
             btnXuat.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            btnXuat.Image = (Image)resources.GetObject("btnXuat.Image");
             btnXuat.ImageAlign = ContentAlignment.MiddleLeft;
             btnXuat.Location = new Point(1168, 210);
             btnXuat.Margin = new Padding(3, 4, 3, 4);
@@ -463,7 +473,6 @@
             btnNhap.BackColor = Color.White;
             btnNhap.FlatStyle = FlatStyle.Flat;
             btnNhap.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            btnNhap.Image = (Image)resources.GetObject("btnNhap.Image");
             btnNhap.ImageAlign = ContentAlignment.MiddleLeft;
             btnNhap.Location = new Point(1392, 210);
             btnNhap.Margin = new Padding(3, 4, 3, 4);

@@ -33,7 +33,7 @@
             btnDangXuat = new Button();
             btnTaiKhoan = new Button();
             btnTraCuuDiem = new Button();
-            button5 = new Button();
+            btnThongKe = new Button();
             btnMonHoc = new Button();
             btnDiemSV = new Button();
             btnLopHanhChinh = new Button();
@@ -59,6 +59,7 @@
             uC_MonHoc1 = new GUI.UC_MonHoc();
             uC_SinhVien1 = new UC_SinhVien();
             uC_Home1 = new UC_LopHocPhan();
+            uC_GiangVien_ChamDiem1 = new QuanLyDiemSV.Forms.UC_GiangVien_ChamDiem();
             panel1.SuspendLayout();
             panel3.SuspendLayout();
             panel4.SuspendLayout();
@@ -71,7 +72,7 @@
             panel1.Controls.Add(btnDangXuat);
             panel1.Controls.Add(btnTaiKhoan);
             panel1.Controls.Add(btnTraCuuDiem);
-            panel1.Controls.Add(button5);
+            panel1.Controls.Add(btnThongKe);
             panel1.Controls.Add(btnMonHoc);
             panel1.Controls.Add(btnDiemSV);
             panel1.Controls.Add(btnLopHanhChinh);
@@ -144,26 +145,27 @@
             btnTraCuuDiem.UseVisualStyleBackColor = false;
             btnTraCuuDiem.Click += btnTraCuuDiem_Click;
             // 
-            // button5
+            // btnThongKe
             // 
-            button5.BackColor = Color.FromArgb(52, 73, 94);
-            button5.Dock = DockStyle.Top;
-            button5.FlatAppearance.BorderSize = 0;
-            button5.FlatAppearance.MouseDownBackColor = Color.Blue;
-            button5.FlatAppearance.MouseOverBackColor = Color.FromArgb(0, 0, 192);
-            button5.FlatStyle = FlatStyle.Flat;
-            button5.Font = new Font("Century Gothic", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            button5.ForeColor = SystemColors.ButtonHighlight;
-            button5.Image = (Image)resources.GetObject("button5.Image");
-            button5.ImageAlign = ContentAlignment.MiddleLeft;
-            button5.Location = new Point(0, 674);
-            button5.Margin = new Padding(0);
-            button5.Name = "button5";
-            button5.Size = new Size(220, 74);
-            button5.TabIndex = 6;
-            button5.Text = "               Thống kê";
-            button5.TextAlign = ContentAlignment.MiddleLeft;
-            button5.UseVisualStyleBackColor = false;
+            btnThongKe.BackColor = Color.FromArgb(52, 73, 94);
+            btnThongKe.Dock = DockStyle.Top;
+            btnThongKe.FlatAppearance.BorderSize = 0;
+            btnThongKe.FlatAppearance.MouseDownBackColor = Color.Blue;
+            btnThongKe.FlatAppearance.MouseOverBackColor = Color.FromArgb(0, 0, 192);
+            btnThongKe.FlatStyle = FlatStyle.Flat;
+            btnThongKe.Font = new Font("Century Gothic", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            btnThongKe.ForeColor = SystemColors.ButtonHighlight;
+            btnThongKe.Image = (Image)resources.GetObject("btnThongKe.Image");
+            btnThongKe.ImageAlign = ContentAlignment.MiddleLeft;
+            btnThongKe.Location = new Point(0, 674);
+            btnThongKe.Margin = new Padding(0);
+            btnThongKe.Name = "btnThongKe";
+            btnThongKe.Size = new Size(220, 74);
+            btnThongKe.TabIndex = 6;
+            btnThongKe.Text = "               Thống kê";
+            btnThongKe.TextAlign = ContentAlignment.MiddleLeft;
+            btnThongKe.UseVisualStyleBackColor = false;
+            btnThongKe.Click += btnThongKe_Click;
             // 
             // btnMonHoc
             // 
@@ -337,8 +339,8 @@
             // 
             // lblTenNguoiDung
             // 
-            lblTenNguoiDung.Font = new Font("Century Gothic", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            lblTenNguoiDung.ForeColor = SystemColors.ButtonHighlight;
+            lblTenNguoiDung.Font = new Font("Arial", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            lblTenNguoiDung.ForeColor = Color.Lime;
             lblTenNguoiDung.Location = new Point(3, 71);
             lblTenNguoiDung.Name = "lblTenNguoiDung";
             lblTenNguoiDung.Size = new Size(211, 23);
@@ -348,7 +350,7 @@
             // lblVaiTro
             // 
             lblVaiTro.Font = new Font("Century Gothic", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            lblVaiTro.ForeColor = SystemColors.ButtonHighlight;
+            lblVaiTro.ForeColor = Color.Fuchsia;
             lblVaiTro.Location = new Point(3, 106);
             lblVaiTro.Name = "lblVaiTro";
             lblVaiTro.Size = new Size(211, 25);
@@ -381,6 +383,7 @@
             // panel2
             // 
             panel2.BackColor = Color.White;
+            panel2.Controls.Add(uC_GiangVien_ChamDiem1);
             panel2.Controls.Add(uC_TraCuu_ChiTiet1);
             panel2.Controls.Add(uC_TraCuuDiem_Container1);
             panel2.Controls.Add(uC_TaiKhoan1);
@@ -489,6 +492,14 @@
             uC_Home1.Size = new Size(1694, 954);
             uC_Home1.TabIndex = 0;
             // 
+            // uC_GiangVien_ChamDiem1
+            // 
+            uC_GiangVien_ChamDiem1.Dock = DockStyle.Fill;
+            uC_GiangVien_ChamDiem1.Location = new Point(0, 0);
+            uC_GiangVien_ChamDiem1.Name = "uC_GiangVien_ChamDiem1";
+            uC_GiangVien_ChamDiem1.Size = new Size(1694, 954);
+            uC_GiangVien_ChamDiem1.TabIndex = 11;
+            // 
             // Form1
             // 
             AutoScaleMode = AutoScaleMode.None;
@@ -526,7 +537,7 @@
         private Button btnLopHocPhan;
         private Button btnTaiKhoan;
         private Button btnTraCuuDiem;
-        private Button button5;
+        private Button btnThongKe;
         private Label lblVaiTro;
         private Panel panel5;
         private UC_LopHocPhan uC_Home1;
@@ -545,6 +556,7 @@
         private Forms.UC_TraCuu_ChiTiet uC_TraCuu_ChiTiet1;
         private Button btnDangXuat;
         private Label lblTenNguoiDung;
+        private Forms.UC_GiangVien_ChamDiem uC_GiangVien_ChamDiem1;
     }
 }
 

@@ -29,6 +29,10 @@
         private void InitializeComponent()
         {
             DataGridViewCellStyle dataGridViewCellStyle1 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle2 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle3 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle4 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle5 = new DataGridViewCellStyle();
             panel1 = new Panel();
             groupBox1 = new GroupBox();
             txtTuKhoa = new TextBox();
@@ -184,6 +188,7 @@
             // 
             // groupBox2
             // 
+            groupBox2.BackColor = SystemColors.Control;
             groupBox2.Controls.Add(radGiam);
             groupBox2.Controls.Add(radTang);
             groupBox2.Controls.Add(cboKieuSX);
@@ -267,18 +272,26 @@
             dgvDanhSachSV.AllowUserToDeleteRows = false;
             dgvDanhSachSV.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
             dgvDanhSachSV.BackgroundColor = SystemColors.ButtonHighlight;
+            dgvDanhSachSV.ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.Single;
             dgvDanhSachSV.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             dgvDanhSachSV.Columns.AddRange(new DataGridViewColumn[] { MaSV, HoTen, NgaySinh, GioiTinh, LopHanhChinh, MaKhoa, TrangThai, ThaoTac });
             dgvDanhSachSV.Dock = DockStyle.Fill;
+            dgvDanhSachSV.EnableHeadersVisualStyles = false;
             dgvDanhSachSV.Location = new Point(3, 26);
             dgvDanhSachSV.Name = "dgvDanhSachSV";
             dgvDanhSachSV.RowHeadersWidth = 51;
+            dgvDanhSachSV.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
             dgvDanhSachSV.Size = new Size(1668, 718);
             dgvDanhSachSV.TabIndex = 1;
             // 
             // MaSV
             // 
             MaSV.DataPropertyName = "MaSV";
+            dataGridViewCellStyle1.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            dataGridViewCellStyle1.Font = new Font("Microsoft Sans Serif", 7.8F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            dataGridViewCellStyle1.ForeColor = Color.Blue;
+            MaSV.DefaultCellStyle = dataGridViewCellStyle1;
+            MaSV.FillWeight = 53.1703568F;
             MaSV.HeaderText = "Mã SV";
             MaSV.MinimumWidth = 6;
             MaSV.Name = "MaSV";
@@ -287,6 +300,7 @@
             // HoTen
             // 
             HoTen.DataPropertyName = "HoTen";
+            HoTen.FillWeight = 53.1703568F;
             HoTen.HeaderText = "Họ Tên";
             HoTen.MinimumWidth = 6;
             HoTen.Name = "HoTen";
@@ -295,6 +309,9 @@
             // NgaySinh
             // 
             NgaySinh.DataPropertyName = "NgaySinh";
+            dataGridViewCellStyle2.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            NgaySinh.DefaultCellStyle = dataGridViewCellStyle2;
+            NgaySinh.FillWeight = 53.1703568F;
             NgaySinh.HeaderText = "Ngày Sinh";
             NgaySinh.MinimumWidth = 6;
             NgaySinh.Name = "NgaySinh";
@@ -303,7 +320,8 @@
             // GioiTinh
             // 
             GioiTinh.DataPropertyName = "GioiTinh";
-            GioiTinh.HeaderText = "GioiTinh";
+            GioiTinh.FillWeight = 53.1703568F;
+            GioiTinh.HeaderText = "Giới tính";
             GioiTinh.MinimumWidth = 6;
             GioiTinh.Name = "GioiTinh";
             GioiTinh.ReadOnly = true;
@@ -311,6 +329,7 @@
             // LopHanhChinh
             // 
             LopHanhChinh.DataPropertyName = "LopHanhChinh";
+            LopHanhChinh.FillWeight = 53.1703568F;
             LopHanhChinh.HeaderText = "Lớp";
             LopHanhChinh.MinimumWidth = 6;
             LopHanhChinh.Name = "LopHanhChinh";
@@ -319,6 +338,9 @@
             // MaKhoa
             // 
             MaKhoa.DataPropertyName = "MaKhoa";
+            dataGridViewCellStyle3.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            MaKhoa.DefaultCellStyle = dataGridViewCellStyle3;
+            MaKhoa.FillWeight = 53.1703568F;
             MaKhoa.HeaderText = "Khoa";
             MaKhoa.MinimumWidth = 6;
             MaKhoa.Name = "MaKhoa";
@@ -327,6 +349,12 @@
             // TrangThai
             // 
             TrangThai.DataPropertyName = "TrangThai";
+            dataGridViewCellStyle4.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            dataGridViewCellStyle4.BackColor = Color.White;
+            dataGridViewCellStyle4.Font = new Font("Microsoft Sans Serif", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            dataGridViewCellStyle4.ForeColor = Color.Lime;
+            TrangThai.DefaultCellStyle = dataGridViewCellStyle4;
+            TrangThai.FillWeight = 53.1703568F;
             TrangThai.HeaderText = "Trạng Thái";
             TrangThai.MinimumWidth = 6;
             TrangThai.Name = "TrangThai";
@@ -335,8 +363,9 @@
             // ThaoTac
             // 
             ThaoTac.DataPropertyName = "ThaoTac";
-            dataGridViewCellStyle1.BackColor = Color.SpringGreen;
-            ThaoTac.DefaultCellStyle = dataGridViewCellStyle1;
+            dataGridViewCellStyle5.BackColor = Color.SpringGreen;
+            ThaoTac.DefaultCellStyle = dataGridViewCellStyle5;
+            ThaoTac.FillWeight = 53.1703568F;
             ThaoTac.HeaderText = "Thao Tác";
             ThaoTac.MinimumWidth = 6;
             ThaoTac.Name = "ThaoTac";

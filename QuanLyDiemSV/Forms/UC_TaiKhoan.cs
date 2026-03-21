@@ -26,6 +26,47 @@ namespace QuanLyDiemSV.Forms
         {
             InitializeComponent();
             this.Load += UC_TaiKhoan_Load;
+            StyleDataGridView(dataGridView1);
+        }
+        private void StyleDataGridView(DataGridView dgv)
+        {
+            try
+            {
+                // 0. Bật Double Buffering để chống giật lag khi cuộn chuột
+                typeof(DataGridView).InvokeMember("DoubleBuffered", System.Reflection.BindingFlags.NonPublic |
+                System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.SetProperty, null,
+                dgv, new object[] { true });
+
+                // 1. TẮT Visual Styles mặc định của Windows
+                dgv.EnableHeadersVisualStyles = false;
+
+                // 2. CHỈNH HEADER (Tiêu đề cột)
+                dgv.ColumnHeadersDefaultCellStyle.BackColor = Color.FromArgb(41, 128, 185); // Xanh dương
+                dgv.ColumnHeadersDefaultCellStyle.ForeColor = Color.White;
+                dgv.ColumnHeadersDefaultCellStyle.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
+                dgv.ColumnHeadersDefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+                dgv.ColumnHeadersHeight = 45;
+                dgv.ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.Single;
+
+                // 3. CHỈNH DÒNG XEN KẼ (Zebra striping)
+                dgv.AlternatingRowsDefaultCellStyle.BackColor = Color.FromArgb(245, 247, 250); // Xám nhạt
+                dgv.RowsDefaultCellStyle.BackColor = Color.White;
+
+                // 4. CHỈNH FONT CHỮ VÀ CHIỀU CAO DÒNG
+                dgv.DefaultCellStyle.Font = new Font("Segoe UI", 10F, FontStyle.Regular);
+                dgv.RowTemplate.Height = 40; // Dòng cao thoáng dễ click
+
+                // 5. CHỈNH DÒNG KHI ĐƯỢC CHỌN (Highlight)
+                dgv.DefaultCellStyle.SelectionBackColor = Color.FromArgb(212, 230, 241); // Xanh lơ nhạt
+                dgv.DefaultCellStyle.SelectionForeColor = Color.Black;
+
+                // 6. CHỈNH VIỀN Ô PHÂN CÁCH (Bảng nét đơn)
+                dgv.BackgroundColor = Color.White;
+                dgv.BorderStyle = BorderStyle.FixedSingle;
+                dgv.CellBorderStyle = DataGridViewCellBorderStyle.Single;
+                dgv.GridColor = Color.FromArgb(200, 200, 200); // Màu đường kẻ xám vừa
+            }
+            catch { } // Bỏ qua lỗi ngầm nếu có
         }
 
         private void UC_TaiKhoan_Load(object sender, EventArgs e)
@@ -389,6 +430,51 @@ namespace QuanLyDiemSV.Forms
         private void radGiam_CheckedChanged(object sender, EventArgs e)
         {
             if (radGiam.Checked) LoadData(); // Tự động sắp xếp lại khi nhấn Giảm
+        }
+
+        private void dataGridView1_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
+        {
+            // Tên cột trạng thái của bạn trong file Designer là IsActive
+            if (dataGridView1.Columns[e.ColumnIndex].Name == "IsActive" && e.Value != null)
+            {
+                string val = e.Value.ToString().ToLower();
+                if (val == "true" || val == "1")
+                {
+                    e.Value = "Hoạt động";
+                    e.CellStyle.ForeColor = Color.MediumSeaGreen;
+                    e.CellStyle.Font = new Font(dataGridView1.Font, FontStyle.Bold);
+                }
+                else
+                {
+                    e.Value = "Đã khóa";
+                    e.CellStyle.ForeColor = Color.Crimson;
+                    e.CellStyle.Font = new Font(dataGridView1.Font, FontStyle.Bold);
+                }
+                e.FormattingApplied = true;
+            }
+            // 2. THÊM MỚI: Xử lý cột Quyền Hạn (RoleID)
+            if (dataGridView1.Columns[e.ColumnIndex].Name == "RoleID" && e.Value != null)
+            {
+                string role = e.Value.ToString();
+                if (role == "1")
+                {
+                    e.Value = "Admin";
+                    e.CellStyle.ForeColor = Color.Crimson; // Admin cho màu đỏ nổi bật
+                    e.CellStyle.Font = new Font(dataGridView1.Font, FontStyle.Bold);
+                }
+                else if (role == "2")
+                {
+                    e.Value = "Giảng viên";
+                    e.CellStyle.ForeColor = Color.MediumSeaGreen; // GV màu xanh lá
+                    e.CellStyle.Font = new Font(dataGridView1.Font, FontStyle.Bold);
+                }
+                else if (role == "3")
+                {
+                    e.Value = "Sinh viên";
+                    e.CellStyle.ForeColor = Color.DarkBlue; // SV màu xanh dương
+                }
+                e.FormattingApplied = true;
+            }
         }
     }
 }

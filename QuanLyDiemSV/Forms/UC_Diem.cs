@@ -25,6 +25,47 @@ namespace GUI
             InitializeComponent();
             this.Load += UC_Diem_Load;
             this.VisibleChanged += UC_Diem_VisibleChanged;
+            StyleDataGridView(dgvBangDiem);
+        }
+        private void StyleDataGridView(DataGridView dgv)
+        {
+            try
+            {
+                // 0. Bật Double Buffering để chống giật lag khi cuộn chuột
+                typeof(DataGridView).InvokeMember("DoubleBuffered", System.Reflection.BindingFlags.NonPublic |
+                System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.SetProperty, null,
+                dgv, new object[] { true });
+
+                // 1. TẮT Visual Styles mặc định của Windows
+                dgv.EnableHeadersVisualStyles = false;
+
+                // 2. CHỈNH HEADER (Tiêu đề cột)
+                dgv.ColumnHeadersDefaultCellStyle.BackColor = Color.FromArgb(41, 128, 185); // Xanh dương
+                dgv.ColumnHeadersDefaultCellStyle.ForeColor = Color.White;
+                dgv.ColumnHeadersDefaultCellStyle.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
+                dgv.ColumnHeadersDefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+                dgv.ColumnHeadersHeight = 45;
+                dgv.ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.Single;
+
+                // 3. CHỈNH DÒNG XEN KẼ (Zebra striping)
+                dgv.AlternatingRowsDefaultCellStyle.BackColor = Color.FromArgb(245, 247, 250); // Xám nhạt
+                dgv.RowsDefaultCellStyle.BackColor = Color.White;
+
+                // 4. CHỈNH FONT CHỮ VÀ CHIỀU CAO DÒNG
+                dgv.DefaultCellStyle.Font = new Font("Segoe UI", 10F, FontStyle.Regular);
+                dgv.RowTemplate.Height = 40; // Dòng cao thoáng dễ click
+
+                // 5. CHỈNH DÒNG KHI ĐƯỢC CHỌN (Highlight)
+                dgv.DefaultCellStyle.SelectionBackColor = Color.FromArgb(212, 230, 241); // Xanh lơ nhạt
+                dgv.DefaultCellStyle.SelectionForeColor = Color.Black;
+
+                // 6. CHỈNH VIỀN Ô PHÂN CÁCH (Bảng nét đơn)
+                dgv.BackgroundColor = Color.White;
+                dgv.BorderStyle = BorderStyle.FixedSingle;
+                dgv.CellBorderStyle = DataGridViewCellBorderStyle.Single;
+                dgv.GridColor = Color.FromArgb(200, 200, 200); // Màu đường kẻ xám vừa
+            }
+            catch { } // Bỏ qua lỗi ngầm nếu có
         }
 
         private void UC_Diem_Load(object sender, EventArgs e)
@@ -61,6 +102,8 @@ namespace GUI
             dgvBangDiem.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "TC", DataPropertyName = "SoTinChi", Width = 50 });
             dgvBangDiem.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Đ.Quá Trình", DataPropertyName = "DiemGK" });
             dgvBangDiem.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Đ.Cuối Kỳ", DataPropertyName = "DiemCK" });
+            dgvBangDiem.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Đ.Thi lần 1", DataPropertyName = "DiemThiLan1" });
+            dgvBangDiem.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Đ.Thi lần 2", DataPropertyName = "DiemThiLan2" });
             dgvBangDiem.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "TK(10)", DataPropertyName = "DiemTongKet" });
             dgvBangDiem.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "TK(CH)", DataPropertyName = "DiemChu" });
         }
@@ -124,8 +167,11 @@ namespace GUI
             public int SoTinChi { get; set; }
             public decimal? DiemGK { get; set; }
             public decimal? DiemCK { get; set; }
+            public decimal? DiemThiLan1 { get; set; }
+            public decimal? DiemThiLan2 { get; set; }
 
-            public decimal? DiemTongKet => (DiemGK.HasValue && DiemCK.HasValue) ? (DiemGK * 0.4m + DiemCK * 0.6m) : null;
+            // Thuộc tính này sẽ lấy trực tiếp con số đã tính toán & lưu từ DB lên
+            public decimal? DiemTongKet { get; set; }
 
             public double? DiemHe4
             {
@@ -194,6 +240,7 @@ namespace GUI
             if (cboHocKy.SelectedValue == null) return;
             string maHK_DuocChon = cboHocKy.SelectedValue.ToString();
 
+            // 1. Truy vấn lấy dữ liệu từ DB (Bao gồm cả điểm thi lại và điểm tổng kết mới)
             var listDiemRaw = from kq in context.KetQuaHocTap
                               join lhp in context.LopHocPhan on kq.MaLHP equals lhp.MaLHP
                               join mh in context.MonHoc on lhp.MaMon equals mh.MaMon
@@ -207,12 +254,18 @@ namespace GUI
                                   TenMon = mh.TenMon,
                                   SoTinChi = mh.SoTinChi,
                                   DiemGK = kq.DiemGK,
-                                  DiemCK = kq.DiemCK
+                                  DiemCK = kq.DiemCK,
+                                  DiemThiLan1 = kq.DiemThiLan1,
+                                  DiemThiLan2 = kq.DiemThiLan2,
+                                  DiemTongKet = kq.DiemTongKet
                               };
 
-            bsDiem.DataSource = listDiemRaw.ToList();
+            // 2. Gán dữ liệu vào BindingSource và Lưới
+            var dataList = listDiemRaw.ToList();
+            bsDiem.DataSource = dataList;
             dgvBangDiem.DataSource = bsDiem;
 
+            // 3. Xóa các DataBinding cũ (nếu có) để tránh lỗi xung đột khi gán lại giá trị
             txtDiemQT.DataBindings.Clear();
             txtDiemCK.DataBindings.Clear();
             txtSTC.DataBindings.Clear();
@@ -220,7 +273,8 @@ namespace GUI
             txtDiemThiLan1.DataBindings.Clear();
             txtDiemThiLan2.DataBindings.Clear();
 
-            TinhTongKetHocKy(bsDiem.DataSource as List<DiemViewModel>);
+            // 4. Tính toán phần thống kê phía trên của Form (Số môn, Tín chỉ đạt, ĐTB...)
+            TinhTongKetHocKy(dataList);
         }
 
         private void BsDiem_CurrentChanged(object sender, EventArgs e)
@@ -231,11 +285,13 @@ namespace GUI
 
             txtDiemQT.Text = item.DiemGK?.ToString();
             txtDiemCK.Text = item.DiemCK?.ToString();
+            txtDiemThiLan1.Text = item.DiemThiLan1?.ToString();
+            txtDiemThiLan2.Text = item.DiemThiLan2?.ToString();
             txtTenMon.Text = item.TenMon;
             txtSTC.Text = item.SoTinChi.ToString();
 
-            txtDiemThiLan1.Text = "";
-            txtDiemThiLan2.Text = "";
+            //txtDiemThiLan1.Text = "";
+            //txtDiemThiLan2.Text = "";
             txtGhichu.Text = "";
 
             if (!string.IsNullOrEmpty(item.MaHK))
@@ -342,8 +398,22 @@ namespace GUI
                 return;
             }
 
+            // =========================================================
+            // 0. LẤY DỮ LIỆU TỪ GIAO DIỆN VÀ ÉP KIỂU CHUẨN XÁC
+            // =========================================================
             decimal? dGK = string.IsNullOrEmpty(txtDiemQT.Text) ? null : decimal.Parse(txtDiemQT.Text);
             decimal? dCK = string.IsNullOrEmpty(txtDiemCK.Text) ? null : decimal.Parse(txtDiemCK.Text);
+            decimal? dThiL1 = string.IsNullOrEmpty(txtDiemThiLan1.Text) ? null : decimal.Parse(txtDiemThiLan1.Text);
+            decimal? dThiL2 = string.IsNullOrEmpty(txtDiemThiLan2.Text) ? null : decimal.Parse(txtDiemThiLan2.Text);
+            // Bắt lỗi: Có điểm Thi Lại nhưng lại bỏ trống Cuối Kỳ
+            if ((dThiL1.HasValue || dThiL2.HasValue) && !dCK.HasValue)
+            {
+                MessageBox.Show("Sinh viên phải có điểm thi Cuối Kỳ (chính thức) trước khi nhập điểm thi lại/cải thiện!", "Cảnh báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            // Tính điểm tổng kết
+            double diemTongKet = TinhDiemTongKetCuoiCung((double)(dGK ?? 0), (double?)dCK, (double?)dThiL1, (double?)dThiL2);
 
             try
             {
@@ -351,11 +421,7 @@ namespace GUI
 
                 if (xuLyThem)
                 {
-                    // =========================================================
-                    // 1. LOGIC KIỂM TRA ĐIỀU KIỆN MÔN TIÊN QUYẾT (Từ bảng DieuKienMonHoc)
-                    // =========================================================
-
-                    // Lấy mã môn học của Lớp học phần đang chọn
+                    // 1. LOGIC KIỂM TRA ĐIỀU KIỆN MÔN TIÊN QUYẾT
                     var maMonDangChon = context.LopHocPhan
                                                .Where(x => x.MaLHP == maLHP)
                                                .Select(x => x.MaMon)
@@ -363,14 +429,12 @@ namespace GUI
 
                     if (maMonDangChon != null)
                     {
-                        // Truy xuất bảng DieuKienMonHoc để tìm các môn tiên quyết của môn này
                         var listMonTienQuyet = context.DieuKienMonHoc
                                                       .Where(dk => dk.MaMon == maMonDangChon)
                                                       .ToList();
 
                         foreach (var dk in listMonTienQuyet)
                         {
-                            // Sinh viên "đã học" nghĩa là phải có dữ liệu trong bảng KetQuaHocTap với môn tiên quyết này
                             bool daHocMonTienQuyet = (from k in context.KetQuaHocTap
                                                       join lhp in context.LopHocPhan on k.MaLHP equals lhp.MaLHP
                                                       where k.MaSV == currentMaSV && lhp.MaMon == dk.MaMonTienQuyet
@@ -378,7 +442,6 @@ namespace GUI
 
                             if (!daHocMonTienQuyet)
                             {
-                                // Lấy tên môn học tiên quyết để báo lỗi cho thân thiện
                                 string tenMonTQ = context.MonHoc
                                                          .Where(m => m.MaMon == dk.MaMonTienQuyet)
                                                          .Select(m => m.TenMon)
@@ -386,14 +449,12 @@ namespace GUI
 
                                 MessageBox.Show($"Không thể nhập điểm!\n\nSinh viên chưa học môn tiên quyết: [{dk.MaMonTienQuyet}] - {tenMonTQ}.\nVui lòng nhập điểm môn tiên quyết trước.",
                                                 "Cảnh báo học vụ", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                                return; // Bắt buộc dừng lại, không Insert vào DB
+                                return;
                             }
                         }
                     }
 
-                    // =========================================================
                     // 2. KIỂM TRA TRÙNG LẶP ĐIỂM
-                    // =========================================================
                     var check = context.KetQuaHocTap.FirstOrDefault(x => x.MaSV == currentMaSV && x.MaLHP == maLHP);
                     if (check != null)
                     {
@@ -401,14 +462,19 @@ namespace GUI
                         return;
                     }
 
+                    // 3. THÊM MỚI KẾT QUẢ HỌC TẬP
                     KetQuaHocTap kq = new KetQuaHocTap();
                     kq.MaSV = currentMaSV;
                     kq.MaLHP = maLHP;
                     kq.DiemGK = dGK;
-                    kq.DiemCK = dCK;
+                    kq.DiemCK = dCK; // Khôi phục lại: Lưu đúng điểm thi lần 1 vào Cuối Kỳ
+                    kq.DiemThiLan1 = dThiL1;
+                    kq.DiemThiLan2 = dThiL2;
+                    kq.DiemTongKet = (decimal?)diemTongKet; // Lưu kết quả sau cùng vào cột Tổng kết
+
                     context.KetQuaHocTap.Add(kq);
                 }
-                else
+                else // NẾU LÀ SỬA ĐIỂM
                 {
                     var viewItem = (DiemViewModel)bsDiem.Current;
                     var kq = context.KetQuaHocTap.Find(viewItem.ID);
@@ -416,11 +482,16 @@ namespace GUI
                     {
                         kq.DiemGK = dGK;
                         kq.DiemCK = dCK;
+
+                        // === BẠN HÃY THÊM 3 DÒNG NÀY VÀO ĐỂ LƯU ĐIỂM THI LẠI ===
+                        kq.DiemThiLan1 = dThiL1;
+                        kq.DiemThiLan2 = dThiL2;
+                        kq.DiemTongKet = (decimal?)diemTongKet;
                     }
                 }
 
                 context.SaveChanges();
-                MessageBox.Show("Lưu thành công!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show($"Lưu thành công!\nĐiểm tổng kết được hệ thống tính toán là: {diemTongKet}", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 BatTatChucNang(false);
                 LoadBangDiemSinhVien(currentMaSV);
             }
@@ -495,8 +566,8 @@ namespace GUI
             txtTenMon.Enabled = mo;
             txtSTC.Enabled = mo;
 
-            txtDiemThiLan1.Enabled = false;
-            txtDiemThiLan2.Enabled = false;
+            txtDiemThiLan1.Enabled = mo;
+            txtDiemThiLan2.Enabled = mo;
 
             txtGhichu.Enabled = mo;
 
@@ -718,6 +789,38 @@ namespace GUI
             catch (Exception ex)
             {
                 MessageBox.Show("Lỗi nhập file: Vui lòng đảm bảo bạn đang nhập đúng file Excel mẫu đã xuất ra.\nChi tiết: " + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+        // HÀM TÍNH ĐIỂM TỔNG KẾT THEO QUY CHẾ THI LẠI / CẢI THIỆN
+        private double TinhDiemTongKetCuoiCung(double diemQT, double? diemCK, double? diemThiL1, double? diemThiL2)
+        {
+            // 1. Chưa có điểm thi cuối kỳ (lần chính thức) thì chưa có tổng kết
+            if (!diemCK.HasValue) return 0;
+
+            // 2. Tính điểm tổng kết chính thức (Lần 1)
+            double tkChinhThuc = Math.Round((diemQT * 0.4) + (diemCK.Value * 0.6), 1);
+
+            // 3. Nếu không thi lại/cải thiện, điểm cuối cùng là điểm chính thức
+            if (!diemThiL1.HasValue && !diemThiL2.HasValue)
+                return tkChinhThuc;
+
+            // 4. Nếu có thi lại, xác định điểm thi lại mới nhất (Lần 2 đè Lần 1)
+            double? diemThiLai = diemThiL2.HasValue ? diemThiL2 : diemThiL1;
+            if (!diemThiLai.HasValue) return tkChinhThuc;
+
+            // Tính nháp điểm tổng kết của lần thi lại
+            double tkThiLai = Math.Round((diemQT * 0.4) + (diemThiLai.Value * 0.6), 1);
+
+            // 5. ÁP DỤNG QUY CHẾ:
+            if (tkChinhThuc < 5.0)
+            {
+                // TH rớt: Điểm tổng kết thi lại tối đa chỉ được 6.0
+                return tkThiLai > 6.0 ? 6.0 : tkThiLai;
+            }
+            else
+            {
+                // TH cải thiện: Lấy điểm thi lại * 0.6 + QT * 0.4 (Không giới hạn)
+                return tkThiLai;
             }
         }
     }

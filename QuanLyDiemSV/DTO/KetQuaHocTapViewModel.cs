@@ -20,7 +20,7 @@ namespace QuanLyDiemSV.DTO
         // 3. Điểm thi (Map từ DiemCK hoặc cột mở rộng)
         public decimal? DiemThiLan1 { get; set; }
         // Nếu sau này có cột DiemThiLan2 trong DB thì bỏ comment dòng dưới
-        // public decimal? DiemThiLan2 { get; set; } 
+         public decimal? DiemThiLan2 { get; set; } 
 
         // 4. Điểm tổng kết
         public decimal? DiemTongKet { get; set; } // Hệ 10

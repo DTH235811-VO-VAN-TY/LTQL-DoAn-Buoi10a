@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            DataGridViewCellStyle dataGridViewCellStyle1 = new DataGridViewCellStyle();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(UC_Diem));
             panel1 = new Panel();
             panel5 = new Panel();
@@ -160,9 +161,11 @@
             // 
             lblXepLoaiHK.Anchor = AnchorStyles.None;
             lblXepLoaiHK.AutoSize = true;
-            lblXepLoaiHK.Location = new Point(263, 197);
+            lblXepLoaiHK.Font = new Font("Segoe UI", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            lblXepLoaiHK.ForeColor = Color.Red;
+            lblXepLoaiHK.Location = new Point(260, 187);
             lblXepLoaiHK.Name = "lblXepLoaiHK";
-            lblXepLoaiHK.Size = new Size(121, 20);
+            lblXepLoaiHK.Size = new Size(139, 23);
             lblXepLoaiHK.TabIndex = 7;
             lblXepLoaiHK.Text = "Xếp Loại Học Kỳ";
             // 
@@ -180,7 +183,7 @@
             // 
             lblSTCTichLuy.Anchor = AnchorStyles.None;
             lblSTCTichLuy.AutoSize = true;
-            lblSTCTichLuy.Location = new Point(263, 145);
+            lblSTCTichLuy.Location = new Point(260, 143);
             lblSTCTichLuy.Name = "lblSTCTichLuy";
             lblSTCTichLuy.Size = new Size(78, 20);
             lblSTCTichLuy.TabIndex = 7;
@@ -200,6 +203,7 @@
             // 
             lblDiemHe4.Anchor = AnchorStyles.None;
             lblDiemHe4.AutoSize = true;
+            lblDiemHe4.ForeColor = Color.Blue;
             lblDiemHe4.Location = new Point(260, 85);
             lblDiemHe4.Name = "lblDiemHe4";
             lblDiemHe4.Size = new Size(46, 20);
@@ -210,6 +214,7 @@
             // 
             lblDiemHe10.Anchor = AnchorStyles.None;
             lblDiemHe10.AutoSize = true;
+            lblDiemHe10.ForeColor = Color.Blue;
             lblDiemHe10.Location = new Point(263, 57);
             lblDiemHe10.Name = "lblDiemHe10";
             lblDiemHe10.Size = new Size(46, 20);
@@ -309,11 +314,21 @@
             dgvBangDiem.AllowUserToAddRows = false;
             dgvBangDiem.AllowUserToDeleteRows = false;
             dgvBangDiem.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+            dgvBangDiem.BackgroundColor = SystemColors.ButtonHighlight;
             dgvBangDiem.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             dgvBangDiem.Columns.AddRange(new DataGridViewColumn[] { MaMon, TenMon, SoTinChi, DiemGK, DiemCK, DiemThiLan1, DiemThiLan2, DiemTongKet, DiemChu, GhiChu });
             dgvBangDiem.Dock = DockStyle.Fill;
+            dgvBangDiem.EnableHeadersVisualStyles = false;
             dgvBangDiem.Location = new Point(3, 26);
             dgvBangDiem.Name = "dgvBangDiem";
+            dataGridViewCellStyle1.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle1.BackColor = Color.Cyan;
+            dataGridViewCellStyle1.Font = new Font("Segoe UI", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            dataGridViewCellStyle1.ForeColor = Color.White;
+            dataGridViewCellStyle1.SelectionBackColor = SystemColors.Highlight;
+            dataGridViewCellStyle1.SelectionForeColor = SystemColors.HighlightText;
+            dataGridViewCellStyle1.WrapMode = DataGridViewTriState.True;
+            dgvBangDiem.RowHeadersDefaultCellStyle = dataGridViewCellStyle1;
             dgvBangDiem.RowHeadersWidth = 51;
             dgvBangDiem.Size = new Size(1668, 283);
             dgvBangDiem.TabIndex = 0;

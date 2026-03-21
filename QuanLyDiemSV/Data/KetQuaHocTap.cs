@@ -30,6 +30,9 @@ public partial class KetQuaHocTap
     [Column(TypeName = "decimal(4, 2)")]
     public decimal? DiemTongKet { get; set; }
 
+    public decimal? DiemThiLan1 { get; set; }
+    public decimal? DiemThiLan2 { get; set; }
+
     [StringLength(1)]
     [Unicode(false)]
     public string DiemChu { get; set; } = null!;

@@ -416,23 +416,29 @@
             // btnThemMonTienQuyet
             // 
             btnThemMonTienQuyet.Anchor = AnchorStyles.None;
+            btnThemMonTienQuyet.BackColor = Color.Green;
+            btnThemMonTienQuyet.Font = new Font("Segoe UI", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            btnThemMonTienQuyet.ForeColor = Color.White;
             btnThemMonTienQuyet.Location = new Point(23, 185);
             btnThemMonTienQuyet.Name = "btnThemMonTienQuyet";
             btnThemMonTienQuyet.Size = new Size(166, 45);
             btnThemMonTienQuyet.TabIndex = 134;
             btnThemMonTienQuyet.Text = "Thêm";
-            btnThemMonTienQuyet.UseVisualStyleBackColor = true;
+            btnThemMonTienQuyet.UseVisualStyleBackColor = false;
             btnThemMonTienQuyet.Click += btnThemMonTienQuyet_Click;
             // 
             // btnXoaMonTienQuyet
             // 
             btnXoaMonTienQuyet.Anchor = AnchorStyles.None;
+            btnXoaMonTienQuyet.BackColor = Color.Red;
+            btnXoaMonTienQuyet.Font = new Font("Segoe UI", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            btnXoaMonTienQuyet.ForeColor = Color.White;
             btnXoaMonTienQuyet.Location = new Point(236, 185);
             btnXoaMonTienQuyet.Name = "btnXoaMonTienQuyet";
             btnXoaMonTienQuyet.Size = new Size(166, 45);
             btnXoaMonTienQuyet.TabIndex = 134;
             btnXoaMonTienQuyet.Text = "Xóa";
-            btnXoaMonTienQuyet.UseVisualStyleBackColor = true;
+            btnXoaMonTienQuyet.UseVisualStyleBackColor = false;
             btnXoaMonTienQuyet.Click += btnXoaMonTienQuyet_Click;
             // 
             // cbboMonTienQuyet
@@ -459,6 +465,7 @@
             // 
             lblTenMon.Anchor = AnchorStyles.None;
             lblTenMon.Font = new Font("Segoe UI", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            lblTenMon.ForeColor = Color.Blue;
             lblTenMon.Location = new Point(307, 85);
             lblTenMon.Name = "lblTenMon";
             lblTenMon.Size = new Size(242, 28);
@@ -469,6 +476,7 @@
             // 
             lblMaMon.Anchor = AnchorStyles.None;
             lblMaMon.Font = new Font("Segoe UI", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            lblMaMon.ForeColor = Color.Blue;
             lblMaMon.Location = new Point(23, 85);
             lblMaMon.Name = "lblMaMon";
             lblMaMon.Size = new Size(173, 31);
@@ -522,7 +530,7 @@
             // 
             // btnReset
             // 
-            btnReset.Location = new Point(832, 88);
+            btnReset.Location = new Point(832, 84);
             btnReset.Name = "btnReset";
             btnReset.Size = new Size(94, 29);
             btnReset.TabIndex = 5;
@@ -532,7 +540,7 @@
             // 
             // btnTimKiem
             // 
-            btnTimKiem.Location = new Point(732, 88);
+            btnTimKiem.Location = new Point(732, 84);
             btnTimKiem.Name = "btnTimKiem";
             btnTimKiem.Size = new Size(94, 29);
             btnTimKiem.TabIndex = 5;
@@ -543,7 +551,7 @@
             // txtTuKhoa
             // 
             txtTuKhoa.ForeColor = Color.Gray;
-            txtTuKhoa.Location = new Point(454, 88);
+            txtTuKhoa.Location = new Point(450, 84);
             txtTuKhoa.Name = "txtTuKhoa";
             txtTuKhoa.Size = new Size(272, 27);
             txtTuKhoa.TabIndex = 4;

@@ -34,6 +34,7 @@
             panel2 = new Panel();
             groupBox1 = new GroupBox();
             btnQuayLai = new Button();
+            btnInBangDiem = new Button();
             btnXuat = new Button();
             lblCVHT = new Label();
             lblNganh = new Label();
@@ -47,7 +48,6 @@
             label13 = new Label();
             label12 = new Label();
             label11 = new Label();
-            btnInBangDiem = new Button();
             panel1.SuspendLayout();
             panel3.SuspendLayout();
             panel2.SuspendLayout();
@@ -120,19 +120,29 @@
             // 
             // btnQuayLai
             // 
-            btnQuayLai.Location = new Point(889, 97);
+            btnQuayLai.Location = new Point(1499, 112);
             btnQuayLai.Name = "btnQuayLai";
-            btnQuayLai.Size = new Size(223, 29);
+            btnQuayLai.Size = new Size(152, 38);
             btnQuayLai.TabIndex = 19;
             btnQuayLai.Text = "Quay lại";
             btnQuayLai.UseVisualStyleBackColor = true;
             btnQuayLai.Click += btnQuayLai_Click;
             // 
+            // btnInBangDiem
+            // 
+            btnInBangDiem.Location = new Point(1499, 68);
+            btnInBangDiem.Name = "btnInBangDiem";
+            btnInBangDiem.Size = new Size(152, 38);
+            btnInBangDiem.TabIndex = 19;
+            btnInBangDiem.Text = "In Bảng Điểm";
+            btnInBangDiem.UseVisualStyleBackColor = true;
+            btnInBangDiem.Click += btnInBangDiem_Click;
+            // 
             // btnXuat
             // 
-            btnXuat.Location = new Point(889, 41);
+            btnXuat.Location = new Point(1499, 22);
             btnXuat.Name = "btnXuat";
-            btnXuat.Size = new Size(223, 29);
+            btnXuat.Size = new Size(152, 38);
             btnXuat.TabIndex = 19;
             btnXuat.Text = "Xuất Bảng Điểm";
             btnXuat.UseVisualStyleBackColor = true;
@@ -150,7 +160,7 @@
             // lblNganh
             // 
             lblNganh.AutoSize = true;
-            lblNganh.Location = new Point(645, 68);
+            lblNganh.Location = new Point(656, 68);
             lblNganh.Name = "lblNganh";
             lblNganh.Size = new Size(171, 23);
             lblNganh.TabIndex = 14;
@@ -159,7 +169,7 @@
             // lblKhoa
             // 
             lblKhoa.AutoSize = true;
-            lblKhoa.Location = new Point(645, 40);
+            lblKhoa.Location = new Point(656, 38);
             lblKhoa.Name = "lblKhoa";
             lblKhoa.Size = new Size(171, 23);
             lblKhoa.TabIndex = 15;
@@ -251,16 +261,6 @@
             label11.Size = new Size(154, 20);
             label11.TabIndex = 12;
             label11.Text = "Mã Số Sinh Viên:";
-            // 
-            // btnInBangDiem
-            // 
-            btnInBangDiem.Location = new Point(1177, 41);
-            btnInBangDiem.Name = "btnInBangDiem";
-            btnInBangDiem.Size = new Size(223, 29);
-            btnInBangDiem.TabIndex = 19;
-            btnInBangDiem.Text = "In Bảng Điểm";
-            btnInBangDiem.UseVisualStyleBackColor = true;
-            btnInBangDiem.Click += btnInBangDiem_Click;
             // 
             // UC_TraCuu_ChiTiet
             // 

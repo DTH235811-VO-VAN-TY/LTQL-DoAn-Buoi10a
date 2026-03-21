@@ -97,9 +97,19 @@ namespace QuanLyDiemSV
 
         private void btnLopHocPhan_Click(object sender, EventArgs e)
         {
-            ActivateButton(sender);
-            uC_LopHocPhan1.BringToFront();
-            uC_LopHocPhan1.CapNhatDuLieuMoiNhat();
+            if(Session.RoleID == 1)
+            {
+                 ActivateButton(sender);
+                 uC_LopHocPhan1.BringToFront();
+                 uC_LopHocPhan1.CapNhatDuLieuMoiNhat();         
+            }
+            else if(Session.RoleID == 2)
+            {
+                ActivateButton(sender);
+                uC_GiangVien_ChamDiem1.BringToFront();
+                //uC_GiangVien_ChamDiem1.CapNhatDuLieuMoiNhat();
+            }
+           
         }
 
         // --- XỬ LÝ MÀU SẮC ---
@@ -214,6 +224,7 @@ namespace QuanLyDiemSV
                 case 2: // GIẢNG VIÊN - Chỉ Mở Nhập điểm, Tra cứu, Thống kê
                     btnDiemSV.Visible = true;
                     btnTraCuuDiem.Visible = true;
+                    btnLopHocPhan.Visible= true;
                     // btnThongKe.Visible = true; 
                     break;
 
@@ -239,6 +250,12 @@ namespace QuanLyDiemSV
                 Application.Restart();
                 Environment.Exit(0);
             }
+        }
+
+        private void btnThongKe_Click(object sender, EventArgs e)
+        {
+            //ActivateButton(sender);
+            //uC_GiangVien_ChamDiem1.BringToFront();
         }
     }
 }

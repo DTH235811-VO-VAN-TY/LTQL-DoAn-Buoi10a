@@ -30,6 +30,9 @@
         {
             DataGridViewCellStyle dataGridViewCellStyle1 = new DataGridViewCellStyle();
             DataGridViewCellStyle dataGridViewCellStyle2 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle3 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle4 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle5 = new DataGridViewCellStyle();
             panel1 = new Panel();
             panel3 = new Panel();
             groupBox2 = new GroupBox();
@@ -107,17 +110,19 @@
             dataGridViewCellStyle1.Alignment = DataGridViewContentAlignment.MiddleCenter;
             dataGridViewCellStyle1.BackColor = Color.DeepSkyBlue;
             dataGridViewCellStyle1.Font = new Font("Segoe UI Semibold", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            dataGridViewCellStyle1.ForeColor = SystemColors.WindowText;
-            dataGridViewCellStyle1.SelectionBackColor = SystemColors.Highlight;
+            dataGridViewCellStyle1.ForeColor = Color.White;
+            dataGridViewCellStyle1.SelectionBackColor = Color.White;
             dataGridViewCellStyle1.SelectionForeColor = SystemColors.HighlightText;
             dataGridViewCellStyle1.WrapMode = DataGridViewTriState.True;
             dgvDanhSachSV.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
             dgvDanhSachSV.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             dgvDanhSachSV.Columns.AddRange(new DataGridViewColumn[] { MaSV, HoTen, TenLop, TenKhoa, DiemTrungBinh, SoTinChi, ThaoTac });
             dgvDanhSachSV.Dock = DockStyle.Fill;
+            dgvDanhSachSV.EnableHeadersVisualStyles = false;
             dgvDanhSachSV.Location = new Point(3, 26);
             dgvDanhSachSV.Name = "dgvDanhSachSV";
             dgvDanhSachSV.RowHeadersWidth = 51;
+            dgvDanhSachSV.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
             dgvDanhSachSV.Size = new Size(1668, 696);
             dgvDanhSachSV.TabIndex = 0;
             dgvDanhSachSV.CellClick += dgvDanhSachSV_CellClick;
@@ -125,6 +130,10 @@
             // MaSV
             // 
             MaSV.DataPropertyName = "MaSV";
+            dataGridViewCellStyle2.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            dataGridViewCellStyle2.Font = new Font("Microsoft Sans Serif", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            dataGridViewCellStyle2.ForeColor = Color.Blue;
+            MaSV.DefaultCellStyle = dataGridViewCellStyle2;
             MaSV.HeaderText = "Mã SV";
             MaSV.MinimumWidth = 6;
             MaSV.Name = "MaSV";
@@ -157,6 +166,10 @@
             // DiemTrungBinh
             // 
             DiemTrungBinh.DataPropertyName = "DiemTrungBinh";
+            dataGridViewCellStyle3.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            dataGridViewCellStyle3.Font = new Font("Microsoft Sans Serif", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            dataGridViewCellStyle3.ForeColor = Color.Blue;
+            DiemTrungBinh.DefaultCellStyle = dataGridViewCellStyle3;
             DiemTrungBinh.HeaderText = "ĐTB Tích lũy";
             DiemTrungBinh.MinimumWidth = 6;
             DiemTrungBinh.Name = "DiemTrungBinh";
@@ -165,6 +178,10 @@
             // SoTinChi
             // 
             SoTinChi.DataPropertyName = "SoTinChi";
+            dataGridViewCellStyle4.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            dataGridViewCellStyle4.Font = new Font("Microsoft Sans Serif", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            dataGridViewCellStyle4.ForeColor = Color.Blue;
+            SoTinChi.DefaultCellStyle = dataGridViewCellStyle4;
             SoTinChi.HeaderText = "STC tích lũy";
             SoTinChi.MinimumWidth = 6;
             SoTinChi.Name = "SoTinChi";
@@ -173,10 +190,10 @@
             // ThaoTac
             // 
             ThaoTac.DataPropertyName = "ThaoTac";
-            dataGridViewCellStyle2.Alignment = DataGridViewContentAlignment.MiddleCenter;
-            dataGridViewCellStyle2.BackColor = Color.White;
-            dataGridViewCellStyle2.Font = new Font("Microsoft Sans Serif", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            ThaoTac.DefaultCellStyle = dataGridViewCellStyle2;
+            dataGridViewCellStyle5.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            dataGridViewCellStyle5.BackColor = Color.White;
+            dataGridViewCellStyle5.Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            ThaoTac.DefaultCellStyle = dataGridViewCellStyle5;
             ThaoTac.HeaderText = "Thao Tác";
             ThaoTac.MinimumWidth = 6;
             ThaoTac.Name = "ThaoTac";

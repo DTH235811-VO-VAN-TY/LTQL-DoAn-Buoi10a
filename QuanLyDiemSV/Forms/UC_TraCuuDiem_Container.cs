@@ -186,40 +186,81 @@ namespace QuanLyDiemSV.Forms
                 var rawList = query.ToList();
 
                 // ==========================================================
-                // 3. MAP DỮ LIỆU ĐỂ HIỂN THỊ LÊN LƯỚI
+                // 3. MAP DỮ LIỆU ĐỂ HIỂN THỊ LÊN LƯỚI (Đã đồng bộ công thức)
                 // ==========================================================
-                var listHienThi = rawList.Select(s => new
+                var listHienThi = rawList.Select(s =>
                 {
-                    // Các tên biến bên trái (MaSV, HoTen,...) PHẢI KHỚP TUYỆT ĐỐI với DataPropertyName của cột trong DataGridView
-                    MaSV = s.MaSV,
-                    HoTen = s.HoTen,
-                    TenLop = s.MaLopNavigation?.TenLop ?? "Chưa xếp lớp",
-                    TenKhoa = s.MaLopNavigation?.MaNganhNavigation?.MaKhoaNavigation?.TenKhoa ?? "Chưa có",
+                    // Lấy danh sách các môn đã có đủ điểm quá trình và cuối kỳ
+                    var cacMonDaHoc = s.KetQuaHocTap.Where(k => k.DiemGK != null && k.DiemCK != null).ToList();
 
-                    // Tính Điểm trung bình hệ 10
-                    DiemTrungBinh = s.KetQuaHocTap.Any()
-                        ? Math.Round((double)s.KetQuaHocTap.Average(k => (k.DiemGK * 0.4m + k.DiemCK * 0.6m) ?? 0), 2)
-                        : 0,
+                    double tongDiem = 0;
+                    int tongTinChi = 0;
+                    int tinChiTichLuy = 0;
 
-                    // Tính số tín chỉ đã đạt (Điểm tổng kết >= 4.0)
-                    SoTinChi = s.KetQuaHocTap
-                        .Where(k => (k.DiemGK * 0.4m + k.DiemCK * 0.6m) >= 4)
-                        .Sum(k => k.MaLHPNavigation?.MaMonNavigation?.SoTinChi ?? 0)
+                    foreach (var kq in cacMonDaHoc)
+                    {
+                        int stc = kq.MaLHPNavigation?.MaMonNavigation?.SoTinChi ?? 0;
+
+                        
+                        double diemTongKetMon = (double)Math.Round((kq.DiemGK.Value * 0.3m) + (kq.DiemCK.Value * 0.7m), 1);
+
+                        tongDiem += diemTongKetMon * stc; // Tính tổng điểm theo trọng số tín chỉ
+                        tongTinChi += stc;                // Cộng dồn tổng tín chỉ
+
+                        if (diemTongKetMon >= 4.0) // Nếu điểm tổng kết môn >= 4.0 thì đạt
+                        {
+                            tinChiTichLuy += stc;
+                        }
+                    }
+
+                    // Tính trung bình theo công thức (Tổng điểm / Tổng tín chỉ), làm tròn 2 chữ số
+                    double diemTrungBinh = tongTinChi > 0 ? Math.Round(tongDiem / tongTinChi, 2) : 0;
+
+                    return new
+                    {
+                        MaSV = s.MaSV,
+                        HoTen = s.HoTen,
+                        TenLop = s.MaLopNavigation?.TenLop ?? "Chưa xếp lớp",
+                        TenKhoa = s.MaLopNavigation?.MaNganhNavigation?.MaKhoaNavigation?.TenKhoa ?? "Chưa có",
+                        DiemTrungBinh = diemTrungBinh,
+                        SoTinChi = tinChiTichLuy
+                    };
                 }).ToList();
 
                 // ==========================================================
-                // 4. SẮP XẾP DỮ LIỆU (Dành cho Admin/Giảng viên)
+                // 4. SẮP XẾP DỮ LIỆU (Đã sửa lỗi ComboBox và Chuỗi Số)
                 // ==========================================================
                 if (Session.RoleID != 3 && listHienThi.Count > 0)
                 {
                     bool tangDan = radTang.Checked;
-                    if (cboLoaiSX.SelectedIndex == 0) // Giả sử Index 0 là Sắp xếp theo Tên
+                    switch (cboLoaiSX.SelectedIndex)
                     {
-                        listHienThi = tangDan ? listHienThi.OrderBy(x => x.HoTen).ToList() : listHienThi.OrderByDescending(x => x.HoTen).ToList();
-                    }
-                    else if (cboLoaiSX.SelectedIndex == 1) // Giả sử Index 1 là Sắp xếp theo Điểm
-                    {
-                        listHienThi = tangDan ? listHienThi.OrderBy(x => x.DiemTrungBinh).ToList() : listHienThi.OrderByDescending(x => x.DiemTrungBinh).ToList();
+                        case 0: // Sắp xếp theo Mã Sinh Viên
+                                // Dùng kỹ thuật Order theo độ dài chuỗi trước, sau đó mới Order theo Alphabet
+                                // Giúp máy tính hiểu đúng: "2" < "11" thay vì "11" < "2"
+                            listHienThi = tangDan
+                                ? listHienThi.OrderBy(x => x.MaSV.Length).ThenBy(x => x.MaSV).ToList()
+                                : listHienThi.OrderByDescending(x => x.MaSV.Length).ThenByDescending(x => x.MaSV).ToList();
+                            break;
+
+                        case 1: // Sắp xếp theo Tên Sinh Viên
+                                // Cắt lấy chữ cái cuối cùng trong chuỗi Họ Tên để sắp xếp chuẩn Việt Nam (Ví dụ: "Văn Tỷ" -> T)
+                            listHienThi = tangDan
+                                ? listHienThi.OrderBy(x => x.HoTen.Substring(x.HoTen.LastIndexOf(" ") + 1)).ThenBy(x => x.HoTen).ToList()
+                                : listHienThi.OrderByDescending(x => x.HoTen.Substring(x.HoTen.LastIndexOf(" ") + 1)).ThenByDescending(x => x.HoTen).ToList();
+                            break;
+
+                        case 2: // Sắp xếp theo Điểm Trung Bình
+                            listHienThi = tangDan
+                                ? listHienThi.OrderBy(x => x.DiemTrungBinh).ToList()
+                                : listHienThi.OrderByDescending(x => x.DiemTrungBinh).ToList();
+                            break;
+
+                        case 3: // Sắp xếp theo Tín Chỉ Tích Lũy
+                            listHienThi = tangDan
+                                ? listHienThi.OrderBy(x => x.SoTinChi).ToList()
+                                : listHienThi.OrderByDescending(x => x.SoTinChi).ToList();
+                            break;
                     }
                 }
                 // ==========================================================
@@ -331,16 +372,19 @@ namespace QuanLyDiemSV.Forms
                             worksheet.Range("A1:F1").Style.Fill.BackgroundColor = XLColor.LightGray;
 
                             // Đổ dữ liệu từ danh sách đang hiển thị (đã được lọc)
-                            var listData = (List<SinhVienTraCuuDTO>)dgvDanhSachSV.DataSource;
+                           // var listData = (List<SinhVienTraCuuDTO>)dgvDanhSachSV.DataSource;
+                            // Đổ dữ liệu trực tiếp từ DataGridView
                             int row = 2;
-                            foreach (var sv in listData)
+                            for (int i = 0; i < dgvDanhSachSV.Rows.Count; i++)
                             {
-                                worksheet.Cell(row, 1).Value = sv.MaSV;
-                                worksheet.Cell(row, 2).Value = sv.HoTen;
-                                worksheet.Cell(row, 3).Value = sv.TenLop;
-                                worksheet.Cell(row, 4).Value = sv.TenKhoa;
-                                worksheet.Cell(row, 5).Value = sv.DiemTrungBinh;
-                                worksheet.Cell(row, 6).Value = sv.TinChiTichLuy;
+                                var gridRow = dgvDanhSachSV.Rows[i];
+                                worksheet.Cell(row, 1).Value = gridRow.Cells["MaSV"].Value?.ToString();
+                                worksheet.Cell(row, 2).Value = gridRow.Cells["HoTen"].Value?.ToString();
+                                worksheet.Cell(row, 3).Value = gridRow.Cells["TenLop"].Value?.ToString();
+                                worksheet.Cell(row, 4).Value = gridRow.Cells["TenKhoa"].Value?.ToString();
+                                worksheet.Cell(row, 5).Value = gridRow.Cells["DiemTrungBinh"].Value?.ToString();
+                                // Lưu ý: Tên cột tín chỉ của bạn trong lưới là SoTinChi, không phải TinChiTichLuy
+                                worksheet.Cell(row, 6).Value = gridRow.Cells["SoTinChi"].Value?.ToString();
                                 row++;
                             }
 
@@ -424,16 +468,20 @@ namespace QuanLyDiemSV.Forms
                         }
 
                         // 4.2 Đổ dữ liệu sinh viên vào bảng
-                        var listData = (List<SinhVienTraCuuDTO>)dgvDanhSachSV.DataSource;
+                       // var listData = (List<SinhVienTraCuuDTO>)dgvDanhSachSV.DataSource;
+                        // 4.2 Đổ dữ liệu sinh viên vào bảng trực tiếp từ lưới
                         int stt = 1;
-                        foreach (var sv in listData)
+                        for (int i = 0; i < dgvDanhSachSV.Rows.Count; i++)
                         {
+                            var gridRow = dgvDanhSachSV.Rows[i];
+
                             AddCellToTable(table, stt.ToString(), fontNormal, Element.ALIGN_CENTER);
-                            AddCellToTable(table, sv.MaSV, fontNormal, Element.ALIGN_CENTER);
-                            AddCellToTable(table, sv.HoTen, fontNormal, Element.ALIGN_LEFT); // Tên canh trái
-                            AddCellToTable(table, sv.TenLop, fontNormal, Element.ALIGN_CENTER);
-                            AddCellToTable(table, sv.DiemTrungBinh.ToString(), fontNormal, Element.ALIGN_CENTER);
-                            AddCellToTable(table, sv.TinChiTichLuy.ToString(), fontNormal, Element.ALIGN_CENTER);
+                            AddCellToTable(table, gridRow.Cells["MaSV"].Value?.ToString() ?? "", fontNormal, Element.ALIGN_CENTER);
+                            AddCellToTable(table, gridRow.Cells["HoTen"].Value?.ToString() ?? "", fontNormal, Element.ALIGN_LEFT);
+                            AddCellToTable(table, gridRow.Cells["TenLop"].Value?.ToString() ?? "", fontNormal, Element.ALIGN_CENTER);
+                            AddCellToTable(table, gridRow.Cells["DiemTrungBinh"].Value?.ToString() ?? "", fontNormal, Element.ALIGN_CENTER);
+                            AddCellToTable(table, gridRow.Cells["SoTinChi"].Value?.ToString() ?? "", fontNormal, Element.ALIGN_CENTER);
+
                             stt++;
                         }
 

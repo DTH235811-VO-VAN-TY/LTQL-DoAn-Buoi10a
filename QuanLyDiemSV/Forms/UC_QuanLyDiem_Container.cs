@@ -289,7 +289,7 @@ namespace QuanLyDiemSV.Forms
             dgvDanhSachSV.ColumnHeadersDefaultCellStyle.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
             dgvDanhSachSV.ColumnHeadersDefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
             dgvDanhSachSV.ColumnHeadersHeight = 45; // Chiều cao tiêu đề thoáng hơn
-            dgvDanhSachSV.ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.None; // Bỏ viền tiêu đề
+            dgvDanhSachSV.ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.Single; // Bỏ viền tiêu đề
 
             // 3. CHỈNH DÒNG XEN KẼ (Zebra striping)
             dgvDanhSachSV.AlternatingRowsDefaultCellStyle.BackColor = Color.FromArgb(245, 247, 250); // Xám cực nhạt
@@ -305,9 +305,9 @@ namespace QuanLyDiemSV.Forms
 
             // 6. XÓA VIỀN THỪA (Flat Design)
             dgvDanhSachSV.BackgroundColor = Color.White;
-            dgvDanhSachSV.BorderStyle = BorderStyle.None;
-            dgvDanhSachSV.CellBorderStyle = DataGridViewCellBorderStyle.SingleHorizontal; // Chỉ kẻ viền ngang mỏng
-            dgvDanhSachSV.GridColor = Color.FromArgb(230, 230, 230); // Màu kẻ ngang xám nhạt
+            dgvDanhSachSV.BorderStyle = BorderStyle.FixedSingle;
+            dgvDanhSachSV.CellBorderStyle = DataGridViewCellBorderStyle.Single; // Chỉ kẻ viền ngang mỏng
+            dgvDanhSachSV.GridColor = Color.FromArgb(200, 200, 200); // Màu kẻ ngang xám nhạt
         }
         // Sự kiện vẽ lên ô lưới
         private void dgvDanhSachSV_CellPainting(object sender, DataGridViewCellPaintingEventArgs e)

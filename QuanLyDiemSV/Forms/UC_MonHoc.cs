@@ -24,6 +24,48 @@ namespace GUI
             InitializeComponent();
             this.Load += UC_MonHoc_Load;
             this.VisibleChanged += UC_MonHoc_VisibleChanged;
+            StyleDataGridView(dgvDSMon);
+            StyleDataGridView(dgvMonTienQuyet);
+        }
+        private void StyleDataGridView(DataGridView dgv)
+        {
+            try
+            {
+                // 0. Bật Double Buffering để chống giật lag khi cuộn chuột
+                typeof(DataGridView).InvokeMember("DoubleBuffered", System.Reflection.BindingFlags.NonPublic |
+                System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.SetProperty, null,
+                dgv, new object[] { true });
+
+                // 1. TẮT Visual Styles mặc định của Windows
+                dgv.EnableHeadersVisualStyles = false;
+
+                // 2. CHỈNH HEADER (Tiêu đề cột)
+                dgv.ColumnHeadersDefaultCellStyle.BackColor = Color.FromArgb(41, 128, 185); // Xanh dương
+                dgv.ColumnHeadersDefaultCellStyle.ForeColor = Color.White;
+                dgv.ColumnHeadersDefaultCellStyle.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
+                dgv.ColumnHeadersDefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+                dgv.ColumnHeadersHeight = 45;
+                dgv.ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.Single;
+
+                // 3. CHỈNH DÒNG XEN KẼ (Zebra striping)
+                dgv.AlternatingRowsDefaultCellStyle.BackColor = Color.FromArgb(245, 247, 250); // Xám nhạt
+                dgv.RowsDefaultCellStyle.BackColor = Color.White;
+
+                // 4. CHỈNH FONT CHỮ VÀ CHIỀU CAO DÒNG
+                dgv.DefaultCellStyle.Font = new Font("Segoe UI", 10F, FontStyle.Regular);
+                dgv.RowTemplate.Height = 40; // Dòng cao thoáng dễ click
+
+                // 5. CHỈNH DÒNG KHI ĐƯỢC CHỌN (Highlight)
+                dgv.DefaultCellStyle.SelectionBackColor = Color.FromArgb(212, 230, 241); // Xanh lơ nhạt
+                dgv.DefaultCellStyle.SelectionForeColor = Color.Black;
+
+                // 6. CHỈNH VIỀN Ô PHÂN CÁCH (Bảng nét đơn)
+                dgv.BackgroundColor = Color.White;
+                dgv.BorderStyle = BorderStyle.FixedSingle;
+                dgv.CellBorderStyle = DataGridViewCellBorderStyle.Single;
+                dgv.GridColor = Color.FromArgb(200, 200, 200); // Màu đường kẻ xám vừa
+            }
+            catch { } // Bỏ qua lỗi ngầm nếu có
         }
 
         private void UC_MonHoc_Load(object sender, EventArgs e)

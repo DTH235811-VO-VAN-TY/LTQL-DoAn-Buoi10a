@@ -28,7 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
-            DataGridViewCellStyle dataGridViewCellStyle5 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle1 = new DataGridViewCellStyle();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(UC_LopHanhChinh));
             panelGrid = new Panel();
             groupBoxList = new GroupBox();
@@ -110,14 +110,14 @@
             dgvLopHanhChinh.BackgroundColor = SystemColors.ButtonHighlight;
             dgvLopHanhChinh.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             dgvLopHanhChinh.Columns.AddRange(new DataGridViewColumn[] { MaLop, TenLop, NienKhoa, MaNganh, MaGVCN });
-            dataGridViewCellStyle5.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle5.BackColor = SystemColors.Window;
-            dataGridViewCellStyle5.Font = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            dataGridViewCellStyle5.ForeColor = SystemColors.ControlText;
-            dataGridViewCellStyle5.SelectionBackColor = SystemColors.Highlight;
-            dataGridViewCellStyle5.SelectionForeColor = SystemColors.HighlightText;
-            dataGridViewCellStyle5.WrapMode = DataGridViewTriState.False;
-            dgvLopHanhChinh.DefaultCellStyle = dataGridViewCellStyle5;
+            dataGridViewCellStyle1.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle1.BackColor = SystemColors.Window;
+            dataGridViewCellStyle1.Font = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            dataGridViewCellStyle1.ForeColor = SystemColors.ControlText;
+            dataGridViewCellStyle1.SelectionBackColor = SystemColors.Highlight;
+            dataGridViewCellStyle1.SelectionForeColor = SystemColors.HighlightText;
+            dataGridViewCellStyle1.WrapMode = DataGridViewTriState.False;
+            dgvLopHanhChinh.DefaultCellStyle = dataGridViewCellStyle1;
             dgvLopHanhChinh.Dock = DockStyle.Fill;
             dgvLopHanhChinh.Location = new Point(3, 24);
             dgvLopHanhChinh.Margin = new Padding(3, 4, 3, 4);
@@ -155,7 +155,7 @@
             // 
             // MaNganh
             // 
-            MaNganh.DataPropertyName = "MaNganh";
+            MaNganh.DataPropertyName = "TenNganh";
             MaNganh.HeaderText = "Ngành";
             MaNganh.MinimumWidth = 6;
             MaNganh.Name = "MaNganh";
@@ -309,7 +309,7 @@
             // 
             // panelInput
             // 
-            panelInput.BackColor = Color.LemonChiffon;
+            panelInput.BackColor = Color.White;
             panelInput.Controls.Add(groupBoxInfo);
             panelInput.Dock = DockStyle.Top;
             panelInput.Location = new Point(0, 0);
@@ -321,7 +321,7 @@
             // 
             // groupBoxInfo
             // 
-            groupBoxInfo.BackColor = Color.LemonChiffon;
+            groupBoxInfo.BackColor = Color.White;
             groupBoxInfo.Controls.Add(label4);
             groupBoxInfo.Controls.Add(label5);
             groupBoxInfo.Controls.Add(cboGCVN);
@@ -587,14 +587,14 @@
         private ComboBox cboGCVN;
         private ComboBox cboNganh;
         private Button btnAddNganh;
+        private RadioButton radGiam;
+        private RadioButton radTang;
+        private ComboBox cboKieuSX;
+        private Label label9;
         private DataGridViewTextBoxColumn MaLop;
         private DataGridViewTextBoxColumn TenLop;
         private DataGridViewTextBoxColumn NienKhoa;
         private DataGridViewTextBoxColumn MaNganh;
         private DataGridViewTextBoxColumn MaGVCN;
-        private RadioButton radGiam;
-        private RadioButton radTang;
-        private ComboBox cboKieuSX;
-        private Label label9;
     }
 }

@@ -22,6 +22,47 @@ namespace QuanLyDiemSV
         {
             InitializeComponent();
             this.Load += UC_LopHocPhan_Load;
+            StyleDataGridView(dgvLopHocPhan);
+        }
+        private void StyleDataGridView(DataGridView dgv)
+        {
+            try
+            {
+                // 0. Bật Double Buffering để chống giật lag khi cuộn chuột
+                typeof(DataGridView).InvokeMember("DoubleBuffered", System.Reflection.BindingFlags.NonPublic |
+                System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.SetProperty, null,
+                dgv, new object[] { true });
+
+                // 1. TẮT Visual Styles mặc định của Windows
+                dgv.EnableHeadersVisualStyles = false;
+
+                // 2. CHỈNH HEADER (Tiêu đề cột)
+                dgv.ColumnHeadersDefaultCellStyle.BackColor = Color.FromArgb(41, 128, 185); // Xanh dương
+                dgv.ColumnHeadersDefaultCellStyle.ForeColor = Color.White;
+                dgv.ColumnHeadersDefaultCellStyle.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
+                dgv.ColumnHeadersDefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+                dgv.ColumnHeadersHeight = 45;
+                dgv.ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.Single;
+
+                // 3. CHỈNH DÒNG XEN KẼ (Zebra striping)
+                dgv.AlternatingRowsDefaultCellStyle.BackColor = Color.FromArgb(245, 247, 250); // Xám nhạt
+                dgv.RowsDefaultCellStyle.BackColor = Color.White;
+
+                // 4. CHỈNH FONT CHỮ VÀ CHIỀU CAO DÒNG
+                dgv.DefaultCellStyle.Font = new Font("Segoe UI", 10F, FontStyle.Regular);
+                dgv.RowTemplate.Height = 40; // Dòng cao thoáng dễ click
+
+                // 5. CHỈNH DÒNG KHI ĐƯỢC CHỌN (Highlight)
+                dgv.DefaultCellStyle.SelectionBackColor = Color.FromArgb(212, 230, 241); // Xanh lơ nhạt
+                dgv.DefaultCellStyle.SelectionForeColor = Color.Black;
+
+                // 6. CHỈNH VIỀN Ô PHÂN CÁCH (Bảng nét đơn)
+                dgv.BackgroundColor = Color.White;
+                dgv.BorderStyle = BorderStyle.FixedSingle;
+                dgv.CellBorderStyle = DataGridViewCellBorderStyle.Single;
+                dgv.GridColor = Color.FromArgb(200, 200, 200); // Màu đường kẻ xám vừa
+            }
+            catch { } // Bỏ qua lỗi ngầm nếu có
         }
 
         private void UC_LopHocPhan_Load(object sender, EventArgs e)
@@ -32,14 +73,12 @@ namespace QuanLyDiemSV
         // Hàm này có chữ 'public' để Form1 có thể gọi được
         public void CapNhatDuLieuMoiNhat()
         {
-            // 1. Tải lại danh sách ComboBox (Luôn tải mới)
             using (var freshContext = new QLDSVDbContext())
             {
-                // Lưu lại giá trị đang chọn để không bị nhảy lung tung khi reload
                 var oldGV = cboMaGV.SelectedValue;
                 var oldMon = cboMaMon.SelectedValue;
+                var oldHK = cboHocKy.SelectedValue; // Thêm dòng này
 
-                // TUYỆT CHIÊU AsNoTracking(): Ép EF Core phải xuống SQL lấy dữ liệu mới nhất, bỏ qua Cache!
                 cboMaGV.DataSource = freshContext.GiangVien.AsNoTracking().ToList();
                 cboMaGV.DisplayMember = "HoTen";
                 cboMaGV.ValueMember = "MaGV";
@@ -48,12 +87,16 @@ namespace QuanLyDiemSV
                 cboMaMon.DisplayMember = "TenMon";
                 cboMaMon.ValueMember = "MaMon";
 
-                // Phục hồi lại giá trị đang chọn (nếu có)
+                // THÊM 3 DÒNG NÀY ĐỂ NẠP HỌC KỲ
+                cboHocKy.DataSource = freshContext.HocKy.AsNoTracking().ToList();
+                cboHocKy.DisplayMember = "TenHK";
+                cboHocKy.ValueMember = "MaHK";
+
                 if (oldGV != null) cboMaGV.SelectedValue = oldGV;
                 if (oldMon != null) cboMaMon.SelectedValue = oldMon;
+                if (oldHK != null) cboHocKy.SelectedValue = oldHK; // Thêm dòng này
             }
 
-            // 2. Lưới danh sách LHP: Chỉ tải 1 lần lúc mới mở app để chống đơ máy
             if (!daTaiDuLieu)
             {
                 LoadData();
@@ -124,7 +167,9 @@ namespace QuanLyDiemSV
             {
                 dgvLopHocPhan.AutoGenerateColumns = false;
 
-                var query = context.LopHocPhan.Include(l => l.MaGVNavigation).AsQueryable();
+                var query = context.LopHocPhan.Include(l => l.MaGVNavigation)
+                                                .Include(l => l.MaHKNavigation)
+                                                .AsQueryable();
                 string tuKhoa = txtTuKhoa.Text.Trim().ToLower();
                 if (!string.IsNullOrEmpty(tuKhoa) && cboTimKiem.SelectedIndex != -1)
                 {
@@ -164,6 +209,7 @@ namespace QuanLyDiemSV
                 }
 
                 var listLHP = query.ToList();
+
                 bsLopHP.DataSource = listLHP;
 
                 txtMaLHP.DataBindings.Clear();
@@ -184,6 +230,7 @@ namespace QuanLyDiemSV
                 cboMaMon.DataBindings.Add("SelectedValue", bsLopHP, "MaMon", true, DataSourceUpdateMode.Never);
                 cboMaGV.DataBindings.Add("SelectedValue", bsLopHP, "MaGV", true, DataSourceUpdateMode.Never);
                 cboHocKy.DataBindings.Add("SelectedValue", bsLopHP, "MaHK", true, DataSourceUpdateMode.Never);
+                cboTrangThai.DataBindings.Add("SelectedValue", bsLopHP, "TrangThai", true, DataSourceUpdateMode.Never);
 
                 // dgvLopHocPhan.AutoGenerateColumns = false;
                 dgvLopHocPhan.DataSource = bsLopHP;
@@ -366,16 +413,52 @@ namespace QuanLyDiemSV
 
         private void dgvLopHocPhan_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
         {
-            // Kiểm tra xem có đúng là đang vẽ cột Giảng Viên không (Cột của bạn đặt tên là "MaGV")
+            // Kiểm tra xem có đúng cột TrangThai không (Tên cột dựa theo Designer của bạn)
+            if (dgvLopHocPhan.Columns[e.ColumnIndex].Name == "TrangThai" && e.Value != null)
+            {
+                string val = e.Value.ToString().ToLower();
+                // Tùy theo CSDL của bạn lưu là int (1/0) hay bool (true/false)
+                if (val == "1" || val == "true")
+                {
+                    e.Value = "Mở lớp";
+                    e.CellStyle.ForeColor = Color.MediumSeaGreen; // Chữ xanh lá
+                    e.CellStyle.Font = new Font(dgvLopHocPhan.Font, FontStyle.Bold); // In đậm
+                }
+                else
+                {
+                    e.Value = "Đóng";
+                    e.CellStyle.ForeColor = Color.Crimson; // Chữ đỏ
+                    e.CellStyle.Font = new Font(dgvLopHocPhan.Font, FontStyle.Bold);
+                }
+                e.FormattingApplied = true; // Báo cho WinForms biết ta đã tự format xong
+            }
+            //Ten GV
             if (dgvLopHocPhan.Columns[e.ColumnIndex].Name == "MaGV" && e.RowIndex >= 0)
             {
-                // Lấy đối tượng Lớp Học Phần của dòng hiện tại
+                // Ép kiểu dòng hiện tại về đối tượng LopHocPhan gốc
                 var lhp = dgvLopHocPhan.Rows[e.RowIndex].DataBoundItem as LopHocPhan;
 
-                // Nếu có thông tin liên kết Giảng viên, thay thế Mã GV bằng Họ Tên
+                // Vì trong hàm LoadData() bạn đã dùng lệnh .Include(l => l.MaGVNavigation)
+                // Nên lhp đã chứa sẵn toàn bộ thông tin của Giảng Viên đó.
                 if (lhp != null && lhp.MaGVNavigation != null)
                 {
-                    e.Value = lhp.MaGVNavigation.HoTen; // Hiển thị tên ra lưới
+                    e.Value = lhp.MaGVNavigation.HoTen; // Bốc Tên Giảng Viên ra hiển thị
+                    e.FormattingApplied = true;
+                }
+                else
+                {
+                    e.Value = "Chưa phân công"; // Phòng hờ trường hợp lớp chưa được gắn GV
+                    e.FormattingApplied = true;
+                }
+            }
+            // THÊM MỚI: Xử lý hiển thị Tên Học Kỳ thay vì Mã Học Kỳ
+            if (dgvLopHocPhan.Columns[e.ColumnIndex].Name == "MaHK" && e.RowIndex >= 0)
+            {
+                var lhp = dgvLopHocPhan.Rows[e.RowIndex].DataBoundItem as LopHocPhan;
+
+                if (lhp != null && lhp.MaHKNavigation != null)
+                {
+                    e.Value = lhp.MaHKNavigation.TenHK; // Bốc Tên Học Kỳ ra hiển thị
                     e.FormattingApplied = true;
                 }
             }
