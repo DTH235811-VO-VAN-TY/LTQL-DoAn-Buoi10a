@@ -102,6 +102,7 @@
             txtTuKhoa.Location = new Point(848, 57);
             txtTuKhoa.Margin = new Padding(3, 4, 3, 4);
             txtTuKhoa.Name = "txtTuKhoa";
+            txtTuKhoa.PlaceholderText = "Nhập từ khóa cần tìm...";
             txtTuKhoa.Size = new Size(400, 30);
             txtTuKhoa.TabIndex = 84;
             // 

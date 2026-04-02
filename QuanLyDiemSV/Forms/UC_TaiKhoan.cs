@@ -5,6 +5,8 @@ using System.Linq;
 using System.Windows.Forms;
 using QuanLyDiemSV.Data; // Namespace chứa Context
 using BCrypt.Net; // Thư viện mã hóa mật khẩu
+using System.Security.Cryptography;
+using System.Text;
 
 namespace QuanLyDiemSV.Forms
 {
@@ -27,6 +29,10 @@ namespace QuanLyDiemSV.Forms
             InitializeComponent();
             this.Load += UC_TaiKhoan_Load;
             StyleDataGridView(dataGridView1);
+        }
+        private string MaHoaMatKhau(string password)
+        {
+            return BCrypt.Net.BCrypt.HashPassword(password);
         }
         private void StyleDataGridView(DataGridView dgv)
         {
@@ -322,17 +328,56 @@ namespace QuanLyDiemSV.Forms
                         return;
                     }
 
-                    UserAccount acc = new UserAccount();
-                    acc.Username = txtTenDangNhap.Text.Trim();
+                    // 1. TẠO TÀI KHOẢN MỚI
+                    UserAccount newUser = new UserAccount();
+                    newUser.Username = txtTenDangNhap.Text.Trim(); // Lấy Tên đăng nhập (Nên là Mã SV/Mã GV)
+                    newUser.PasswordHash = MaHoaMatKhau(txtMatKhau.Text); // (Nếu có mã hóa thì mã hóa ở đây)
+                    newUser.RoleID = (int)cboQuyenHan.SelectedValue;
+                    newUser.IsActive = (bool)cboTrangThai.SelectedValue;
+                    newUser.NgayTao = DateTime.Now;
 
-                    // Mã hóa mật khẩu
-                    acc.PasswordHash = BCrypt.Net.BCrypt.HashPassword(txtMatKhau.Text);
+                    // Thêm vào DB và Lưu lần 1 để EF Core tự động sinh ra UserID mới
+                    context.UserAccount.Add(newUser);
+                    context.SaveChanges();
 
-                    acc.RoleID = selectedRoleID;
-                    acc.IsActive = (bool)cboTrangThai.SelectedValue;
-                    acc.NgayTao = DateTime.Now;
+                    // 2. LOGIC TỰ ĐỘNG LIÊN KẾT BẰNG USERID VỪA TẠO
+                    string maNguoiDung = newUser.Username; // Lấy Tên đăng nhập để đi tìm người
 
-                    context.UserAccount.Add(acc);
+                    if (newUser.RoleID == 3) // NẾU LÀ TÀI KHOẢN SINH VIÊN
+                    {
+                        // Dò tìm sinh viên có Mã SV khớp với Username
+                        var sv = context.SinhVien.FirstOrDefault(x => x.MaSV == maNguoiDung);
+                        if (sv != null)
+                        {
+                            sv.UserID = newUser.UserID; // Gắn ID mới vào sinh viên
+                            context.SinhVien.Update(sv);
+                        }
+                        else
+                        {
+                            MessageBox.Show($"Tạo tài khoản thành công, nhưng không tìm thấy Sinh viên nào có mã '{maNguoiDung}' để liên kết!", "Lưu ý", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        }
+                    }
+                    else if (newUser.RoleID == 2) // NẾU LÀ TÀI KHOẢN GIẢNG VIÊN
+                    {
+                        // Dò tìm giảng viên có Mã GV khớp với Username
+                        var gv = context.GiangVien.FirstOrDefault(x => x.MaGV == maNguoiDung);
+                        if (gv != null)
+                        {
+                            gv.UserID = newUser.UserID; // Gắn ID mới vào giảng viên
+                            newUser.MaGV = gv.MaGV; // Cập nhật luôn cột MaGV bên bảng UserAccount cho đồng bộ
+
+                            context.GiangVien.Update(gv);
+                            context.UserAccount.Update(newUser); // Cập nhật lại newUser vì vừa thêm MaGV
+                        }
+                        else
+                        {
+                            MessageBox.Show($"Tạo tài khoản thành công, nhưng không tìm thấy Giảng viên nào có mã '{maNguoiDung}' để liên kết!", "Lưu ý", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        }
+                    }
+
+                    // Lưu lần 2 để chốt sự thay đổi khóa ngoại ở bảng SinhVien/GiangVien
+                    context.SaveChanges();
+                    MessageBox.Show("Thêm tài khoản và liên kết dữ liệu thành công!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
                 else // --- SỬA ---
                 {
@@ -350,7 +395,7 @@ namespace QuanLyDiemSV.Forms
                         // Chỉ cập nhật mật khẩu nếu người dùng có nhập vào ô Textbox
                         if (!string.IsNullOrWhiteSpace(txtMatKhau.Text))
                         {
-                            acc.PasswordHash = BCrypt.Net.BCrypt.HashPassword(txtMatKhau.Text);
+                            acc.PasswordHash = MaHoaMatKhau(txtMatKhau.Text);
                         }
                     }
                 }

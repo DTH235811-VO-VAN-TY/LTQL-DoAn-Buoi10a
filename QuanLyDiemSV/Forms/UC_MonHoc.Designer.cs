@@ -569,11 +569,12 @@
             // 
             // cboLoc
             // 
+            cboLoc.Font = new Font("Times New Roman", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
             cboLoc.FormattingEnabled = true;
             cboLoc.Items.AddRange(new object[] { "--Tất cả khoa--" });
             cboLoc.Location = new Point(144, 84);
             cboLoc.Name = "cboLoc";
-            cboLoc.Size = new Size(212, 28);
+            cboLoc.Size = new Size(212, 27);
             cboLoc.TabIndex = 2;
             cboLoc.SelectedIndexChanged += cboLoc_SelectedIndexChanged;
             // 

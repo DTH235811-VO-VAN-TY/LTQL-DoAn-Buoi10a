@@ -29,6 +29,7 @@
         private void InitializeComponent()
         {
             DataGridViewCellStyle dataGridViewCellStyle1 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle6 = new DataGridViewCellStyle();
             DataGridViewCellStyle dataGridViewCellStyle2 = new DataGridViewCellStyle();
             DataGridViewCellStyle dataGridViewCellStyle3 = new DataGridViewCellStyle();
             DataGridViewCellStyle dataGridViewCellStyle4 = new DataGridViewCellStyle();
@@ -46,9 +47,9 @@
             ThaoTac = new DataGridViewLinkColumn();
             panel2 = new Panel();
             groupBox1 = new GroupBox();
+            btnInBaoCao = new Button();
             btnInDanhSach = new Button();
             btnXuat = new Button();
-            btnXemChitiet = new Button();
             radGiam = new RadioButton();
             radTang = new RadioButton();
             cboLoaiSX = new ComboBox();
@@ -111,12 +112,20 @@
             dataGridViewCellStyle1.BackColor = Color.DeepSkyBlue;
             dataGridViewCellStyle1.Font = new Font("Segoe UI Semibold", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
             dataGridViewCellStyle1.ForeColor = Color.White;
-            dataGridViewCellStyle1.SelectionBackColor = Color.White;
+            dataGridViewCellStyle1.SelectionBackColor = Color.Blue;
             dataGridViewCellStyle1.SelectionForeColor = SystemColors.HighlightText;
             dataGridViewCellStyle1.WrapMode = DataGridViewTriState.True;
             dgvDanhSachSV.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
             dgvDanhSachSV.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             dgvDanhSachSV.Columns.AddRange(new DataGridViewColumn[] { MaSV, HoTen, TenLop, TenKhoa, DiemTrungBinh, SoTinChi, ThaoTac });
+            dataGridViewCellStyle6.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle6.BackColor = SystemColors.Window;
+            dataGridViewCellStyle6.Font = new Font("Segoe UI Semibold", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            dataGridViewCellStyle6.ForeColor = SystemColors.ControlText;
+            dataGridViewCellStyle6.SelectionBackColor = Color.Silver;
+            dataGridViewCellStyle6.SelectionForeColor = Color.Black;
+            dataGridViewCellStyle6.WrapMode = DataGridViewTriState.False;
+            dgvDanhSachSV.DefaultCellStyle = dataGridViewCellStyle6;
             dgvDanhSachSV.Dock = DockStyle.Fill;
             dgvDanhSachSV.EnableHeadersVisualStyles = false;
             dgvDanhSachSV.Location = new Point(3, 26);
@@ -215,9 +224,9 @@
             // 
             // groupBox1
             // 
+            groupBox1.Controls.Add(btnInBaoCao);
             groupBox1.Controls.Add(btnInDanhSach);
             groupBox1.Controls.Add(btnXuat);
-            groupBox1.Controls.Add(btnXemChitiet);
             groupBox1.Controls.Add(radGiam);
             groupBox1.Controls.Add(radTang);
             groupBox1.Controls.Add(cboLoaiSX);
@@ -239,6 +248,16 @@
             groupBox1.TabStop = false;
             groupBox1.Text = "Tìm Kiếm";
             // 
+            // btnInBaoCao
+            // 
+            btnInBaoCao.Location = new Point(1011, 124);
+            btnInBaoCao.Name = "btnInBaoCao";
+            btnInBaoCao.Size = new Size(170, 41);
+            btnInBaoCao.TabIndex = 144;
+            btnInBaoCao.Text = "In Báo Cáo";
+            btnInBaoCao.UseVisualStyleBackColor = true;
+            btnInBaoCao.Click += btnInBaoCao_Click;
+            // 
             // btnInDanhSach
             // 
             btnInDanhSach.Anchor = AnchorStyles.Left;
@@ -247,7 +266,7 @@
             btnInDanhSach.FlatAppearance.MouseOverBackColor = Color.Blue;
             btnInDanhSach.Font = new Font("Microsoft Sans Serif", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
             btnInDanhSach.ImageAlign = ContentAlignment.MiddleLeft;
-            btnInDanhSach.Location = new Point(1357, 127);
+            btnInDanhSach.Location = new Point(1428, 127);
             btnInDanhSach.Margin = new Padding(3, 4, 3, 4);
             btnInDanhSach.Name = "btnInDanhSach";
             btnInDanhSach.Padding = new Padding(5, 0, 0, 0);
@@ -265,7 +284,7 @@
             btnXuat.FlatAppearance.MouseOverBackColor = Color.Blue;
             btnXuat.Font = new Font("Microsoft Sans Serif", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
             btnXuat.ImageAlign = ContentAlignment.MiddleLeft;
-            btnXuat.Location = new Point(1141, 127);
+            btnXuat.Location = new Point(1208, 124);
             btnXuat.Margin = new Padding(3, 4, 3, 4);
             btnXuat.Name = "btnXuat";
             btnXuat.Padding = new Padding(5, 0, 0, 0);
@@ -275,20 +294,10 @@
             btnXuat.UseVisualStyleBackColor = true;
             btnXuat.Click += btnXuat_Click;
             // 
-            // btnXemChitiet
-            // 
-            btnXemChitiet.Location = new Point(15, 133);
-            btnXemChitiet.Name = "btnXemChitiet";
-            btnXemChitiet.Size = new Size(124, 29);
-            btnXemChitiet.TabIndex = 9;
-            btnXemChitiet.Text = "Xem chi tiết";
-            btnXemChitiet.UseVisualStyleBackColor = true;
-            btnXemChitiet.Click += btnXemChitiet_Click;
-            // 
             // radGiam
             // 
             radGiam.AutoSize = true;
-            radGiam.Location = new Point(1036, 133);
+            radGiam.Location = new Point(499, 134);
             radGiam.Name = "radGiam";
             radGiam.Size = new Size(71, 27);
             radGiam.TabIndex = 8;
@@ -300,7 +309,7 @@
             // 
             radTang.AutoSize = true;
             radTang.Checked = true;
-            radTang.Location = new Point(946, 133);
+            radTang.Location = new Point(426, 134);
             radTang.Name = "radTang";
             radTang.Size = new Size(67, 27);
             radTang.TabIndex = 8;
@@ -313,16 +322,16 @@
             // 
             cboLoaiSX.FormattingEnabled = true;
             cboLoaiSX.Items.AddRange(new object[] { "Mã Số SV", "Điểm số", "Họ Tên" });
-            cboLoaiSX.Location = new Point(630, 133);
+            cboLoaiSX.Location = new Point(112, 129);
             cboLoaiSX.Name = "cboLoaiSX";
-            cboLoaiSX.Size = new Size(283, 31);
+            cboLoaiSX.Size = new Size(294, 31);
             cboLoaiSX.TabIndex = 7;
             cboLoaiSX.SelectedIndexChanged += cboLoaiSX_SelectedIndexChanged;
             // 
             // label4
             // 
             label4.AutoSize = true;
-            label4.Location = new Point(778, 69);
+            label4.Location = new Point(841, 63);
             label4.Name = "label4";
             label4.Size = new Size(77, 23);
             label4.TabIndex = 6;
@@ -331,7 +340,7 @@
             // label3
             // 
             label3.AutoSize = true;
-            label3.Location = new Point(539, 135);
+            label3.Location = new Point(15, 133);
             label3.Name = "label3";
             label3.Size = new Size(75, 23);
             label3.TabIndex = 6;
@@ -339,7 +348,7 @@
             // 
             // btnReset
             // 
-            btnReset.Location = new Point(1416, 60);
+            btnReset.Location = new Point(1487, 55);
             btnReset.Name = "btnReset";
             btnReset.Size = new Size(140, 38);
             btnReset.TabIndex = 5;
@@ -349,7 +358,7 @@
             // 
             // btnTimKiem
             // 
-            btnTimKiem.Location = new Point(1270, 60);
+            btnTimKiem.Location = new Point(1341, 55);
             btnTimKiem.Name = "btnTimKiem";
             btnTimKiem.Size = new Size(140, 38);
             btnTimKiem.TabIndex = 5;
@@ -359,23 +368,24 @@
             // 
             // txtTuKhoa
             // 
-            txtTuKhoa.Location = new Point(877, 64);
+            txtTuKhoa.Location = new Point(924, 58);
             txtTuKhoa.Name = "txtTuKhoa";
+            txtTuKhoa.PlaceholderText = "Nhập từ khóa cần tìm...";
             txtTuKhoa.Size = new Size(361, 30);
             txtTuKhoa.TabIndex = 4;
             // 
             // cboLop
             // 
             cboLop.FormattingEnabled = true;
-            cboLop.Location = new Point(445, 61);
+            cboLop.Location = new Point(485, 57);
             cboLop.Name = "cboLop";
-            cboLop.Size = new Size(295, 31);
+            cboLop.Size = new Size(328, 31);
             cboLop.TabIndex = 3;
             // 
             // label2
             // 
             label2.AutoSize = true;
-            label2.Location = new Point(397, 64);
+            label2.Location = new Point(437, 60);
             label2.Name = "label2";
             label2.Size = new Size(42, 23);
             label2.TabIndex = 2;
@@ -384,7 +394,7 @@
             // cboKhoa
             // 
             cboKhoa.FormattingEnabled = true;
-            cboKhoa.Location = new Point(84, 60);
+            cboKhoa.Location = new Point(112, 57);
             cboKhoa.Name = "cboKhoa";
             cboKhoa.Size = new Size(294, 31);
             cboKhoa.TabIndex = 1;
@@ -435,7 +445,6 @@
         private Panel panel3;
         private GroupBox groupBox2;
         private DataGridView dgvDanhSachSV;
-        private Button btnXemChitiet;
         private Button btnInDanhSach;
         private Button btnXuat;
         private Label label4;
@@ -446,5 +455,6 @@
         private DataGridViewTextBoxColumn DiemTrungBinh;
         private DataGridViewTextBoxColumn SoTinChi;
         private DataGridViewLinkColumn ThaoTac;
+        private Button btnInBaoCao;
     }
 }

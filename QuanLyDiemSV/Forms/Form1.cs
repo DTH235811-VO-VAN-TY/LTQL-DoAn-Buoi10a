@@ -2,7 +2,9 @@
 using System.Drawing;
 using System.Windows.Forms;
 using GUI; // Namespace của UC_Diem
+using QuanLyDiemSV.Data;
 using QuanLyDiemSV.Forms; // Namespace của UC_Container
+
 
 namespace QuanLyDiemSV
 {
@@ -11,6 +13,8 @@ namespace QuanLyDiemSV
         Color normalColor = Color.FromArgb(52, 73, 94);
         Color activeColor = Color.DodgerBlue;
         private Button currentButton;
+        private System.Windows.Forms.Timer timerThongBao;
+
 
         public Form1()
         {
@@ -20,10 +24,6 @@ namespace QuanLyDiemSV
             {
                 uC_TraCuuDiem_Container1.BringToFront();
             };
-
-            // --- SỬA LỖI Ở ĐÂY: KẾT NỐI 2 FORM CON ---
-            // Phần này phải viết trong Constructor (sau InitializeComponent)
-
             // 1. Khi bấm "Nhập điểm" ở Container -> Chuyển dữ liệu sang uC_Diem1
             uC_QuanLyDiem_Container1.OnChuyenManHinhNhapDiem += (maSV) =>
             {
@@ -97,19 +97,20 @@ namespace QuanLyDiemSV
 
         private void btnLopHocPhan_Click(object sender, EventArgs e)
         {
-            if(Session.RoleID == 1)
+            if (Session.RoleID == 1)
             {
-                 ActivateButton(sender);
-                 uC_LopHocPhan1.BringToFront();
-                 uC_LopHocPhan1.CapNhatDuLieuMoiNhat();         
+                ActivateButton(sender);
+                uC_LopHocPhan1.BringToFront();
+                uC_LopHocPhan1.CapNhatDuLieuMoiNhat();
             }
-            else if(Session.RoleID == 2)
+            else if (Session.RoleID == 2)
             {
                 ActivateButton(sender);
                 uC_GiangVien_ChamDiem1.BringToFront();
                 //uC_GiangVien_ChamDiem1.CapNhatDuLieuMoiNhat();
+                uC_GiangVien_ChamDiem1.LoadDanhSachLopCuaToi(Session.MaNguoiDung);
             }
-           
+
         }
 
         // --- XỬ LÝ MÀU SẮC ---
@@ -162,8 +163,8 @@ namespace QuanLyDiemSV
             string tenVaiTro = Session.RoleID == 1 ? "Admin" : Session.RoleID == 2 ? "Giảng viên" : "Sinh viên";
             lblVaiTro.Text = $"Vai trò: {tenVaiTro}";
 
-            // 2. Tìm Họ Tên thực tế từ Database dựa vào Mã người dùng đang đăng nhập
-            string hoTenHienThi = Session.Username; // Mặc định dùng Username (Dành cho Admin)
+            // 2. Tìm Họ Tên thực tế & Mã Người Dùng (Dựa vào UserID)
+            string hoTenHienThi = Session.Username; // Mặc định hiển thị Username cho Admin
 
             try
             {
@@ -171,29 +172,104 @@ namespace QuanLyDiemSV
                 {
                     if (Session.RoleID == 2) // Nếu là Giảng viên
                     {
-                        var gv = db.GiangVien.FirstOrDefault(x => x.MaGV == Session.MaNguoiDung);
-                        if (gv != null) hoTenHienThi = gv.HoTen; // Lấy tên GV
+                        // Dò bảng GiangVien xem ai đang cầm cái UserID này
+                        var gv = db.GiangVien.FirstOrDefault(x => x.UserID == Session.UserID);
+                        if (gv != null)
+                        {
+                            hoTenHienThi = gv.HoTen; // Cập nhật tên thật
+                            Session.MaNguoiDung = gv.MaGV; // LƯU MÃ GV VÀO SESSION ĐỂ UC_GiangVien_ChamDiem SỬ DỤNG
+                        }
                     }
                     else if (Session.RoleID == 3) // Nếu là Sinh viên
                     {
-                        var sv = db.SinhVien.FirstOrDefault(x => x.MaSV == Session.MaNguoiDung);
-                        if (sv != null) hoTenHienThi = sv.HoTen; // Lấy tên SV
+                        // Dò bảng SinhVien xem ai đang cầm cái UserID này
+                        var sv = db.SinhVien.FirstOrDefault(x => x.UserID == Session.UserID);
+                        if (sv != null)
+                        {
+                            hoTenHienThi = sv.HoTen; // Cập nhật tên thật
+                            Session.MaNguoiDung = sv.MaSV; // LƯU MÃ SV VÀO SESSION ĐỂ TRA CỨU ĐIỂM SỬ DỤNG
+                        }
                     }
                 }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi đồng bộ dữ liệu người dùng: " + ex.Message);
+            }
 
-            // Gán Họ Tên vào Label
+            // Gán Họ Tên vào Label trên giao diện
             lblTenNguoiDung.Text = hoTenHienThi;
 
             // 3. Xử lý phân quyền 
             PhanQuyenTruyCap();
+
+            uC_ThongKe1.Visible = true;
 
             // 4. Nếu là Sinh viên thì tự động chuyển sang tab Tra Cứu 
             if (Session.RoleID == 3)
             {
                 btnTraCuuDiem.PerformClick();
             }
+            if (Session.RoleID == 2)
+            {
+                uC_ThongKe1.Visible = true;
+                uC_ThongKe1.BringToFront();
+
+                // Đồng thời kích hoạt màu xanh cho nút Lớp Học Phần trên thanh Menu bên trái
+                ActivateButton(btnLopHocPhan);
+            }
+            if (Session.RoleID == 1)
+            {
+                uC_ThongKe1.Visible = true;
+                uC_ThongKe1.BringToFront();
+            }
+            KhoiTaoRadarThongBao();
+        }
+        private void KhoiTaoRadarThongBao()
+        {
+            timerThongBao = new System.Windows.Forms.Timer();
+            timerThongBao.Interval = 5000; // Cứ 5 giây (5000ms) quét 1 lần
+            timerThongBao.Tick += (s, e) => DemSoThongBaoMoi(); // CHỈ GỌI 1 HÀM DUY NHẤT
+            timerThongBao.Start();
+
+            DemSoThongBaoMoi(); // Chạy ngay lần đầu tiên
+        }
+        private void DemSoThongBaoMoi()
+        {
+            try
+            {
+                using (var context = new QLDSVDbContext())
+                {
+                    int soThongBao = 0;
+
+                    if (Session.RoleID == 2) // GIẢNG VIÊN: Đếm đơn chờ xử lý trong bảng DonKhieuNai
+                    {
+                        soThongBao = context.DonKhieuNai
+                            .Count(d => d.TrangThai == 0 && d.MaLHPNavigation.MaGV == Session.MaNguoiDung);
+                    }
+                    else if (Session.RoleID == 3) // SINH VIÊN: Đếm phản hồi trong bảng ThongBao
+                    {
+                        // Thay vì đếm DonKhieuNai như cũ, giờ Sinh viên sẽ đếm trong bảng ThongBao
+                        soThongBao = context.ThongBaos
+                            .Count(t => t.MaNguoiNhan == Session.MaNguoiDung && t.DaDoc == false);
+                    }
+
+                    // CẬP NHẬT GIAO DIỆN NÚT CHUÔNG
+                    if (soThongBao > 0)
+                    {
+                        btnThongBao.Text = $"🔔 Thông báo ({soThongBao})";
+                        btnThongBao.BackColor = Color.Crimson; // Đổi nền đỏ
+                        btnThongBao.ForeColor = Color.White;
+                    }
+                    else
+                    {
+                        btnThongBao.Text = "🔔 Thông báo (0)";
+                        btnThongBao.BackColor = normalColor; // Trả về màu nền mặc định của thanh menu
+                        btnThongBao.ForeColor = Color.White;
+                    }
+                }
+            }
+            catch { /* Bỏ qua nếu lỗi mạng để không làm gián đoạn phần mềm */ }
         }
         private void PhanQuyenTruyCap()
         {
@@ -206,7 +282,7 @@ namespace QuanLyDiemSV
             btnDiemSV.Visible = false;
             btnTraCuuDiem.Visible = false;
             btnTaiKhoan.Visible = false;
-            // btnThongKe.Visible = false; // Nếu bạn có nút thống kê
+            btnThongKe.Visible = false; // Nếu bạn có nút thống kê
 
             switch (Session.RoleID)
             {
@@ -219,17 +295,20 @@ namespace QuanLyDiemSV
                     btnDiemSV.Visible = true; // Vẫn cho vào form Nhập điểm (sẽ khóa nút bên trong sau)
                     btnTraCuuDiem.Visible = true;
                     btnTaiKhoan.Visible = true;
+                    btnThongKe.Visible = true;
                     break;
 
                 case 2: // GIẢNG VIÊN - Chỉ Mở Nhập điểm, Tra cứu, Thống kê
-                    btnDiemSV.Visible = true;
+                    //btnDiemSV.Visible = true;
                     btnTraCuuDiem.Visible = true;
-                    btnLopHocPhan.Visible= true;
-                    // btnThongKe.Visible = true; 
+                    btnLopHocPhan.Visible = true;
+                    btnTrangChu.Visible = true;
+                    //btnThongKe.Visible = true; 
                     break;
 
                 case 3: // SINH VIÊN - Chỉ Mở Tra cứu
                     btnTraCuuDiem.Visible = true;
+                    btnTrangChu.Visible = true;
                     break;
             }
         }
@@ -254,8 +333,51 @@ namespace QuanLyDiemSV
 
         private void btnThongKe_Click(object sender, EventArgs e)
         {
-            //ActivateButton(sender);
+            ActivateButton(sender);
             //uC_GiangVien_ChamDiem1.BringToFront();
+            uC_TrangChu1.BringToFront();
+        }
+
+        private void btnTrangChu_Click(object sender, EventArgs e)
+        {
+            ActivateButton(sender);
+            //uC_GiangVien_ChamDiem1.BringToFront();
+            uC_ThongKe1.BringToFront();
+        }
+        // Viết hàm này ở Form có nút Thông báo
+
+
+        private void btnThongBao_Click(object sender, EventArgs e)
+        {
+            if (Session.RoleID == 2) // Nếu là Giảng viên bấm chuông
+            {
+                using (FrmQuanLyKhieuNai frm = new FrmQuanLyKhieuNai())
+                {
+                    frm.ShowDialog();
+                }
+
+                // Sau khi Form Quản lý đóng lại, gọi hàm quét radar để update lại số đếm trên chuông ngay lập tức
+                DemSoThongBaoMoi();
+
+            }
+            else if (Session.RoleID == 3) // Nếu là Sinh viên bấm chuông
+            {
+                // Gọi Form xem thông báo của sinh viên
+                using (FrmThongBaoSinhVien frm = new FrmThongBaoSinhVien())
+                {
+                    frm.ShowDialog();
+                }
+
+                // Sau khi SV đóng form thông báo (có thể đã xem một số cái), update lại chuông báo
+                DemSoThongBaoMoi();
+
+            }
+        }
+
+        private void btnDoiMatKhau_Click(object sender, EventArgs e)
+        {
+            FrmDoiMatKhaucs frmDoiMatKhaucs = new FrmDoiMatKhaucs();
+            frmDoiMatKhaucs.ShowDialog();
         }
     }
 }

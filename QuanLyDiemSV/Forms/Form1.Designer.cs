@@ -40,14 +40,20 @@
             btnLopHocPhan = new Button();
             btnGiangVien = new Button();
             btnSinhVien = new Button();
-            button2 = new Button();
+            btnTrangChu = new Button();
             panel3 = new Panel();
+            btnDoiMatKhau = new Button();
             panel5 = new Panel();
             lblTenNguoiDung = new Label();
             lblVaiTro = new Label();
             panel4 = new Panel();
+            btnHoTro = new Button();
+            btnThongBao = new Button();
             label1 = new Label();
             panel2 = new Panel();
+            uC_TrangChu1 = new QuanLyDiemSV.Forms.UC_TrangChu();
+            uC_ThongKe1 = new QuanLyDiemSV.Forms.UC_ThongKe();
+            uC_GiangVien_ChamDiem1 = new QuanLyDiemSV.Forms.UC_GiangVien_ChamDiem();
             uC_TraCuu_ChiTiet1 = new QuanLyDiemSV.Forms.UC_TraCuu_ChiTiet();
             uC_TraCuuDiem_Container1 = new QuanLyDiemSV.Forms.UC_TraCuuDiem_Container();
             uC_TaiKhoan1 = new QuanLyDiemSV.Forms.UC_TaiKhoan();
@@ -59,7 +65,6 @@
             uC_MonHoc1 = new GUI.UC_MonHoc();
             uC_SinhVien1 = new UC_SinhVien();
             uC_Home1 = new UC_LopHocPhan();
-            uC_GiangVien_ChamDiem1 = new QuanLyDiemSV.Forms.UC_GiangVien_ChamDiem();
             panel1.SuspendLayout();
             panel3.SuspendLayout();
             panel4.SuspendLayout();
@@ -79,7 +84,7 @@
             panel1.Controls.Add(btnLopHocPhan);
             panel1.Controls.Add(btnGiangVien);
             panel1.Controls.Add(btnSinhVien);
-            panel1.Controls.Add(button2);
+            panel1.Controls.Add(btnTrangChu);
             panel1.Controls.Add(panel3);
             panel1.Dock = DockStyle.Left;
             panel1.Location = new Point(5, 25);
@@ -297,28 +302,30 @@
             btnSinhVien.UseVisualStyleBackColor = false;
             btnSinhVien.Click += btnSinhVien_Click;
             // 
-            // button2
+            // btnTrangChu
             // 
-            button2.BackColor = Color.FromArgb(52, 73, 94);
-            button2.Dock = DockStyle.Top;
-            button2.FlatAppearance.BorderSize = 0;
-            button2.FlatAppearance.MouseDownBackColor = Color.Blue;
-            button2.FlatAppearance.MouseOverBackColor = Color.FromArgb(0, 0, 192);
-            button2.FlatStyle = FlatStyle.Flat;
-            button2.Font = new Font("Century Gothic", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            button2.ForeColor = SystemColors.ButtonHighlight;
-            button2.Image = (Image)resources.GetObject("button2.Image");
-            button2.ImageAlign = ContentAlignment.MiddleLeft;
-            button2.Location = new Point(0, 156);
-            button2.Margin = new Padding(0);
-            button2.Name = "button2";
-            button2.Size = new Size(220, 74);
-            button2.TabIndex = 10;
-            button2.Text = "   Trang chủ";
-            button2.UseVisualStyleBackColor = false;
+            btnTrangChu.BackColor = Color.FromArgb(52, 73, 94);
+            btnTrangChu.Dock = DockStyle.Top;
+            btnTrangChu.FlatAppearance.BorderSize = 0;
+            btnTrangChu.FlatAppearance.MouseDownBackColor = Color.Blue;
+            btnTrangChu.FlatAppearance.MouseOverBackColor = Color.FromArgb(0, 0, 192);
+            btnTrangChu.FlatStyle = FlatStyle.Flat;
+            btnTrangChu.Font = new Font("Century Gothic", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            btnTrangChu.ForeColor = SystemColors.ButtonHighlight;
+            btnTrangChu.Image = (Image)resources.GetObject("btnTrangChu.Image");
+            btnTrangChu.ImageAlign = ContentAlignment.MiddleLeft;
+            btnTrangChu.Location = new Point(0, 156);
+            btnTrangChu.Margin = new Padding(0);
+            btnTrangChu.Name = "btnTrangChu";
+            btnTrangChu.Size = new Size(220, 74);
+            btnTrangChu.TabIndex = 10;
+            btnTrangChu.Text = "   Trang chủ";
+            btnTrangChu.UseVisualStyleBackColor = false;
+            btnTrangChu.Click += btnTrangChu_Click;
             // 
             // panel3
             // 
+            panel3.Controls.Add(btnDoiMatKhau);
             panel3.Controls.Add(panel5);
             panel3.Controls.Add(lblTenNguoiDung);
             panel3.Controls.Add(lblVaiTro);
@@ -327,6 +334,21 @@
             panel3.Name = "panel3";
             panel3.Size = new Size(220, 156);
             panel3.TabIndex = 0;
+            // 
+            // btnDoiMatKhau
+            // 
+            btnDoiMatKhau.BackColor = Color.Yellow;
+            btnDoiMatKhau.FlatAppearance.BorderSize = 0;
+            btnDoiMatKhau.FlatStyle = FlatStyle.Flat;
+            btnDoiMatKhau.Font = new Font("Century Gothic", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            btnDoiMatKhau.ForeColor = Color.Red;
+            btnDoiMatKhau.Location = new Point(18, 95);
+            btnDoiMatKhau.Name = "btnDoiMatKhau";
+            btnDoiMatKhau.Size = new Size(128, 37);
+            btnDoiMatKhau.TabIndex = 2;
+            btnDoiMatKhau.Text = "Đổi Mật Khẩu";
+            btnDoiMatKhau.UseVisualStyleBackColor = false;
+            btnDoiMatKhau.Click += btnDoiMatKhau_Click;
             // 
             // panel5
             // 
@@ -341,7 +363,7 @@
             // 
             lblTenNguoiDung.Font = new Font("Arial", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
             lblTenNguoiDung.ForeColor = Color.Lime;
-            lblTenNguoiDung.Location = new Point(3, 71);
+            lblTenNguoiDung.Location = new Point(9, 22);
             lblTenNguoiDung.Name = "lblTenNguoiDung";
             lblTenNguoiDung.Size = new Size(211, 23);
             lblTenNguoiDung.TabIndex = 0;
@@ -351,7 +373,7 @@
             // 
             lblVaiTro.Font = new Font("Century Gothic", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
             lblVaiTro.ForeColor = Color.Fuchsia;
-            lblVaiTro.Location = new Point(3, 106);
+            lblVaiTro.Location = new Point(9, 56);
             lblVaiTro.Name = "lblVaiTro";
             lblVaiTro.Size = new Size(211, 25);
             lblVaiTro.TabIndex = 0;
@@ -360,12 +382,41 @@
             // panel4
             // 
             panel4.BackColor = Color.DodgerBlue;
+            panel4.Controls.Add(btnHoTro);
+            panel4.Controls.Add(btnThongBao);
             panel4.Controls.Add(label1);
             panel4.Dock = DockStyle.Top;
             panel4.Location = new Point(225, 25);
             panel4.Name = "panel4";
             panel4.Size = new Size(1694, 71);
             panel4.TabIndex = 0;
+            // 
+            // btnHoTro
+            // 
+            btnHoTro.BackColor = Color.DodgerBlue;
+            btnHoTro.FlatAppearance.BorderSize = 0;
+            btnHoTro.FlatStyle = FlatStyle.Flat;
+            btnHoTro.Image = (Image)resources.GetObject("btnHoTro.Image");
+            btnHoTro.Location = new Point(1335, 11);
+            btnHoTro.Name = "btnHoTro";
+            btnHoTro.Size = new Size(76, 52);
+            btnHoTro.TabIndex = 1;
+            btnHoTro.UseVisualStyleBackColor = false;
+            // 
+            // btnThongBao
+            // 
+            btnThongBao.BackColor = Color.DodgerBlue;
+            btnThongBao.FlatAppearance.BorderSize = 0;
+            btnThongBao.FlatStyle = FlatStyle.Flat;
+            btnThongBao.Font = new Font("Century Gothic", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            btnThongBao.ForeColor = Color.Yellow;
+            btnThongBao.Location = new Point(1458, 12);
+            btnThongBao.Name = "btnThongBao";
+            btnThongBao.Size = new Size(213, 46);
+            btnThongBao.TabIndex = 1;
+            btnThongBao.Text = "🔔 Thông báo";
+            btnThongBao.UseVisualStyleBackColor = false;
+            btnThongBao.Click += btnThongBao_Click;
             // 
             // label1
             // 
@@ -383,6 +434,8 @@
             // panel2
             // 
             panel2.BackColor = Color.White;
+            panel2.Controls.Add(uC_TrangChu1);
+            panel2.Controls.Add(uC_ThongKe1);
             panel2.Controls.Add(uC_GiangVien_ChamDiem1);
             panel2.Controls.Add(uC_TraCuu_ChiTiet1);
             panel2.Controls.Add(uC_TraCuuDiem_Container1);
@@ -400,6 +453,31 @@
             panel2.Name = "panel2";
             panel2.Size = new Size(1694, 954);
             panel2.TabIndex = 1;
+            // 
+            // uC_TrangChu1
+            // 
+            uC_TrangChu1.Dock = DockStyle.Fill;
+            uC_TrangChu1.Location = new Point(0, 0);
+            uC_TrangChu1.Name = "uC_TrangChu1";
+            uC_TrangChu1.Padding = new Padding(20);
+            uC_TrangChu1.Size = new Size(1694, 954);
+            uC_TrangChu1.TabIndex = 13;
+            // 
+            // uC_ThongKe1
+            // 
+            uC_ThongKe1.Dock = DockStyle.Fill;
+            uC_ThongKe1.Location = new Point(0, 0);
+            uC_ThongKe1.Name = "uC_ThongKe1";
+            uC_ThongKe1.Size = new Size(1694, 954);
+            uC_ThongKe1.TabIndex = 12;
+            // 
+            // uC_GiangVien_ChamDiem1
+            // 
+            uC_GiangVien_ChamDiem1.Dock = DockStyle.Fill;
+            uC_GiangVien_ChamDiem1.Location = new Point(0, 0);
+            uC_GiangVien_ChamDiem1.Name = "uC_GiangVien_ChamDiem1";
+            uC_GiangVien_ChamDiem1.Size = new Size(1694, 954);
+            uC_GiangVien_ChamDiem1.TabIndex = 11;
             // 
             // uC_TraCuu_ChiTiet1
             // 
@@ -492,14 +570,6 @@
             uC_Home1.Size = new Size(1694, 954);
             uC_Home1.TabIndex = 0;
             // 
-            // uC_GiangVien_ChamDiem1
-            // 
-            uC_GiangVien_ChamDiem1.Dock = DockStyle.Fill;
-            uC_GiangVien_ChamDiem1.Location = new Point(0, 0);
-            uC_GiangVien_ChamDiem1.Name = "uC_GiangVien_ChamDiem1";
-            uC_GiangVien_ChamDiem1.Size = new Size(1694, 954);
-            uC_GiangVien_ChamDiem1.TabIndex = 11;
-            // 
             // Form1
             // 
             AutoScaleMode = AutoScaleMode.None;
@@ -545,7 +615,7 @@
         private GUI.UC_MonHoc uC_MonHoc1;
         private GUI.UC_Diem uC_Diem1;
         private UC_LopHocPhan uC_LopHocPhan1;
-        private Button button2;
+        private Button btnTrangChu;
         private Button btnLopHanhChinh;
         private Button btnGiangVien;
         private Forms.UC_QuanLyDiem_Container uC_QuanLyDiem_Container1;
@@ -557,6 +627,11 @@
         private Button btnDangXuat;
         private Label lblTenNguoiDung;
         private Forms.UC_GiangVien_ChamDiem uC_GiangVien_ChamDiem1;
+        private Forms.UC_ThongKe uC_ThongKe1;
+        private Forms.UC_TrangChu uC_TrangChu1;
+        private Button btnThongBao;
+        private Button btnHoTro;
+        private Button btnDoiMatKhau;
     }
 }
 

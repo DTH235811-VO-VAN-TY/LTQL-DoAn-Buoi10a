@@ -23,6 +23,7 @@ public partial class UserAccount
     public int RoleID { get; set; }
 
     public bool? IsActive { get; set; }
+    public string? MaGV { get; set; }
 
     [Column(TypeName = "datetime")]
     public DateTime? NgayTao { get; set; }

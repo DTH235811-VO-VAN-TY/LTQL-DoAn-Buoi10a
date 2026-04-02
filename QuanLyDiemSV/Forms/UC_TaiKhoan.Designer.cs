@@ -270,6 +270,7 @@
             txtTuKhoaTK.Location = new Point(477, 59);
             txtTuKhoaTK.Margin = new Padding(3, 4, 3, 4);
             txtTuKhoaTK.Name = "txtTuKhoaTK";
+            txtTuKhoaTK.PlaceholderText = "Nhập từ khóa cần tìm...";
             txtTuKhoaTK.Size = new Size(400, 30);
             txtTuKhoaTK.TabIndex = 82;
             // 

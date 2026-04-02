@@ -29,8 +29,8 @@
         private void InitializeComponent()
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(UC_SinhVien));
-            DataGridViewCellStyle dataGridViewCellStyle2 = new DataGridViewCellStyle();
-            DataGridViewCellStyle dataGridViewCellStyle1 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle4 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle3 = new DataGridViewCellStyle();
             panelInput = new Panel();
             groupBoxInfo = new GroupBox();
             dtpAdNamSinhSV = new DateTimePicker();
@@ -89,6 +89,7 @@
             SDT = new DataGridViewTextBoxColumn();
             MaLop = new DataGridViewTextBoxColumn();
             CCCD = new DataGridViewTextBoxColumn();
+            helpProvider1 = new HelpProvider();
             panelInput.SuspendLayout();
             groupBoxInfo.SuspendLayout();
             panelSearch.SuspendLayout();
@@ -159,9 +160,11 @@
             // dtpAdNamSinhSV
             // 
             dtpAdNamSinhSV.Format = DateTimePickerFormat.Custom;
+            helpProvider1.SetHelpString(dtpAdNamSinhSV, "Sinh Vien phải đủ 18 tuổi");
             dtpAdNamSinhSV.Location = new Point(171, 94);
             dtpAdNamSinhSV.Margin = new Padding(3, 4, 3, 4);
             dtpAdNamSinhSV.Name = "dtpAdNamSinhSV";
+            helpProvider1.SetShowHelp(dtpAdNamSinhSV, true);
             dtpAdNamSinhSV.Size = new Size(400, 27);
             dtpAdNamSinhSV.TabIndex = 2;
             // 
@@ -199,9 +202,11 @@
             // 
             // txtAdSV_Email
             // 
+            helpProvider1.SetHelpString(txtAdSV_Email, "VD: abc@gmail.com");
             txtAdSV_Email.Location = new Point(823, 176);
             txtAdSV_Email.Margin = new Padding(3, 4, 3, 4);
             txtAdSV_Email.Name = "txtAdSV_Email";
+            helpProvider1.SetShowHelp(txtAdSV_Email, true);
             txtAdSV_Email.Size = new Size(400, 27);
             txtAdSV_Email.TabIndex = 10;
             // 
@@ -411,17 +416,21 @@
             // 
             // txtAdCCCDsv
             // 
+            helpProvider1.SetHelpString(txtAdCCCDsv, "CCCD phải đủ 12 ký tự");
             txtAdCCCDsv.Location = new Point(171, 129);
             txtAdCCCDsv.Margin = new Padding(3, 4, 3, 4);
             txtAdCCCDsv.Name = "txtAdCCCDsv";
+            helpProvider1.SetShowHelp(txtAdCCCDsv, true);
             txtAdCCCDsv.Size = new Size(400, 27);
             txtAdCCCDsv.TabIndex = 3;
             // 
             // txtAdMaSV
             // 
+            helpProvider1.SetHelpString(txtAdMaSV, "Mã SV có 9 ký tu, VD: DTHxxxxxx");
             txtAdMaSV.Location = new Point(171, 24);
             txtAdMaSV.Margin = new Padding(3, 4, 3, 4);
             txtAdMaSV.Name = "txtAdMaSV";
+            helpProvider1.SetShowHelp(txtAdMaSV, true);
             txtAdMaSV.Size = new Size(400, 27);
             txtAdMaSV.TabIndex = 0;
             // 
@@ -481,9 +490,12 @@
             // 
             // txtAdSDT_SV
             // 
+            helpProvider1.SetHelpKeyword(txtAdSDT_SV, "SDT phải đủ 10 ký tự");
+            helpProvider1.SetHelpString(txtAdSDT_SV, "SDT phải đủ ");
             txtAdSDT_SV.Location = new Point(170, 164);
             txtAdSDT_SV.Margin = new Padding(3, 4, 3, 4);
             txtAdSDT_SV.Name = "txtAdSDT_SV";
+            helpProvider1.SetShowHelp(txtAdSDT_SV, true);
             txtAdSDT_SV.Size = new Size(400, 27);
             txtAdSDT_SV.TabIndex = 4;
             // 
@@ -578,6 +590,7 @@
             txtAdTuKhoa_SV.Location = new Point(455, 26);
             txtAdTuKhoa_SV.Margin = new Padding(3, 4, 3, 4);
             txtAdTuKhoa_SV.Name = "txtAdTuKhoa_SV";
+            txtAdTuKhoa_SV.PlaceholderText = "Nhập từ khóa tìm kiếm (F3)...";
             txtAdTuKhoa_SV.Size = new Size(400, 27);
             txtAdTuKhoa_SV.TabIndex = 19;
             // 
@@ -633,6 +646,7 @@
             btnAdTimKiem_SV.Text = "Tìm Kiếm";
             btnAdTimKiem_SV.UseVisualStyleBackColor = false;
             btnAdTimKiem_SV.Click += btnAdTimKiem_SV_Click;
+            btnAdTimKiem_SV.KeyDown += btnAdTimKiem_SV_KeyDown;
             // 
             // panelGrid
             // 
@@ -666,14 +680,14 @@
             dgvAdminSinhVien.BackgroundColor = SystemColors.ButtonHighlight;
             dgvAdminSinhVien.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             dgvAdminSinhVien.Columns.AddRange(new DataGridViewColumn[] { MaSV, HoTen, NgaySinh, GioiTinh, DiaChi, Email, SDT, MaLop, CCCD });
-            dataGridViewCellStyle2.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle2.BackColor = SystemColors.Window;
-            dataGridViewCellStyle2.Font = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            dataGridViewCellStyle2.ForeColor = SystemColors.ControlText;
-            dataGridViewCellStyle2.SelectionBackColor = SystemColors.Highlight;
-            dataGridViewCellStyle2.SelectionForeColor = SystemColors.HighlightText;
-            dataGridViewCellStyle2.WrapMode = DataGridViewTriState.False;
-            dgvAdminSinhVien.DefaultCellStyle = dataGridViewCellStyle2;
+            dataGridViewCellStyle4.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle4.BackColor = SystemColors.Window;
+            dataGridViewCellStyle4.Font = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            dataGridViewCellStyle4.ForeColor = SystemColors.ControlText;
+            dataGridViewCellStyle4.SelectionBackColor = SystemColors.Highlight;
+            dataGridViewCellStyle4.SelectionForeColor = SystemColors.HighlightText;
+            dataGridViewCellStyle4.WrapMode = DataGridViewTriState.False;
+            dgvAdminSinhVien.DefaultCellStyle = dataGridViewCellStyle4;
             dgvAdminSinhVien.Dock = DockStyle.Fill;
             dgvAdminSinhVien.Location = new Point(3, 24);
             dgvAdminSinhVien.Margin = new Padding(3, 4, 3, 4);
@@ -689,8 +703,8 @@
             // MaSV
             // 
             MaSV.DataPropertyName = "MaSV";
-            dataGridViewCellStyle1.ForeColor = Color.Blue;
-            MaSV.DefaultCellStyle = dataGridViewCellStyle1;
+            dataGridViewCellStyle3.ForeColor = Color.Blue;
+            MaSV.DefaultCellStyle = dataGridViewCellStyle3;
             MaSV.HeaderText = "Mã SV";
             MaSV.MinimumWidth = 6;
             MaSV.Name = "MaSV";
@@ -851,5 +865,6 @@
         private DataGridViewTextBoxColumn SDT;
         private DataGridViewTextBoxColumn MaLop;
         private DataGridViewTextBoxColumn CCCD;
+        private HelpProvider helpProvider1;
     }
 }

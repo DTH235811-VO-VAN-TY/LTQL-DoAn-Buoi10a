@@ -34,10 +34,14 @@ namespace QuanLyDiemSV.Data
 
         public virtual DbSet<UserAccount> UserAccount { get; set; }
 
-       /* protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-            => optionsBuilder.UseSqlServer("Server=REDMI-11\\SQLEXPRESS01;Database=QLDSV;Trusted_Connection=True;TrustServerCertificate=True");
-       */
+        public virtual DbSet<DonKhieuNai> DonKhieuNai { get; set; }
+
+        public virtual DbSet<ThongBao> ThongBaos { get; set; }
+
+        /* protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+ #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
+             => optionsBuilder.UseSqlServer("Server=REDMI-11\\SQLEXPRESS01;Database=QLDSV;Trusted_Connection=True;TrustServerCertificate=True");
+        */
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             if (!optionsBuilder.IsConfigured)
@@ -78,7 +82,9 @@ namespace QuanLyDiemSV.Data
 
                 // --- ĐOẠN NÀY RẤT QUAN TRỌNG: TỰ TÍNH ĐIỂM ---
                 entity.Property(e => e.DiemChu).HasComputedColumnSql("(case when ((isnull([DiemCC],(0))*(0.1)+isnull([DiemGK],(0))*(0.3))+isnull([DiemCK],(0))*(0.6))>=(8.5) then 'A' when ((isnull([DiemCC],(0))*(0.1)+isnull([DiemGK],(0))*(0.3))+isnull([DiemCK],(0))*(0.6))>=(7.0) then 'B' when ((isnull([DiemCC],(0))*(0.1)+isnull([DiemGK],(0))*(0.3))+isnull([DiemCK],(0))*(0.6))>=(5.5) then 'C' when ((isnull([DiemCC],(0))*(0.1)+isnull([DiemGK],(0))*(0.3))+isnull([DiemCK],(0))*(0.6))>=(4.0) then 'D' else 'F' end)", false);
-                entity.Property(e => e.DiemTongKet).HasComputedColumnSql("(CONVERT([decimal](4,2),(isnull([DiemCC],(0))*(0.1)+isnull([DiemGK],(0))*(0.3))+isnull([DiemCK],(0))*(0.6)))", true);
+                entity.Property(e => e.DiemTongKet)
+                //.HasComputedColumnSql("(CONVERT([decimal](4,2),(isnull([DiemCC],(0))*(0.1)+isnull([DiemGK],(0))*(0.3))+isnull([DiemCK],(0))*(0.6)))", true)
+                ;
                 // ---------------------------------------------
 
                 entity.HasOne(d => d.MaLHPNavigation).WithMany(p => p.KetQuaHocTap)

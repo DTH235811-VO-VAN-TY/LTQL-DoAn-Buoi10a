@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            DataGridViewCellStyle dataGridViewCellStyle2 = new DataGridViewCellStyle();
             DataGridViewCellStyle dataGridViewCellStyle1 = new DataGridViewCellStyle();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(UC_GiangVien));
             dtpNamSinhGV = new DateTimePicker();
@@ -143,14 +144,14 @@
             dgvAdminGiangVien.BackgroundColor = SystemColors.ButtonHighlight;
             dgvAdminGiangVien.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             dgvAdminGiangVien.Columns.AddRange(new DataGridViewColumn[] { MaGV, HoTen, NgaySinh, GioiTinh, Email, SDT, HocVi, Khoa });
-            dataGridViewCellStyle1.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle1.BackColor = SystemColors.Window;
-            dataGridViewCellStyle1.Font = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            dataGridViewCellStyle1.ForeColor = SystemColors.ControlText;
-            dataGridViewCellStyle1.SelectionBackColor = SystemColors.Highlight;
-            dataGridViewCellStyle1.SelectionForeColor = SystemColors.HighlightText;
-            dataGridViewCellStyle1.WrapMode = DataGridViewTriState.False;
-            dgvAdminGiangVien.DefaultCellStyle = dataGridViewCellStyle1;
+            dataGridViewCellStyle2.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle2.BackColor = SystemColors.Window;
+            dataGridViewCellStyle2.Font = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            dataGridViewCellStyle2.ForeColor = SystemColors.ControlText;
+            dataGridViewCellStyle2.SelectionBackColor = SystemColors.Highlight;
+            dataGridViewCellStyle2.SelectionForeColor = SystemColors.HighlightText;
+            dataGridViewCellStyle2.WrapMode = DataGridViewTriState.False;
+            dgvAdminGiangVien.DefaultCellStyle = dataGridViewCellStyle2;
             dgvAdminGiangVien.Dock = DockStyle.Fill;
             dgvAdminGiangVien.Location = new Point(3, 24);
             dgvAdminGiangVien.Margin = new Padding(3, 4, 3, 4);
@@ -165,6 +166,8 @@
             // MaGV
             // 
             MaGV.DataPropertyName = "MaGV";
+            dataGridViewCellStyle1.ForeColor = Color.Blue;
+            MaGV.DefaultCellStyle = dataGridViewCellStyle1;
             MaGV.HeaderText = "Mã GV";
             MaGV.MinimumWidth = 6;
             MaGV.Name = "MaGV";
@@ -414,6 +417,7 @@
             txtTuKhoaTK.Location = new Point(455, 26);
             txtTuKhoaTK.Margin = new Padding(3, 4, 3, 4);
             txtTuKhoaTK.Name = "txtTuKhoaTK";
+            txtTuKhoaTK.PlaceholderText = "Nhập từ khóa cần tìm..";
             txtTuKhoaTK.Size = new Size(400, 27);
             txtTuKhoaTK.TabIndex = 19;
             // 
@@ -444,7 +448,7 @@
             // label3
             // 
             label3.AutoSize = true;
-            label3.Location = new Point(1175, 38);
+            label3.Location = new Point(1173, 29);
             label3.Name = "label3";
             label3.Size = new Size(100, 20);
             label3.TabIndex = 80;
@@ -453,7 +457,7 @@
             // cboKieuSX
             // 
             cboKieuSX.FormattingEnabled = true;
-            cboKieuSX.Location = new Point(1288, 35);
+            cboKieuSX.Location = new Point(1279, 23);
             cboKieuSX.Name = "cboKieuSX";
             cboKieuSX.Size = new Size(151, 28);
             cboKieuSX.TabIndex = 79;
@@ -462,7 +466,7 @@
             // radGiam
             // 
             radGiam.AutoSize = true;
-            radGiam.Location = new Point(1551, 36);
+            radGiam.Location = new Point(1548, 27);
             radGiam.Name = "radGiam";
             radGiam.Size = new Size(67, 24);
             radGiam.TabIndex = 77;
@@ -474,7 +478,7 @@
             // 
             radTang.AutoSize = true;
             radTang.Checked = true;
-            radTang.Location = new Point(1464, 36);
+            radTang.Location = new Point(1461, 27);
             radTang.Name = "radTang";
             radTang.Size = new Size(64, 24);
             radTang.TabIndex = 78;
@@ -727,6 +731,8 @@
         private ComboBox cboKieuSX;
         private RadioButton radGiam;
         private RadioButton radTang;
+        private Button btnNhap;
+        private Button btnXuat;
         private DataGridViewTextBoxColumn MaGV;
         private DataGridViewTextBoxColumn HoTen;
         private DataGridViewTextBoxColumn NgaySinh;
@@ -735,7 +741,5 @@
         private DataGridViewTextBoxColumn SDT;
         private DataGridViewTextBoxColumn HocVi;
         private DataGridViewTextBoxColumn Khoa;
-        private Button btnNhap;
-        private Button btnXuat;
     }
 }

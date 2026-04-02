@@ -124,17 +124,18 @@ namespace QuanLyDiemSV
             btnThem.Enabled = !giaTri;
             btnSua.Enabled = !giaTri;
             btnXoa.Enabled = !giaTri;
+            btnXepLop.Enabled = !giaTri;
         }
         private void KhoiTaoCboTimKiemSapXep()
         {
             // 1. ComboBox Loại Tìm Kiếm (cboLoaiTK)
             cboTimKiem.Items.Clear();
-            cboTimKiem.Items.AddRange(new string[] { "Mã Lớp học phần", "Tên Lớp Học Phần", "Giảng viên", "Mã Môn" });
+            cboTimKiem.Items.AddRange(new string[] { "Mã Lớp học phần", "Tên Lớp Học Phần", "Giảng viên", "Mã Môn", "Học Kỳ" });
             cboTimKiem.SelectedIndex = 1; // Mặc định tìm theo Tên LHP
 
             // 2. ComboBox Kiểu Sắp Xếp
             cboKieuSX.Items.Clear();
-            cboKieuSX.Items.AddRange(new string[] { "Mã Lớp học phần", "Tên Lớp Học Phần", "Giảng viên" });
+            cboKieuSX.Items.AddRange(new string[] { "Mã Lớp học phần", "Tên Lớp Học Phần", "Giảng viên", "Học Kỳ" });
             cboKieuSX.SelectedIndex = 0; // Mặc định sắp xếp theo Mã GV
         }
         private void LoadComboBoxData()
@@ -188,6 +189,9 @@ namespace QuanLyDiemSV
                         case "Mã Môn":
                             query = query.Where(g => g.MaMon.Contains(tuKhoa));
                             break;
+                        case "Học Kỳ":
+                            query = query.Where(g => g.MaHK.ToLower().Contains(tuKhoa));
+                            break;
                     }
                 }
                 bool isTang = radTang.Checked;
@@ -204,6 +208,9 @@ namespace QuanLyDiemSV
                             break;
                         case "Giảng viên":
                             query = isTang ? query.OrderBy(g => g.MaGVNavigation.HoTen) : query.OrderByDescending(g => g.MaGVNavigation.HoTen);
+                            break;
+                        case "Học Kỳ":
+                            query = isTang ? query.OrderBy(g => g.MaHK) : query.OrderByDescending(g => g.MaHK);
                             break;
                     }
                 }
@@ -262,6 +269,7 @@ namespace QuanLyDiemSV
         private void btnThem_Click(object sender, EventArgs e)
         {
             xuLyThem = true;
+            bsLopHP.SuspendBinding();
             BatTatChucNang(true);
 
             txtMaLHP.Clear();
@@ -315,8 +323,26 @@ namespace QuanLyDiemSV
                 // --- ĐÂY LÀ CHÌA KHÓA GIẢI QUYẾT LỖI ---
                 if (xuLyThem)
                 {
+                    // KIỂM TRA ĐIỀU KIỆN MÃ LỚP KHI THÊM MỚI
+                    if (!int.TryParse(txtMaLHP.Text.Trim(), out int maLopMoi))
+                    {
+                        MessageBox.Show("Mã Lớp Học Phần phải là số nguyên hợp lệ!", "Cảnh báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        txtMaLHP.Focus();
+                        return;
+                    }
+
+                    // Kiểm tra xem Mã này đã tồn tại trong Database chưa
+                    if (context.LopHocPhan.Any(x => x.MaLHP == maLopMoi))
+                    {
+                        MessageBox.Show("Mã Lớp Học Phần này đã tồn tại! Vui lòng nhập mã khác.", "Trùng dữ liệu", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        txtMaLHP.Focus();
+                        return;
+                    }
+                    
                     // NẾU THÊM MỚI: Phải tạo một đối tượng hoàn toàn mới (Mã LHP sẽ trống để SQL tự sinh)
                     lhp = new LopHocPhan();
+                    
+                    lhp.MaLHP = maLopMoi;
                 }
                 else
                 {
@@ -331,6 +357,7 @@ namespace QuanLyDiemSV
 
                 lhp.TenLopHP = txtTenLHP.Text.Trim();
                 lhp.PhongHoc = txtPhongHoc.Text.Trim();
+
 
                 if (int.TryParse(txtSiSo.Text, out int siso)) lhp.SiSoToiDa = siso;
                 else lhp.SiSoToiDa = 40;
@@ -367,7 +394,7 @@ namespace QuanLyDiemSV
 
         private void btnLamLai_Click(object sender, EventArgs e)
         {
-            
+
             BatTatChucNang(false);
             bsLopHP.ResetBindings(false);
             BsLopHP_CurrentChanged(null, null);
@@ -590,6 +617,29 @@ namespace QuanLyDiemSV
             {
                 MessageBox.Show("Lỗi xuất file: " + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+        }
+
+        private void btnXepLop_Click(object sender, EventArgs e)
+        {
+            // 1. Kiểm tra xem người dùng đã chọn lớp trên lưới chưa
+            if (bsLopHP.Current == null)
+            {
+                MessageBox.Show("Vui lòng chọn một lớp học phần trên lưới để xếp lớp!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            var lhp = (LopHocPhan)bsLopHP.Current;
+
+            // 2. Logic thực tế: Lớp đã ĐÓNG thì không cho xếp thêm sinh viên
+            if (lhp.TrangThai == 0)
+            {
+                MessageBox.Show("Lớp học phần này đã đóng, không thể thêm sinh viên!", "Cảnh báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            // 3. Mở Form Xếp Lớp và truyền Mã Lớp, Tên Lớp sang
+            FrmXepLop frm = new FrmXepLop(lhp.MaLHP, lhp.TenLopHP);
+            frm.ShowDialog();
         }
     }
 }

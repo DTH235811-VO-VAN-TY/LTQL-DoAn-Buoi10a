@@ -8,6 +8,7 @@ using GUI;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 using ClosedXML.Excel;
 using QuanLyDiemSV;
+using Microsoft.EntityFrameworkCore;
 
 namespace GUI
 {
@@ -233,6 +234,7 @@ namespace GUI
                 lblCVHT.Text = thongTinSV.TenGVCN;
             }
             LoadBangDiemSinhVien(maSV);
+            LoadDanhSachMonHocHopLe();
         }
 
         private void LoadBangDiemSinhVien(string maSV)
@@ -276,6 +278,36 @@ namespace GUI
             // 4. Tính toán phần thống kê phía trên của Form (Số môn, Tín chỉ đạt, ĐTB...)
             TinhTongKetHocKy(dataList);
         }
+        // HÀM LỌC MÔN HỌC "BỌC THÉP" 3 ĐIỀU KIỆN
+        private void LoadDanhSachMonHocHopLe()
+        {
+            if (!daTaiDuLieu || cboHocKy.SelectedValue == null || string.IsNullOrEmpty(currentMaSV))
+            {
+                cboMaMon.DataSource = null;
+                return;
+            }
+
+            string maHK = cboHocKy.SelectedValue.ToString();
+
+            // LOGIC MỚI: Chỉ lấy môn học nằm trong bảng KetQuaHocTap của sinh viên này, và Lớp đó phải đang MỞ
+            var listMon = (from kq in context.KetQuaHocTap
+                           join lhp in context.LopHocPhan on kq.MaLHP equals lhp.MaLHP
+                           join mh in context.MonHoc on lhp.MaMon equals mh.MaMon
+                           where kq.MaSV == currentMaSV
+                                 && lhp.MaHK == maHK
+                                 && lhp.TrangThai == 1
+                           select mh).Distinct().ToList();
+
+            cboMaMon.DataSource = null;
+
+            if (listMon.Count > 0)
+            {
+                cboMaMon.DataSource = listMon;
+                cboMaMon.DisplayMember = "TenMon";
+                cboMaMon.ValueMember = "MaMon";
+                cboMaMon.SelectedIndex = -1; // Trống ô cho người dùng tự chọn
+            }
+        }
 
         private void BsDiem_CurrentChanged(object sender, EventArgs e)
         {
@@ -289,19 +321,18 @@ namespace GUI
             txtDiemThiLan2.Text = item.DiemThiLan2?.ToString();
             txtTenMon.Text = item.TenMon;
             txtSTC.Text = item.SoTinChi.ToString();
-
-            //txtDiemThiLan1.Text = "";
-            //txtDiemThiLan2.Text = "";
             txtGhichu.Text = "";
 
-            if (!string.IsNullOrEmpty(item.MaHK))
+            // Tránh tình trạng gán lại Học kỳ gây lặp (Loop) sự kiện
+            if (!string.IsNullOrEmpty(item.MaHK) && cboHocKy.SelectedValue?.ToString() != item.MaHK)
             {
                 cboHocKy.SelectedValue = item.MaHK;
             }
 
-            if (item.MaLHP > 0)
+            // SỬA Ở ĐÂY: Gán giá trị là Mã Môn (kiểu chuỗi) thay vì Mã Lớp Học Phần (kiểu số)
+            if (!string.IsNullOrEmpty(item.MaMon))
             {
-                cboMaMon.SelectedValue = item.MaLHP;
+                cboMaMon.SelectedValue = item.MaMon;
             }
         }
 
@@ -405,6 +436,7 @@ namespace GUI
             decimal? dCK = string.IsNullOrEmpty(txtDiemCK.Text) ? null : decimal.Parse(txtDiemCK.Text);
             decimal? dThiL1 = string.IsNullOrEmpty(txtDiemThiLan1.Text) ? null : decimal.Parse(txtDiemThiLan1.Text);
             decimal? dThiL2 = string.IsNullOrEmpty(txtDiemThiLan2.Text) ? null : decimal.Parse(txtDiemThiLan2.Text);
+
             // Bắt lỗi: Có điểm Thi Lại nhưng lại bỏ trống Cuối Kỳ
             if ((dThiL1.HasValue || dThiL2.HasValue) && !dCK.HasValue)
             {
@@ -417,21 +449,35 @@ namespace GUI
 
             try
             {
-                int maLHP = (int)cboMaMon.SelectedValue;
+                // =========================================================
+                // LẤY ĐÚNG MÃ LỚP HỌC PHẦN MÀ SINH VIÊN ĐANG ĐĂNG KÝ
+                // =========================================================
+                string maMon = cboMaMon.SelectedValue.ToString();
+                string maHK = cboHocKy.SelectedValue.ToString();
+
+                var lhpDangKy = (from l in context.LopHocPhan
+                                 join k in context.KetQuaHocTap on l.MaLHP equals k.MaLHP
+                                 where k.MaSV == currentMaSV && l.MaMon == maMon && l.MaHK == maHK
+                                 select l).FirstOrDefault();
+
+                if (lhpDangKy == null)
+                {
+                    MessageBox.Show("Không tìm thấy lớp học phần sinh viên đã đăng ký cho môn này!");
+                    return;
+                }
+
+                int maLHP = lhpDangKy.MaLHP;
 
                 if (xuLyThem)
                 {
-                    // 1. LOGIC KIỂM TRA ĐIỀU KIỆN MÔN TIÊN QUYẾT
-                    var maMonDangChon = context.LopHocPhan
-                                               .Where(x => x.MaLHP == maLHP)
-                                               .Select(x => x.MaMon)
-                                               .FirstOrDefault();
+                    // ==========================================================
+                    // LOGIC CHO TRƯỜNG HỢP: THÊM MỚI
+                    // ==========================================================
+                    var maMonDangChon = context.LopHocPhan.Where(x => x.MaLHP == maLHP).Select(x => x.MaMon).FirstOrDefault();
 
                     if (maMonDangChon != null)
                     {
-                        var listMonTienQuyet = context.DieuKienMonHoc
-                                                      .Where(dk => dk.MaMon == maMonDangChon)
-                                                      .ToList();
+                        var listMonTienQuyet = context.DieuKienMonHoc.Where(dk => dk.MaMon == maMonDangChon).ToList();
 
                         foreach (var dk in listMonTienQuyet)
                         {
@@ -442,58 +488,74 @@ namespace GUI
 
                             if (!daHocMonTienQuyet)
                             {
-                                string tenMonTQ = context.MonHoc
-                                                         .Where(m => m.MaMon == dk.MaMonTienQuyet)
-                                                         .Select(m => m.TenMon)
-                                                         .FirstOrDefault() ?? dk.MaMonTienQuyet;
-
-                                MessageBox.Show($"Không thể nhập điểm!\n\nSinh viên chưa học môn tiên quyết: [{dk.MaMonTienQuyet}] - {tenMonTQ}.\nVui lòng nhập điểm môn tiên quyết trước.",
-                                                "Cảnh báo học vụ", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                                string tenMonTQ = context.MonHoc.Where(m => m.MaMon == dk.MaMonTienQuyet).Select(m => m.TenMon).FirstOrDefault() ?? dk.MaMonTienQuyet;
+                                MessageBox.Show($"Không thể nhập điểm!\n\nSinh viên chưa học môn tiên quyết: [{dk.MaMonTienQuyet}] - {tenMonTQ}.\nVui lòng nhập điểm môn tiên quyết trước.", "Cảnh báo học vụ", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                                 return;
                             }
                         }
                     }
 
-                    // 2. KIỂM TRA TRÙNG LẶP ĐIỂM
                     var check = context.KetQuaHocTap.FirstOrDefault(x => x.MaSV == currentMaSV && x.MaLHP == maLHP);
+
                     if (check != null)
                     {
-                        MessageBox.Show("Sinh viên đã có điểm môn này trong học kỳ đang chọn!");
-                        return;
+                        if (check.DiemGK != null || check.DiemCK != null || check.DiemTongKet != null)
+                        {
+                            MessageBox.Show("Sinh viên đã có điểm môn này! Vui lòng dùng chức năng 'Sửa' nếu muốn cập nhật điểm.", "Đã có điểm", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                            return;
+                        }
+
+                        check.DiemGK = dGK;
+                        check.DiemCK = dCK;
+                        check.DiemThiLan1 = dThiL1;
+                        check.DiemThiLan2 = dThiL2;
+                        check.DiemTongKet = (decimal?)diemTongKet;
+                        context.KetQuaHocTap.Update(check);
                     }
-
-                    // 3. THÊM MỚI KẾT QUẢ HỌC TẬP
-                    KetQuaHocTap kq = new KetQuaHocTap();
-                    kq.MaSV = currentMaSV;
-                    kq.MaLHP = maLHP;
-                    kq.DiemGK = dGK;
-                    kq.DiemCK = dCK; // Khôi phục lại: Lưu đúng điểm thi lần 1 vào Cuối Kỳ
-                    kq.DiemThiLan1 = dThiL1;
-                    kq.DiemThiLan2 = dThiL2;
-                    kq.DiemTongKet = (decimal?)diemTongKet; // Lưu kết quả sau cùng vào cột Tổng kết
-
-                    context.KetQuaHocTap.Add(kq);
-                }
-                else // NẾU LÀ SỬA ĐIỂM
-                {
-                    var viewItem = (DiemViewModel)bsDiem.Current;
-                    var kq = context.KetQuaHocTap.Find(viewItem.ID);
-                    if (kq != null)
+                    else
                     {
+                        KetQuaHocTap kq = new KetQuaHocTap();
+                        kq.MaSV = currentMaSV;
+                        kq.MaLHP = maLHP;
                         kq.DiemGK = dGK;
                         kq.DiemCK = dCK;
-
-                        // === BẠN HÃY THÊM 3 DÒNG NÀY VÀO ĐỂ LƯU ĐIỂM THI LẠI ===
                         kq.DiemThiLan1 = dThiL1;
                         kq.DiemThiLan2 = dThiL2;
                         kq.DiemTongKet = (decimal?)diemTongKet;
+                        context.KetQuaHocTap.Add(kq);
+                    }
+
+                    context.SaveChanges();
+                    MessageBox.Show($"Thêm thành công!\nĐiểm tổng kết được hệ thống tính toán là: {diemTongKet}", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    BatTatChucNang(false);
+                    LoadBangDiemSinhVien(currentMaSV);
+                }
+                else
+                {
+                    // ==========================================================
+                    // LOGIC CHO TRƯỜNG HỢP: SỬA ĐIỂM BỊ THIẾU ĐÃ ĐƯỢC THÊM VÀO
+                    // ==========================================================
+                    var kqSua = context.KetQuaHocTap.FirstOrDefault(x => x.MaSV == currentMaSV && x.MaLHP == maLHP);
+                    if (kqSua != null)
+                    {
+                        kqSua.DiemGK = dGK;
+                        kqSua.DiemCK = dCK;
+                        kqSua.DiemThiLan1 = dThiL1;
+                        kqSua.DiemThiLan2 = dThiL2;
+                        kqSua.DiemTongKet = (decimal?)diemTongKet;
+
+                        context.KetQuaHocTap.Update(kqSua);
+                        context.SaveChanges();
+
+                        MessageBox.Show($"Cập nhật điểm thành công!\nĐiểm tổng kết hệ thống tính toán lại là: {diemTongKet}", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        BatTatChucNang(false);
+                        LoadBangDiemSinhVien(currentMaSV);
+                    }
+                    else
+                    {
+                        MessageBox.Show("Không tìm thấy kết quả để cập nhật!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     }
                 }
-
-                context.SaveChanges();
-                MessageBox.Show($"Lưu thành công!\nĐiểm tổng kết được hệ thống tính toán là: {diemTongKet}", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                BatTatChucNang(false);
-                LoadBangDiemSinhVien(currentMaSV);
             }
             catch (Exception ex)
             {
@@ -503,15 +565,17 @@ namespace GUI
 
         private void cboMaMon_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (xuLyThem && cboMaMon.SelectedIndex != -1)
+            // Chỉ tự động điền khi đang ở chế độ Thêm mới (xuLyThem = true) và có chọn dữ liệu
+            if (xuLyThem && cboMaMon.SelectedIndex != -1 && cboMaMon.SelectedValue != null)
             {
                 try
                 {
-                    int maLHP = (int)cboMaMon.SelectedValue;
-                    var mon = (from lhp in context.LopHocPhan
-                               join mh in context.MonHoc on lhp.MaMon equals mh.MaMon
-                               where lhp.MaLHP == maLHP
-                               select new { mh.TenMon, mh.SoTinChi }).FirstOrDefault();
+                    // Lấy mã môn học dạng chuỗi từ ComboBox (VD: "COS106")
+                    string maMonDangChon = cboMaMon.SelectedValue.ToString();
+
+                    // Tìm kiếm môn học đó trong CSDL
+                    var mon = context.MonHoc.FirstOrDefault(x => x.MaMon == maMonDangChon);
+
                     if (mon != null)
                     {
                         txtTenMon.Text = mon.TenMon;
@@ -575,12 +639,12 @@ namespace GUI
             btnAdSua_SV.Enabled = !mo;
             btnAdXoa_SV.Enabled = !mo;
 
-            if(Session.RoleID == 1)
+            if (Session.RoleID == 1)
             {
                 txtDiemQT.Enabled = false;
                 txtDiemCK.Enabled = false;
-                txtDiemThiLan1.Enabled=false;
-                txtDiemThiLan2.Enabled=false;
+                txtDiemThiLan1.Enabled = false;
+                txtDiemThiLan2.Enabled = false;
             }
         }
         #endregion
@@ -589,19 +653,21 @@ namespace GUI
         {
             if (cboHocKy.SelectedValue != null)
             {
-                string maHK_DuocChon = cboHocKy.SelectedValue.ToString();
-                LoadComboBoxMonHoc(maHK_DuocChon);
-
-                if (!string.IsNullOrEmpty(currentMaSV))
+                LoadDanhSachMonHocHopLe();
+                if (!String.IsNullOrEmpty(currentMaSV))
                 {
                     LoadBangDiemSinhVien(currentMaSV);
                 }
             }
         }
+      
 
         private void dgvBangDiem_CellClick(object sender, DataGridViewCellEventArgs e)
         {
-
+            if (e.RowIndex >= 0 && !xuLyThem)
+            {
+                BsDiem_CurrentChanged(null, null);
+            }
         }
 
         private void btnXuat_Click(object sender, EventArgs e)

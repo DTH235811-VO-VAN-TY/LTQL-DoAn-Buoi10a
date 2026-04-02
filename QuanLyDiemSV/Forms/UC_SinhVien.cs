@@ -33,9 +33,10 @@ namespace QuanLyDiemSV
         private void UC_SinhVien_Load(object sender, EventArgs e)
         {
             BatTatChucNang(false);
-           // LoadComboBoxLop();
-           // LoadDuLieuSinhVien(); // Hàm quan trọng nhất để Binding
+            // LoadComboBoxLop();
+            // LoadDuLieuSinhVien(); // Hàm quan trọng nhất để Binding
             KhoiTaoCboTimKiemSapXep();
+
         }
 
         public void CapNhatDuLieuMoiNhat()
@@ -77,7 +78,7 @@ namespace QuanLyDiemSV
                 var dsLop = freshContext.LopHanhChinh.ToList();
 
                 // 2. Ép ComboBox "quên" dữ liệu cũ đi để sẵn sàng nhận dữ liệu mới
-                cboAdSV_TenLop.DataSource = null; 
+                cboAdSV_TenLop.DataSource = null;
 
                 // 3. Đổ dữ liệu mới vào
                 cboAdSV_TenLop.DataSource = dsLop;
@@ -629,12 +630,12 @@ namespace QuanLyDiemSV
                     MessageBox.Show("Lỗi nhập file: Vui lòng kiểm tra lại định dạng dữ liệu trong Excel.\nChi tiết: " + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
-            
+
         }
 
         private void btnXuat_Click(object sender, EventArgs e)
         {
-            
+
             SaveFileDialog saveFileDialog = new SaveFileDialog();
             saveFileDialog.Title = "Xuất dữ liệu sinh viên ra Excel";
             saveFileDialog.Filter = "Excel Files|*.xlsx";
@@ -683,7 +684,7 @@ namespace QuanLyDiemSV
                     MessageBox.Show("Lỗi xuất file: " + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
-            
+
         }
         private void StyleDataGridView(DataGridView dgv)
         {
@@ -724,6 +725,67 @@ namespace QuanLyDiemSV
                 dgv.GridColor = Color.FromArgb(200, 200, 200); // Màu đường kẻ xám vừa
             }
             catch { } // Bỏ qua lỗi ngầm nếu có
+        }
+        // ===================================================================
+        // HÀM BẮT PHÍM TẮT (HOTKEYS) CHO TOÀN BỘ MÀN HÌNH SINH VIÊN
+        // ===================================================================
+        protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
+        {
+            switch (keyData)
+            {
+                // 1. Nhấn F3 -> Focus vào ô tìm kiếm
+                case Keys.F3:
+                    txtAdTuKhoa_SV.Focus();
+                    txtAdTuKhoa_SV.SelectAll(); // Bôi đen text cũ (nếu có) để gõ đè luôn
+                    return true; // Báo cho hệ thống biết "Tôi đã xử lý phím này rồi"
+
+                // 2. Nhấn F5 -> Bấm nút Làm mới / Hiện tất cả
+                case Keys.F5:
+                    btnAdShowAll_SV.PerformClick();
+                    return true;
+
+                // 3. Nhấn Ctrl + N -> Bấm nút Thêm mới
+                case (Keys.Control | Keys.N):
+                    // Chỉ cho phép thêm nếu nút Thêm đang sáng (Enabled)
+                    if (btnAdThem_SV.Enabled) btnAdThem_SV.PerformClick();
+                    return true;
+
+                // 4. Nhấn Ctrl + S -> Bấm nút Lưu
+                case (Keys.Control | Keys.S):
+                    if (btnAdLua_SV.Enabled) btnAdLua_SV.PerformClick();
+                    return true;
+
+                // 5. Nhấn Ctrl + E -> Bấm nút Sửa
+                case (Keys.Control | Keys.E):
+                    if (btnAdSua_SV.Enabled) btnAdSua_SV.PerformClick();
+                    return true;
+
+                // 6. Nhấn phím Delete -> Bấm nút Xóa
+                case Keys.Delete:
+                    // Đảm bảo người dùng không đang gõ chữ trong Textbox thì mới Xóa
+                    if (!txtAdTuKhoa_SV.Focused)
+                    {
+                        if (btnAdXoa_SV.Enabled) btnAdXoa_SV.PerformClick();
+                        return true;
+                    }
+                    break;
+                case Keys.F:
+                    btnAdTimKiem_SV.PerformClick();
+                    break;
+            }
+
+            // Nếu không phải các phím trên, để hệ thống xử lý bình thường
+            return base.ProcessCmdKey(ref msg, keyData);
+        }
+
+        private void btnAdTimKiem_SV_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter)
+            {
+                btnAdTimKiem_SV.PerformClick(); // Tự động "bấm" nút tìm kiếm
+                e.Handled = true;
+                e.SuppressKeyPress = true; // Tắt tiếng "ting" của Windows khi nhấn Enter
+            }
         }
     }
 }

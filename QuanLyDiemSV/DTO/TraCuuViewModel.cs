@@ -24,6 +24,8 @@ namespace QuanLyDiemSV.DTO
         public int SoTinChi { get; set; }
         public decimal? DiemQT { get; set; }
         public decimal? DiemThi { get; set; }
+        public decimal? DiemThiLan1 { get; set; }
+        public decimal? DiemThiLan2 { get; set; }
 
         public decimal? DiemTongKet { get; set; } // Hệ 10
         public decimal? DiemHe4 { get; set; }     // Hệ 4

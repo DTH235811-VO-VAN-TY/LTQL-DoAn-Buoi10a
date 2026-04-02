@@ -59,7 +59,7 @@ namespace QuanLyDiemSV.Forms
                 // 1. CHỈ TÌM TÀI KHOẢN THEO USERNAME (Giống dòng 193 trong PDF)
                 var user = context.UserAccount.SingleOrDefault(u => u.Username == username);
 
-                // 2. DÙNG BCrypt ĐỂ XÁC THỰC MẬT KHẨU (Giống dòng 200 trong PDF)
+                
                 // Hàm Verify sẽ tự động lấy password người dùng nhập, băm ra và so sánh với chuỗi $2a$... trong DB
                 if (user != null && BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
                 {
@@ -76,7 +76,7 @@ namespace QuanLyDiemSV.Forms
                     Session.Username = user.Username.Trim();
                     Session.RoleID = Convert.ToInt32(user.RoleID);
 
-                    // Tìm mã Sinh viên / Giảng viên tương ứng với UserID
+                    //// Tìm mã Sinh viên / Giảng viên tương ứng với UserID
                     if (Session.RoleID == 2) // Giảng viên
                     {
                         var gv = context.GiangVien.FirstOrDefault(g => g.UserID == user.UserID);

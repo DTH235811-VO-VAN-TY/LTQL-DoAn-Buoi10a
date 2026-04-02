@@ -33,6 +33,7 @@
             flowLayoutPanel1 = new FlowLayoutPanel();
             panel2 = new Panel();
             groupBox1 = new GroupBox();
+            btnGuiKhieuNai = new Button();
             btnQuayLai = new Button();
             btnInBangDiem = new Button();
             btnXuat = new Button();
@@ -48,6 +49,7 @@
             label13 = new Label();
             label12 = new Label();
             label11 = new Label();
+            btnInBaoCao = new Button();
             panel1.SuspendLayout();
             panel3.SuspendLayout();
             panel2.SuspendLayout();
@@ -94,7 +96,9 @@
             // 
             // groupBox1
             // 
+            groupBox1.Controls.Add(btnGuiKhieuNai);
             groupBox1.Controls.Add(btnQuayLai);
+            groupBox1.Controls.Add(btnInBaoCao);
             groupBox1.Controls.Add(btnInBangDiem);
             groupBox1.Controls.Add(btnXuat);
             groupBox1.Controls.Add(lblCVHT);
@@ -118,9 +122,19 @@
             groupBox1.TabStop = false;
             groupBox1.Text = "Thông tin sinh viên";
             // 
+            // btnGuiKhieuNai
+            // 
+            btnGuiKhieuNai.Location = new Point(1169, 103);
+            btnGuiKhieuNai.Name = "btnGuiKhieuNai";
+            btnGuiKhieuNai.Size = new Size(152, 38);
+            btnGuiKhieuNai.TabIndex = 19;
+            btnGuiKhieuNai.Text = "Khiếu Nại";
+            btnGuiKhieuNai.UseVisualStyleBackColor = true;
+            btnGuiKhieuNai.Click += btnGuiKhieuNai_Click;
+            // 
             // btnQuayLai
             // 
-            btnQuayLai.Location = new Point(1499, 112);
+            btnQuayLai.Location = new Point(1355, 103);
             btnQuayLai.Name = "btnQuayLai";
             btnQuayLai.Size = new Size(152, 38);
             btnQuayLai.TabIndex = 19;
@@ -130,7 +144,7 @@
             // 
             // btnInBangDiem
             // 
-            btnInBangDiem.Location = new Point(1499, 68);
+            btnInBangDiem.Location = new Point(1169, 29);
             btnInBangDiem.Name = "btnInBangDiem";
             btnInBangDiem.Size = new Size(152, 38);
             btnInBangDiem.TabIndex = 19;
@@ -140,7 +154,7 @@
             // 
             // btnXuat
             // 
-            btnXuat.Location = new Point(1499, 22);
+            btnXuat.Location = new Point(990, 29);
             btnXuat.Name = "btnXuat";
             btnXuat.Size = new Size(152, 38);
             btnXuat.TabIndex = 19;
@@ -196,6 +210,7 @@
             // lblMaSV
             // 
             lblMaSV.AutoSize = true;
+            lblMaSV.ForeColor = Color.Blue;
             lblMaSV.Location = new Point(217, 41);
             lblMaSV.Name = "lblMaSV";
             lblMaSV.Size = new Size(93, 23);
@@ -262,6 +277,16 @@
             label11.TabIndex = 12;
             label11.Text = "Mã Số Sinh Viên:";
             // 
+            // btnInBaoCao
+            // 
+            btnInBaoCao.Location = new Point(1355, 30);
+            btnInBaoCao.Name = "btnInBaoCao";
+            btnInBaoCao.Size = new Size(152, 38);
+            btnInBaoCao.TabIndex = 19;
+            btnInBaoCao.Text = "In Báo Cáo";
+            btnInBaoCao.UseVisualStyleBackColor = true;
+            btnInBaoCao.Click += btnInBaoCao_Click;
+            // 
             // UC_TraCuu_ChiTiet
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
@@ -299,5 +324,7 @@
         private Panel panel3;
         private FlowLayoutPanel flowLayoutPanel1;
         private Button btnInBangDiem;
+        private Button btnGuiKhieuNai;
+        private Button btnInBaoCao;
     }
 }

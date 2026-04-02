@@ -79,6 +79,7 @@
             // 
             // panelGrid
             // 
+            panelGrid.BackColor = Color.White;
             panelGrid.Controls.Add(groupBoxList);
             panelGrid.Dock = DockStyle.Fill;
             panelGrid.Location = new Point(0, 381);
@@ -90,6 +91,7 @@
             // 
             // groupBoxList
             // 
+            groupBoxList.BackColor = Color.White;
             groupBoxList.Controls.Add(dgvLopHanhChinh);
             groupBoxList.Dock = DockStyle.Fill;
             groupBoxList.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
@@ -195,7 +197,7 @@
             // 
             btnAdShowAll_SV.BackColor = Color.White;
             btnAdShowAll_SV.FlatStyle = FlatStyle.Flat;
-            btnAdShowAll_SV.Location = new Point(1043, 13);
+            btnAdShowAll_SV.Location = new Point(1043, 16);
             btnAdShowAll_SV.Margin = new Padding(3, 4, 3, 4);
             btnAdShowAll_SV.Name = "btnAdShowAll_SV";
             btnAdShowAll_SV.Size = new Size(120, 40);
@@ -209,6 +211,7 @@
             txtAdTuKhoa_SV.Location = new Point(455, 26);
             txtAdTuKhoa_SV.Margin = new Padding(3, 4, 3, 4);
             txtAdTuKhoa_SV.Name = "txtAdTuKhoa_SV";
+            txtAdTuKhoa_SV.PlaceholderText = "Nhập từ khóa cần tìm..";
             txtAdTuKhoa_SV.Size = new Size(400, 27);
             txtAdTuKhoa_SV.TabIndex = 19;
             // 
@@ -223,6 +226,7 @@
             // 
             // groupBoxSearch
             // 
+            groupBoxSearch.BackColor = Color.White;
             groupBoxSearch.Controls.Add(radGiam);
             groupBoxSearch.Controls.Add(radTang);
             groupBoxSearch.Controls.Add(cboKieuSX);
@@ -297,7 +301,7 @@
             // 
             // panelSearch
             // 
-            panelSearch.BackColor = SystemColors.ControlLight;
+            panelSearch.BackColor = Color.White;
             panelSearch.Controls.Add(groupBoxSearch);
             panelSearch.Dock = DockStyle.Top;
             panelSearch.Location = new Point(0, 301);

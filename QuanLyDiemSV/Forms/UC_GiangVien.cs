@@ -93,7 +93,7 @@ namespace QuanLyDiemSV.Forms
         {
             // 1. ComboBox Loại Tìm Kiếm (cboLoaiTK)
             cboLoaiTK.Items.Clear();
-            cboLoaiTK.Items.AddRange(new string[] { "Mã Giảng Viên", "Họ Tên", "Giới Tính", "Số Điện Thoại" });
+            cboLoaiTK.Items.AddRange(new string[] { "Mã Giảng Viên", "Họ Tên", "Giới Tính", "Học Vị" });
             cboLoaiTK.SelectedIndex = 1; // Mặc định tìm theo Họ Tên
 
             // 2. ComboBox Kiểu Sắp Xếp (comboBox2)
@@ -168,8 +168,8 @@ namespace QuanLyDiemSV.Forms
                         case "Giới Tính": // Nhập "nam" hoặc "nữ"
                             query = query.Where(g => g.GioiTinh.ToLower() == tuKhoa);
                             break;
-                        case "Số Điện Thoại":
-                            query = query.Where(g => g.SDT.Contains(tuKhoa));
+                        case "Học Vị":
+                            query = query.Where(g => g.HocVi.Contains(tuKhoa));
                             break;
                     }
                 }
@@ -328,7 +328,7 @@ namespace QuanLyDiemSV.Forms
             txtHoTenGV.Clear();
             txtEmail.Clear();
             txtSDT.Clear(); // SDT
-            dtpNamSinhGV.Value = DateTime.Now;
+            dtpNamSinhGV.Value = DateTime.Now.AddYears(-18);
             radNam.Checked = true;
             cboKhoa.SelectedIndex = -1;
             cboHocVi.SelectedIndex = 0;

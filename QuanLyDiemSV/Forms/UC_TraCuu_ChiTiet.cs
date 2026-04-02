@@ -27,6 +27,8 @@ namespace QuanLyDiemSV.Forms
             flowLayoutPanel1.AutoScroll = true;
             flowLayoutPanel1.WrapContents = false;
             flowLayoutPanel1.FlowDirection = FlowDirection.TopDown;
+
+            btnGuiKhieuNai.Visible = (Session.RoleID == 3);
         }
 
         public void LoadDuLieuChiTiet(string maSV)
@@ -52,13 +54,11 @@ namespace QuanLyDiemSV.Forms
         private void LoadDiemVaTaoGiaoDien(string maSV)
         {
             flowLayoutPanel1.Controls.Clear();
-            
-
-            // 1. Lấy dữ liệu thô
-            var listDiemRaw = (from kq in context.KetQuaHocTap
-                               join lhp in context.LopHocPhan on kq.MaLHP equals lhp.MaLHP
-                               join mh in context.MonHoc on lhp.MaMon equals mh.MaMon
-                               join hk in context.HocKy on lhp.MaHK equals hk.MaHK
+            // 1. Lấy dữ liệu thô (Bổ sung AsNoTracking() để lấy dữ liệu fresh nhất, bỏ qua Cache)
+            var listDiemRaw = (from kq in context.KetQuaHocTap.AsNoTracking()
+                               join lhp in context.LopHocPhan.AsNoTracking() on kq.MaLHP equals lhp.MaLHP
+                               join mh in context.MonHoc.AsNoTracking() on lhp.MaMon equals mh.MaMon
+                               join hk in context.HocKy.AsNoTracking() on lhp.MaHK equals hk.MaHK
                                where kq.MaSV == maSV
                                select new
                                {
@@ -67,45 +67,47 @@ namespace QuanLyDiemSV.Forms
                                    mh.MaMon,
                                    mh.TenMon,
                                    SoTinChi = mh.SoTinChi,
-                                   DiemQT = kq.DiemGK ?? 0,
-                                   DiemThi = kq.DiemCK ?? 0
+                                   DiemQT = kq.DiemGK,
+                                   DiemThi = kq.DiemCK,
+                                   DiemThiLan1 = kq.DiemThiLan1,
+                                   DiemThiLan2 = kq.DiemThiLan2,
+                                   DiemTongKet = kq.DiemTongKet
                                }).ToList();
 
             if (listDiemRaw.Count == 0) return;
 
-            // 2. Tính toán điểm
+            // 2. Chuyển sang DTO (KHÔNG TÍNH TOÁN LẠI NỮA)
             var listDiemProcessed = listDiemRaw.Select(x =>
             {
-                decimal tongKet10 = (x.DiemQT * 0.3m) + (x.DiemThi * 0.7m);
-                tongKet10 = Math.Round(tongKet10, 1);
+                // Nếu chưa có tổng kết thì tạm tính hệ 4 và hệ chữ là 0 / F
+                decimal tk10 = x.DiemTongKet ?? 0m;
 
                 return new DiemChiTietDTO
                 {
-                    // STT sẽ gán sau khi Group
                     MaHK = x.MaHK,
                     TenHK = x.TenHK,
                     MaMon = x.MaMon,
                     TenMon = x.TenMon,
                     SoTinChi = x.SoTinChi,
-                    DiemQT = x.DiemQT,
-                    DiemThi = x.DiemThi,
-                    DiemTongKet = tongKet10,
-                    DiemHe4 = QuyDoiHe4((double)tongKet10),
-                    DiemChu = QuyDoiDiemChu((double)tongKet10)
+                    DiemQT = x.DiemQT ?? 0,
+                    DiemThi = x.DiemThi ?? 0,
+                    DiemThiLan1 = x.DiemThiLan1,
+                    DiemThiLan2 = x.DiemThiLan2,
+                    DiemTongKet = x.DiemTongKet, // Dùng số liệu DB
+                    DiemHe4 = QuyDoiHe4((double)tk10),
+                    DiemChu = QuyDoiDiemChu((double)tk10)
                 };
             }).ToList();
 
-            // 3. Gom nhóm theo Học kỳ
+            // 3. Gom nhóm theo Học kỳ (Đoạn này giữ nguyên của bạn...)
             var groups = listDiemProcessed.GroupBy(x => new { x.MaHK, x.TenHK }).OrderBy(g => g.Key.MaHK);
 
             foreach (var group in groups)
             {
-                // Đánh số STT lại cho từng nhóm
                 int stt = 1;
                 var listGroup = group.ToList();
                 listGroup.ForEach(x => x.STT = stt++);
 
-                // --- TẠO GIAO DIỆN HỌC KỲ ---
                 GroupBox gbHocKy = new GroupBox();
                 gbHocKy.Text = group.Key.TenHK;
                 gbHocKy.Width = flowLayoutPanel1.Width - 40;
@@ -121,19 +123,13 @@ namespace QuanLyDiemSV.Forms
                 dgv.Dock = DockStyle.Top;
                 dgv.DataSource = listGroup;
 
-                // --- ĐỊNH DẠNG CỘT TIẾNG VIỆT ---
                 dgv.AutoGenerateColumns = false;
                 ThemCotThuCong(dgv);
-                //  DinhDangCotDataGridView(dgv);
-
 
                 int gridHeight = (listGroup.Count * 30) + 40;
                 dgv.Height = gridHeight;
 
-                // Tính toán tổng kết HK
                 TinhTongKetHocKy(listGroup, out double dtb10, out double dtb4, out int tcDat, out string xepLoai);
-
-                // Logic: Chỉ xếp loại nếu >= 5 môn
                 string strXepLoai = (listGroup.Count >= 5) ? xepLoai : "Chưa đủ môn xếp loại";
 
                 Label lblTongKet = new Label();
@@ -155,9 +151,7 @@ namespace QuanLyDiemSV.Forms
                 flowLayoutPanel1.Controls.Add(gbHocKy);
             }
 
-            // --- 4. TẠO GROUPBOX TỔNG KẾT TOÀN KHÓA (MỚI) ---
             ThemGroupTongKetToanKhoa(listDiemProcessed);
-            
         }
 
 
@@ -165,23 +159,23 @@ namespace QuanLyDiemSV.Forms
         {
             dgv.Columns.Clear();
 
-            // Helper function để thêm cột nhanh
             void AddCol(string dataPropertyName, string headerText, int width = 0)
             {
                 DataGridViewTextBoxColumn col = new DataGridViewTextBoxColumn();
-                col.DataPropertyName = dataPropertyName; // Tên biến trong DTO
-                col.HeaderText = headerText;             // Tên hiển thị Tiếng Việt
+                col.DataPropertyName = dataPropertyName;
+                col.HeaderText = headerText;
                 if (width > 0) col.Width = width;
                 dgv.Columns.Add(col);
             }
 
-            // Chỉ thêm những cột mình muốn hiển thị
             AddCol("STT", "STT", 50);
             AddCol("MaMon", "Mã MH");
             AddCol("TenMon", "Tên Môn Học");
             AddCol("SoTinChi", "Số TC");
             AddCol("DiemQT", "Điểm QT");
             AddCol("DiemThi", "Điểm Thi");
+            AddCol("DiemThiLan1", "Thi L1"); // MỚI
+            AddCol("DiemThiLan2", "Thi L2"); // MỚI
             AddCol("DiemTongKet", "TK (10)");
             AddCol("DiemHe4", "TK (4)");
             AddCol("DiemChu", "Điểm Chữ");
@@ -325,16 +319,14 @@ namespace QuanLyDiemSV.Forms
                         {
                             var ws = workbook.Worksheets.Add("BangDiemChiTiet");
 
-                            // --- HEADER ---
                             ws.Cell("A1").Value = "BỘ GIÁO DỤC VÀ ĐÀO TẠO";
                             ws.Cell("A2").Value = "TRƯỜNG ĐẠI HỌC ...";
                             ws.Range("A1:C2").Style.Font.Bold = true;
                             ws.Range("A1:C2").Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
 
                             ws.Cell("A4").Value = "BẢNG ĐIỂM CHI TIẾT SINH VIÊN";
-                            ws.Range("A4:I4").Merge().Style.Font.SetBold().Font.SetFontSize(16).Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
+                            ws.Range("A4:K4").Merge().Style.Font.SetBold().Font.SetFontSize(16).Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
 
-                            // --- THÔNG TIN SINH VIÊN ---
                             ws.Cell("B6").Value = "Mã SV:"; ws.Cell("C6").Value = lblMaSV.Text;
                             ws.Cell("B7").Value = "Họ Tên:"; ws.Cell("C7").Value = lblHoTen.Text;
                             ws.Cell("B8").Value = "Lớp:"; ws.Cell("C8").Value = lblLop.Text;
@@ -343,31 +335,31 @@ namespace QuanLyDiemSV.Forms
                             ws.Range("B6:B8").Style.Font.Bold = true;
                             ws.Range("F6:F7").Style.Font.Bold = true;
 
-                            // --- LẤY DỮ LIỆU ---
+                            // LẤY DỮ LIỆU ĐÃ CẬP NHẬT TỪ DB
                             var listDiemRaw = (from kq in context.KetQuaHocTap
                                                join lhp in context.LopHocPhan on kq.MaLHP equals lhp.MaLHP
                                                join mh in context.MonHoc on lhp.MaMon equals mh.MaMon
                                                join hk in context.HocKy on lhp.MaHK equals hk.MaHK
                                                where kq.MaSV == maSV
-                                               select new { hk.MaHK, hk.TenHK, mh.MaMon, mh.TenMon, mh.SoTinChi, DiemQT = kq.DiemGK ?? 0, DiemThi = kq.DiemCK ?? 0 }).ToList();
+                                               select new { hk.MaHK, hk.TenHK, mh.MaMon, mh.TenMon, mh.SoTinChi, DiemQT = kq.DiemGK, DiemThi = kq.DiemCK, DiemThiLan1 = kq.DiemThiLan1, DiemThiLan2 = kq.DiemThiLan2, DiemTongKet = kq.DiemTongKet }).ToList();
 
-                            var listDiemProcessed = listDiemRaw.Select(x => {
-                                decimal tk10 = Math.Round((x.DiemQT * 0.3m) + (x.DiemThi * 0.7m), 1);
-                                return new DiemChiTietDTO { MaHK = x.MaHK, TenHK = x.TenHK, MaMon = x.MaMon, TenMon = x.TenMon, SoTinChi = x.SoTinChi, DiemQT = x.DiemQT, DiemThi = x.DiemThi, DiemTongKet = tk10, DiemHe4 = QuyDoiHe4((double)tk10), DiemChu = QuyDoiDiemChu((double)tk10) };
+                            var listDiemProcessed = listDiemRaw.Select(x =>
+                            {
+                                decimal tk10 = x.DiemTongKet ?? 0m;
+                                return new DiemChiTietDTO { MaHK = x.MaHK, TenHK = x.TenHK, MaMon = x.MaMon, TenMon = x.TenMon, SoTinChi = x.SoTinChi, DiemQT = x.DiemQT ?? 0, DiemThi = x.DiemThi ?? 0, DiemThiLan1 = x.DiemThiLan1, DiemThiLan2 = x.DiemThiLan2, DiemTongKet = x.DiemTongKet, DiemHe4 = QuyDoiHe4((double)tk10), DiemChu = QuyDoiDiemChu((double)tk10) };
                             }).ToList();
 
                             int currentRow = 10;
                             var groups = listDiemProcessed.GroupBy(x => new { x.MaHK, x.TenHK }).OrderBy(g => g.Key.MaHK);
 
-                            // --- IN TỪNG HỌC KỲ ---
                             foreach (var group in groups)
                             {
                                 ws.Cell(currentRow, 1).Value = group.Key.TenHK;
-                                ws.Range(currentRow, 1, currentRow, 9).Merge().Style.Font.SetBold().Fill.SetBackgroundColor(XLColor.LightGray);
+                                ws.Range(currentRow, 1, currentRow, 11).Merge().Style.Font.SetBold().Fill.SetBackgroundColor(XLColor.LightGray);
                                 currentRow++;
 
-                                // Tiêu đề cột
-                                string[] headers = { "STT", "Mã Môn", "Tên Môn", "TC", "Đ.QT", "Đ.Thi", "TK(10)", "TK(4)", "Chữ" };
+                                // CẬP NHẬT TIÊU ĐỀ 11 CỘT
+                                string[] headers = { "STT", "Mã Môn", "Tên Môn", "TC", "Đ.QT", "Đ.Thi", "Thi L1", "Thi L2", "TK(10)", "TK(4)", "Chữ" };
                                 for (int i = 0; i < headers.Length; i++)
                                 {
                                     ws.Cell(currentRow, i + 1).Value = headers[i];
@@ -386,17 +378,19 @@ namespace QuanLyDiemSV.Forms
                                     ws.Cell(currentRow, 4).Value = d.SoTinChi;
                                     ws.Cell(currentRow, 5).Value = d.DiemQT;
                                     ws.Cell(currentRow, 6).Value = d.DiemThi;
-                                    ws.Cell(currentRow, 7).Value = d.DiemTongKet;
-                                    ws.Cell(currentRow, 8).Value = d.DiemHe4;
-                                    ws.Cell(currentRow, 9).Value = d.DiemChu;
-                                    ws.Range(currentRow, 1, currentRow, 9).Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+                                    ws.Cell(currentRow, 7).Value = d.DiemThiLan1; // MỚI
+                                    ws.Cell(currentRow, 8).Value = d.DiemThiLan2; // MỚI
+                                    ws.Cell(currentRow, 9).Value = d.DiemTongKet;
+                                    ws.Cell(currentRow, 10).Value = d.DiemHe4;
+                                    ws.Cell(currentRow, 11).Value = d.DiemChu;
+                                    ws.Range(currentRow, 1, currentRow, 11).Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
                                     currentRow++;
                                 }
 
                                 TinhTongKetHocKy(listGroup, out double dtb10, out double dtb4, out int tcDat, out string xepLoai);
                                 ws.Cell(currentRow, 3).Value = $"ĐTB Học kỳ (10): {dtb10}   |   ĐTB (4): {dtb4}   |   STC Đạt: {tcDat}";
-                                ws.Range(currentRow, 3, currentRow, 9).Merge().Style.Font.Italic = true;
-                                currentRow += 2; // Cách ra 1 dòng
+                                ws.Range(currentRow, 3, currentRow, 11).Merge().Style.Font.Italic = true;
+                                currentRow += 2;
                             }
 
                             ws.Columns().AdjustToContents();
@@ -418,11 +412,7 @@ namespace QuanLyDiemSV.Forms
         private void btnInBangDiem_Click(object sender, EventArgs e)
         {
             string maSV = lblMaSV.Text;
-            if (string.IsNullOrEmpty(maSV) || maSV == "...")
-            {
-                MessageBox.Show("Không có dữ liệu sinh viên để in!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
+            if (string.IsNullOrEmpty(maSV) || maSV == "...") return;
 
             using (SaveFileDialog sfd = new SaveFileDialog() { Filter = "PDF files|*.pdf", FileName = $"InBangDiem_{maSV}.pdf" })
             {
@@ -437,12 +427,10 @@ namespace QuanLyDiemSV.Forms
                         iTextSharp.text.Font fontNormal = new iTextSharp.text.Font(bf, 10, iTextSharp.text.Font.NORMAL);
                         iTextSharp.text.Font fontItalic = new iTextSharp.text.Font(bf, 10, iTextSharp.text.Font.ITALIC);
 
-                        // Khởi tạo Document PDF (Khổ A4 Dọc)
                         Document pdfDoc = new Document(PageSize.A4, 30f, 30f, 40f, 40f);
                         PdfWriter.GetInstance(pdfDoc, new FileStream(sfd.FileName, FileMode.Create));
                         pdfDoc.Open();
 
-                        // --- HEADER ---
                         Paragraph p1 = new Paragraph("BỘ GIÁO DỤC VÀ ĐÀO TẠO\nTRƯỜNG ĐẠI HỌC ...", fontHeader);
                         p1.Alignment = Element.ALIGN_CENTER;
                         pdfDoc.Add(p1);
@@ -453,7 +441,6 @@ namespace QuanLyDiemSV.Forms
                         pdfDoc.Add(p2);
                         pdfDoc.Add(new Paragraph("\n"));
 
-                        // --- THÔNG TIN SINH VIÊN ---
                         PdfPTable infoTable = new PdfPTable(2);
                         infoTable.WidthPercentage = 100;
                         infoTable.DefaultCell.Border = 0;
@@ -466,27 +453,28 @@ namespace QuanLyDiemSV.Forms
                         pdfDoc.Add(infoTable);
                         pdfDoc.Add(new Paragraph("\n"));
 
-                        // --- LẤY DỮ LIỆU ---
+                        // LẤY DỮ LIỆU ĐÃ CẬP NHẬT TỪ DB
                         var listDiemRaw = (from kq in context.KetQuaHocTap
                                            join lhp in context.LopHocPhan on kq.MaLHP equals lhp.MaLHP
                                            join mh in context.MonHoc on lhp.MaMon equals mh.MaMon
                                            join hk in context.HocKy on lhp.MaHK equals hk.MaHK
                                            where kq.MaSV == maSV
-                                           select new { hk.MaHK, hk.TenHK, mh.MaMon, mh.TenMon, mh.SoTinChi, DiemQT = kq.DiemGK ?? 0, DiemThi = kq.DiemCK ?? 0 }).ToList();
+                                           select new { hk.MaHK, hk.TenHK, mh.MaMon, mh.TenMon, mh.SoTinChi, DiemQT = kq.DiemGK, DiemThi = kq.DiemCK, DiemThiLan1 = kq.DiemThiLan1, DiemThiLan2 = kq.DiemThiLan2, DiemTongKet = kq.DiemTongKet }).ToList();
 
-                        var listDiemProcessed = listDiemRaw.Select(x => {
-                            decimal tk10 = Math.Round((x.DiemQT * 0.3m) + (x.DiemThi * 0.7m), 1);
-                            return new DiemChiTietDTO { MaHK = x.MaHK, TenHK = x.TenHK, MaMon = x.MaMon, TenMon = x.TenMon, SoTinChi = x.SoTinChi, DiemQT = x.DiemQT, DiemThi = x.DiemThi, DiemTongKet = tk10, DiemHe4 = QuyDoiHe4((double)tk10), DiemChu = QuyDoiDiemChu((double)tk10) };
+                        var listDiemProcessed = listDiemRaw.Select(x =>
+                        {
+                            decimal tk10 = x.DiemTongKet ?? 0m;
+                            return new DiemChiTietDTO { MaHK = x.MaHK, TenHK = x.TenHK, MaMon = x.MaMon, TenMon = x.TenMon, SoTinChi = x.SoTinChi, DiemQT = x.DiemQT ?? 0, DiemThi = x.DiemThi ?? 0, DiemThiLan1 = x.DiemThiLan1, DiemThiLan2 = x.DiemThiLan2, DiemTongKet = x.DiemTongKet, DiemHe4 = QuyDoiHe4((double)tk10), DiemChu = QuyDoiDiemChu((double)tk10) };
                         }).ToList();
 
                         var groups = listDiemProcessed.GroupBy(x => new { x.MaHK, x.TenHK }).OrderBy(g => g.Key.MaHK);
 
-                        // --- TẠO BẢNG ĐIỂM ---
-                        PdfPTable table = new PdfPTable(9); // 9 cột
+                        // MỞ RỘNG BẢNG LÊN 11 CỘT
+                        PdfPTable table = new PdfPTable(11);
                         table.WidthPercentage = 100;
-                        table.SetWidths(new float[] { 1f, 2f, 5f, 1f, 1.5f, 1.5f, 1.5f, 1.5f, 1.5f });
+                        table.SetWidths(new float[] { 1f, 2f, 4.5f, 1f, 1.2f, 1.2f, 1.2f, 1.2f, 1.2f, 1.2f, 1.2f });
 
-                        string[] headers = { "STT", "Mã Môn", "Tên Môn", "TC", "Đ.QT", "Đ.Thi", "TK(10)", "TK(4)", "Chữ" };
+                        string[] headers = { "STT", "Mã Môn", "Tên Môn", "TC", "Đ.QT", "Đ.Thi", "Thi L1", "Thi L2", "TK(10)", "TK(4)", "Chữ" };
                         foreach (string header in headers)
                         {
                             PdfPCell cell = new PdfPCell(new Phrase(header, fontHeader));
@@ -495,12 +483,10 @@ namespace QuanLyDiemSV.Forms
                             table.AddCell(cell);
                         }
 
-                        // --- IN TỪNG HỌC KỲ VÀO BẢNG ---
                         foreach (var group in groups)
                         {
-                            // Dòng tên học kỳ
                             PdfPCell hkCell = new PdfPCell(new Phrase(group.Key.TenHK, fontHeader));
-                            hkCell.Colspan = 9;
+                            hkCell.Colspan = 11; // Merge 11 cột
                             hkCell.BackgroundColor = new BaseColor(245, 245, 245);
                             table.AddCell(hkCell);
 
@@ -514,15 +500,16 @@ namespace QuanLyDiemSV.Forms
                                 AddCellToPdfTable(table, d.SoTinChi.ToString(), fontNormal, Element.ALIGN_CENTER);
                                 AddCellToPdfTable(table, d.DiemQT.ToString(), fontNormal, Element.ALIGN_CENTER);
                                 AddCellToPdfTable(table, d.DiemThi.ToString(), fontNormal, Element.ALIGN_CENTER);
-                                AddCellToPdfTable(table, d.DiemTongKet.ToString(), fontNormal, Element.ALIGN_CENTER);
+                                AddCellToPdfTable(table, d.DiemThiLan1?.ToString() ?? "", fontNormal, Element.ALIGN_CENTER); // MỚI
+                                AddCellToPdfTable(table, d.DiemThiLan2?.ToString() ?? "", fontNormal, Element.ALIGN_CENTER); // MỚI
+                                AddCellToPdfTable(table, d.DiemTongKet?.ToString() ?? "", fontNormal, Element.ALIGN_CENTER);
                                 AddCellToPdfTable(table, d.DiemHe4.ToString(), fontNormal, Element.ALIGN_CENTER);
                                 AddCellToPdfTable(table, d.DiemChu, fontNormal, Element.ALIGN_CENTER);
                             }
 
-                            // Dòng tổng kết học kỳ
                             TinhTongKetHocKy(listGroup, out double dtb10, out double dtb4, out int tcDat, out string xepLoai);
                             PdfPCell sumCell = new PdfPCell(new Phrase($"ĐTB Học kỳ (Hệ 10): {dtb10}   |   ĐTB (Hệ 4): {dtb4}   |   STC Đạt: {tcDat}", fontItalic));
-                            sumCell.Colspan = 9;
+                            sumCell.Colspan = 11; // Merge 11 cột
                             sumCell.HorizontalAlignment = Element.ALIGN_RIGHT;
                             table.AddCell(sumCell);
                         }
@@ -548,6 +535,33 @@ namespace QuanLyDiemSV.Forms
             cell.VerticalAlignment = Element.ALIGN_MIDDLE;
             cell.PaddingBottom = 5f;
             table.AddCell(cell);
+        }
+
+        private void btnGuiKhieuNai_Click(object sender, EventArgs e)
+        {
+            // Lấy mã SV đang hiển thị trên màn hình chi tiết (Ví dụ từ label hoặc biến của UC)
+            string maSVDangXem = lblMaSV.Text;
+
+            using (FrmKhieuNaiDiem frm = new FrmKhieuNaiDiem(maSVDangXem))
+            {
+                frm.ShowDialog();
+            }
+        }
+
+        private void btnInBaoCao_Click(object sender, EventArgs e)
+        {
+            string maSV = lblMaSV.Text;
+            if (string.IsNullOrEmpty(maSV) || maSV == "...")
+            {
+                MessageBox.Show("Không xác định được sinh viên!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            // Gọi FrmInBangDiem (RDLC/Crystal Report) của riêng sinh viên đó
+            using (var frm = new QuanLyDiemSV.Reports.FrmInBangDiem(maSV))
+            {
+                frm.ShowDialog();
+            }
         }
     }
 }
