@@ -29,8 +29,8 @@
         private void InitializeComponent()
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(UC_SinhVien));
-            DataGridViewCellStyle dataGridViewCellStyle4 = new DataGridViewCellStyle();
-            DataGridViewCellStyle dataGridViewCellStyle3 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle2 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle1 = new DataGridViewCellStyle();
             panelInput = new Panel();
             groupBoxInfo = new GroupBox();
             dtpAdNamSinhSV = new DateTimePicker();
@@ -232,6 +232,7 @@
             txtAdSV_DiaChi.Location = new Point(170, 231);
             txtAdSV_DiaChi.Margin = new Padding(3, 4, 3, 4);
             txtAdSV_DiaChi.Name = "txtAdSV_DiaChi";
+            txtAdSV_DiaChi.PlaceholderText = "Địa chỉ";
             txtAdSV_DiaChi.Size = new Size(550, 27);
             txtAdSV_DiaChi.TabIndex = 12;
             // 
@@ -420,6 +421,7 @@
             txtAdCCCDsv.Location = new Point(171, 129);
             txtAdCCCDsv.Margin = new Padding(3, 4, 3, 4);
             txtAdCCCDsv.Name = "txtAdCCCDsv";
+            txtAdCCCDsv.PlaceholderText = "CCCD là số và phải đủ 12 ký tự";
             helpProvider1.SetShowHelp(txtAdCCCDsv, true);
             txtAdCCCDsv.Size = new Size(400, 27);
             txtAdCCCDsv.TabIndex = 3;
@@ -430,6 +432,7 @@
             txtAdMaSV.Location = new Point(171, 24);
             txtAdMaSV.Margin = new Padding(3, 4, 3, 4);
             txtAdMaSV.Name = "txtAdMaSV";
+            txtAdMaSV.PlaceholderText = "Mã SV có 9 ký tự, VD: DTHxxxxxx";
             helpProvider1.SetShowHelp(txtAdMaSV, true);
             txtAdMaSV.Size = new Size(400, 27);
             txtAdMaSV.TabIndex = 0;
@@ -439,6 +442,7 @@
             txtAdHoTenSV.Location = new Point(171, 59);
             txtAdHoTenSV.Margin = new Padding(3, 4, 3, 4);
             txtAdHoTenSV.Name = "txtAdHoTenSV";
+            txtAdHoTenSV.PlaceholderText = "Họ Và Tên";
             txtAdHoTenSV.Size = new Size(400, 27);
             txtAdHoTenSV.TabIndex = 1;
             // 
@@ -495,6 +499,7 @@
             txtAdSDT_SV.Location = new Point(170, 164);
             txtAdSDT_SV.Margin = new Padding(3, 4, 3, 4);
             txtAdSDT_SV.Name = "txtAdSDT_SV";
+            txtAdSDT_SV.PlaceholderText = "Số điện thoại là số và có đúng 10 ký tự";
             helpProvider1.SetShowHelp(txtAdSDT_SV, true);
             txtAdSDT_SV.Size = new Size(400, 27);
             txtAdSDT_SV.TabIndex = 4;
@@ -678,16 +683,17 @@
             dgvAdminSinhVien.AllowUserToAddRows = false;
             dgvAdminSinhVien.AllowUserToDeleteRows = false;
             dgvAdminSinhVien.BackgroundColor = SystemColors.ButtonHighlight;
-            dgvAdminSinhVien.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            dgvAdminSinhVien.ColumnHeadersHeight = 29;
+            dgvAdminSinhVien.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
             dgvAdminSinhVien.Columns.AddRange(new DataGridViewColumn[] { MaSV, HoTen, NgaySinh, GioiTinh, DiaChi, Email, SDT, MaLop, CCCD });
-            dataGridViewCellStyle4.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle4.BackColor = SystemColors.Window;
-            dataGridViewCellStyle4.Font = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            dataGridViewCellStyle4.ForeColor = SystemColors.ControlText;
-            dataGridViewCellStyle4.SelectionBackColor = SystemColors.Highlight;
-            dataGridViewCellStyle4.SelectionForeColor = SystemColors.HighlightText;
-            dataGridViewCellStyle4.WrapMode = DataGridViewTriState.False;
-            dgvAdminSinhVien.DefaultCellStyle = dataGridViewCellStyle4;
+            dataGridViewCellStyle2.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle2.BackColor = SystemColors.Window;
+            dataGridViewCellStyle2.Font = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            dataGridViewCellStyle2.ForeColor = SystemColors.ControlText;
+            dataGridViewCellStyle2.SelectionBackColor = SystemColors.Highlight;
+            dataGridViewCellStyle2.SelectionForeColor = SystemColors.HighlightText;
+            dataGridViewCellStyle2.WrapMode = DataGridViewTriState.False;
+            dgvAdminSinhVien.DefaultCellStyle = dataGridViewCellStyle2;
             dgvAdminSinhVien.Dock = DockStyle.Fill;
             dgvAdminSinhVien.Location = new Point(3, 24);
             dgvAdminSinhVien.Margin = new Padding(3, 4, 3, 4);
@@ -703,8 +709,8 @@
             // MaSV
             // 
             MaSV.DataPropertyName = "MaSV";
-            dataGridViewCellStyle3.ForeColor = Color.Blue;
-            MaSV.DefaultCellStyle = dataGridViewCellStyle3;
+            dataGridViewCellStyle1.ForeColor = Color.Blue;
+            MaSV.DefaultCellStyle = dataGridViewCellStyle1;
             MaSV.HeaderText = "Mã SV";
             MaSV.MinimumWidth = 6;
             MaSV.Name = "MaSV";

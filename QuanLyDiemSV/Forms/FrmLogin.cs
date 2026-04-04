@@ -59,7 +59,7 @@ namespace QuanLyDiemSV.Forms
                 // 1. CHỈ TÌM TÀI KHOẢN THEO USERNAME (Giống dòng 193 trong PDF)
                 var user = context.UserAccount.SingleOrDefault(u => u.Username == username);
 
-                
+
                 // Hàm Verify sẽ tự động lấy password người dùng nhập, băm ra và so sánh với chuỗi $2a$... trong DB
                 if (user != null && BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
                 {
@@ -103,6 +103,11 @@ namespace QuanLyDiemSV.Forms
             }
 
             Cursor.Current = Cursors.Default;
+        }
+
+        private void checkHienMatKhau_CheckedChanged(object sender, EventArgs e)
+        {
+            txtMatKhau.PasswordChar = checkHienMatKhau.Checked ? '\0' : '*'; // Hiện mật khẩu nếu checked, ngược lại ẩn
         }
     }
 }

@@ -47,7 +47,7 @@
             lblTenNguoiDung = new Label();
             lblVaiTro = new Label();
             panel4 = new Panel();
-            btnHoTro = new Button();
+            btnNhatKyHoatDong = new Button();
             btnThongBao = new Button();
             label1 = new Label();
             panel2 = new Panel();
@@ -65,6 +65,7 @@
             uC_MonHoc1 = new GUI.UC_MonHoc();
             uC_SinhVien1 = new UC_SinhVien();
             uC_Home1 = new UC_LopHocPhan();
+            uC_NhatKyHoatDong1 = new QuanLyDiemSV.Forms.UC_NhatKyHoatDong();
             panel1.SuspendLayout();
             panel3.SuspendLayout();
             panel4.SuspendLayout();
@@ -382,7 +383,7 @@
             // panel4
             // 
             panel4.BackColor = Color.DodgerBlue;
-            panel4.Controls.Add(btnHoTro);
+            panel4.Controls.Add(btnNhatKyHoatDong);
             panel4.Controls.Add(btnThongBao);
             panel4.Controls.Add(label1);
             panel4.Dock = DockStyle.Top;
@@ -391,17 +392,18 @@
             panel4.Size = new Size(1694, 71);
             panel4.TabIndex = 0;
             // 
-            // btnHoTro
+            // btnNhatKyHoatDong
             // 
-            btnHoTro.BackColor = Color.DodgerBlue;
-            btnHoTro.FlatAppearance.BorderSize = 0;
-            btnHoTro.FlatStyle = FlatStyle.Flat;
-            btnHoTro.Image = (Image)resources.GetObject("btnHoTro.Image");
-            btnHoTro.Location = new Point(1335, 11);
-            btnHoTro.Name = "btnHoTro";
-            btnHoTro.Size = new Size(76, 52);
-            btnHoTro.TabIndex = 1;
-            btnHoTro.UseVisualStyleBackColor = false;
+            btnNhatKyHoatDong.BackColor = Color.DodgerBlue;
+            btnNhatKyHoatDong.FlatAppearance.BorderSize = 0;
+            btnNhatKyHoatDong.FlatStyle = FlatStyle.Flat;
+            btnNhatKyHoatDong.Image = (Image)resources.GetObject("btnNhatKyHoatDong.Image");
+            btnNhatKyHoatDong.Location = new Point(1335, 11);
+            btnNhatKyHoatDong.Name = "btnNhatKyHoatDong";
+            btnNhatKyHoatDong.Size = new Size(76, 52);
+            btnNhatKyHoatDong.TabIndex = 1;
+            btnNhatKyHoatDong.UseVisualStyleBackColor = false;
+            btnNhatKyHoatDong.Click += btnNhatKyHoatDong_Click;
             // 
             // btnThongBao
             // 
@@ -434,6 +436,7 @@
             // panel2
             // 
             panel2.BackColor = Color.White;
+            panel2.Controls.Add(uC_NhatKyHoatDong1);
             panel2.Controls.Add(uC_TrangChu1);
             panel2.Controls.Add(uC_ThongKe1);
             panel2.Controls.Add(uC_GiangVien_ChamDiem1);
@@ -570,6 +573,15 @@
             uC_Home1.Size = new Size(1694, 954);
             uC_Home1.TabIndex = 0;
             // 
+            // uC_NhatKyHoatDong1
+            // 
+            uC_NhatKyHoatDong1.Dock = DockStyle.Fill;
+            uC_NhatKyHoatDong1.Location = new Point(0, 0);
+            uC_NhatKyHoatDong1.Name = "uC_NhatKyHoatDong1";
+            uC_NhatKyHoatDong1.Padding = new Padding(10);
+            uC_NhatKyHoatDong1.Size = new Size(1694, 954);
+            uC_NhatKyHoatDong1.TabIndex = 14;
+            // 
             // Form1
             // 
             AutoScaleMode = AutoScaleMode.None;
@@ -630,8 +642,9 @@
         private Forms.UC_ThongKe uC_ThongKe1;
         private Forms.UC_TrangChu uC_TrangChu1;
         private Button btnThongBao;
-        private Button btnHoTro;
+        private Button btnNhatKyHoatDong;
         private Button btnDoiMatKhau;
+        private Forms.UC_NhatKyHoatDong uC_NhatKyHoatDong1;
     }
 }
 

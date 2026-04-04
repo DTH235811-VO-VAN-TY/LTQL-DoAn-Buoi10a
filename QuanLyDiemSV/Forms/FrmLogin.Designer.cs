@@ -36,6 +36,7 @@
             tableLayoutPanel1 = new TableLayoutPanel();
             pictureBox1 = new PictureBox();
             panel5 = new Panel();
+            checkHienMatKhau = new CheckBox();
             btnDangNhap = new Button();
             txtTenDangNhap = new TextBox();
             txtMatKhau = new TextBox();
@@ -110,6 +111,7 @@
             // 
             // panel5
             // 
+            panel5.Controls.Add(checkHienMatKhau);
             panel5.Controls.Add(btnDangNhap);
             panel5.Controls.Add(txtTenDangNhap);
             panel5.Controls.Add(txtMatKhau);
@@ -121,6 +123,17 @@
             panel5.Name = "panel5";
             panel5.Size = new Size(657, 652);
             panel5.TabIndex = 1;
+            // 
+            // checkHienMatKhau
+            // 
+            checkHienMatKhau.AutoSize = true;
+            checkHienMatKhau.Location = new Point(401, 335);
+            checkHienMatKhau.Name = "checkHienMatKhau";
+            checkHienMatKhau.Size = new Size(129, 24);
+            checkHienMatKhau.TabIndex = 3;
+            checkHienMatKhau.Text = "Hiện Mật Khẩu";
+            checkHienMatKhau.UseVisualStyleBackColor = true;
+            checkHienMatKhau.CheckedChanged += checkHienMatKhau_CheckedChanged;
             // 
             // btnDangNhap
             // 
@@ -146,6 +159,7 @@
             // 
             txtMatKhau.Location = new Point(240, 288);
             txtMatKhau.Name = "txtMatKhau";
+            txtMatKhau.PasswordChar = '*';
             txtMatKhau.Size = new Size(290, 27);
             txtMatKhau.TabIndex = 1;
             // 
@@ -192,7 +206,7 @@
             Controls.Add(panel1);
             Name = "FrmLogin";
             StartPosition = FormStartPosition.CenterScreen;
-            Text = "FrmLogin";
+            Text = "Đăng nhập";
             Load += FrmLogin_Load;
             tableLayoutPanel1.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)pictureBox1).EndInit();
@@ -216,5 +230,6 @@
         private Button btnDangNhap;
         private TextBox txtTenDangNhap;
         private TextBox txtMatKhau;
+        private CheckBox checkHienMatKhau;
     }
 }

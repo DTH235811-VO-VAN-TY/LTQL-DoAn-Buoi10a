@@ -20,6 +20,7 @@ namespace QuanLyDiemSV
 
         bool xuLyThem = false; // Cờ kiểm tra đang Thêm hay Sửa
         bool daTaiDuLieu = false;
+        ErrorProvider errorProvider = new ErrorProvider();
 
         public UC_SinhVien()
         {
@@ -32,10 +33,33 @@ namespace QuanLyDiemSV
 
         private void UC_SinhVien_Load(object sender, EventArgs e)
         {
-            BatTatChucNang(false);
-            // LoadComboBoxLop();
-            // LoadDuLieuSinhVien(); // Hàm quan trọng nhất để Binding
-            KhoiTaoCboTimKiemSapXep();
+            //BatTatChucNang(false);
+            //// LoadComboBoxLop();
+            //// LoadDuLieuSinhVien(); // Hàm quan trọng nhất để Binding
+            //KhoiTaoCboTimKiemSapXep();
+            //RegisterValidations();
+            // 1. Tạm thời tắt các tính năng cập nhật layout để tăng tốc và tránh lỗi
+            dgvAdminSinhVien.SuspendLayout();
+
+            try
+            {
+                BatTatChucNang(false);
+                KhoiTaoCboTimKiemSapXep();
+
+                // 2. Nạp dữ liệu (nếu bạn có hàm load dữ liệu ở đây)
+                // LoadDuLieuSinhVien(); 
+
+                // 3. Gắn các ràng buộc kiểm tra lỗi mà tôi đã gửi trước đó
+                RegisterValidations();
+            }
+            finally
+            {
+                // 4. Kích hoạt lại layout
+                dgvAdminSinhVien.ResumeLayout();
+
+                // ĐÂY LÀ DÒNG QUAN TRỌNG: Chỉ đặt Fill sau khi mọi thứ đã sẵn sàng
+                dgvAdminSinhVien.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+            }
 
         }
 
@@ -787,5 +811,68 @@ namespace QuanLyDiemSV
                 e.SuppressKeyPress = true; // Tắt tiếng "ting" của Windows khi nhấn Enter
             }
         }
+        // Kiểm tra định dạng CCCD (phải là 12 số)
+        private bool IsValidCCCD(string cccd)
+        {
+            return Regex.IsMatch(cccd, @"^\d{12}$");
+        }
+
+        // Kiểm tra định dạng Số điện thoại (10 số)
+        private bool IsValidSDT(string sdt)
+        {
+            return Regex.IsMatch(sdt, @"^\d{10}$");
+        }
+
+        // Kiểm tra định dạng Email
+        private bool IsValidEmail(string email)
+        {
+            try
+            {
+                var addr = new System.Net.Mail.MailAddress(email);
+                return addr.Address == email;
+            }
+            catch { return false; }
+        }
+        private void RegisterValidations()
+        {
+            // 1. Kiểm tra CCCD ngay khi rời ô
+            txtAdCCCDsv.Validating += (s, e) => {
+                if (!string.IsNullOrEmpty(txtAdCCCDsv.Text) && !IsValidCCCD(txtAdCCCDsv.Text))
+                {
+                    errorProvider.SetError(txtAdCCCDsv, "CCCD phải bao gồm đúng 12 chữ số!");
+                    MessageBox.Show("Số CCCD không hợp lệ! Vui lòng nhập đúng 12 chữ số.", "Lỗi nhập liệu", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    // e.Cancel = true; // Mở dòng này nếu muốn ép người dùng ở lại ô đó cho đến khi sửa đúng
+                }
+                else
+                {
+                    errorProvider.SetError(txtAdCCCDsv, ""); // Xóa lỗi nếu đã sửa đúng
+                }
+            };
+
+            // 2. Kiểm tra Số điện thoại
+            txtAdSDT_SV.Validating += (s, e) => {
+                if (!string.IsNullOrEmpty(txtAdSDT_SV.Text) && !IsValidSDT(txtAdSDT_SV.Text))
+                {
+                    errorProvider.SetError(txtAdSDT_SV, "Số điện thoại phải có đúng 10 chữ số!");
+                }
+                else
+                {
+                    errorProvider.SetError(txtAdSDT_SV, "");
+                }
+            };
+
+            // 3. Kiểm tra Email
+            txtAdSV_Email.Validating += (s, e) => {
+                if (!string.IsNullOrEmpty(txtAdSV_Email.Text) && !IsValidEmail(txtAdSV_Email.Text))
+                {
+                    errorProvider.SetError(txtAdSV_Email, "Định dạng Email không hợp lệ (thiếu @ hoặc sai tên miền)!");
+                }
+                else
+                {
+                    errorProvider.SetError(txtAdSV_Email, "");
+                }
+            };
+        }
+
     }
 }

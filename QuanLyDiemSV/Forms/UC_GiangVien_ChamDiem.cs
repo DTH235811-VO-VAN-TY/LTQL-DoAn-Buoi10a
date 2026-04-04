@@ -201,6 +201,65 @@ namespace QuanLyDiemSV.Forms
                 }
             }
         }
+        //Xác nhận mật khẩu trước khi cho phép nhập điểm
+        // Xác nhận mật khẩu trước khi cho phép nhập điểm
+        private bool XacNhanMatKhau(string maGV)
+        {
+            // 1. Tự động vẽ một Form nhỏ bằng code
+            Form prompt = new Form()
+            {
+                Width = 400,
+                Height = 220,
+                FormBorderStyle = FormBorderStyle.FixedDialog,
+                Text = "Xác nhận bảo mật",
+                StartPosition = FormStartPosition.CenterParent,
+                MaximizeBox = false,
+                MinimizeBox = false,
+                BackColor = Color.White
+            };
+
+            Label textLabel = new Label() { Left = 20, Top = 20, Width = 350, Text = "Để đảm bảo an toàn, vui lòng nhập lại mật khẩu của bạn trước khi chốt điểm:" };
+            TextBox txtPassword = new TextBox() { Left = 20, Top = 60, Width = 340, UseSystemPasswordChar = true, Font = new Font("Segoe UI", 12) };
+            Button confirmation = new Button() { Text = "Xác nhận", Left = 170, Width = 90, Top = 120, DialogResult = DialogResult.OK, BackColor = Color.DodgerBlue, ForeColor = Color.White };
+            Button cancel = new Button() { Text = "Hủy", Left = 270, Width = 90, Top = 120, DialogResult = DialogResult.Cancel };
+
+            confirmation.Click += (sender, e) => { prompt.Close(); };
+            cancel.Click += (sender, e) => { prompt.Close(); };
+
+            prompt.Controls.Add(txtPassword);
+            prompt.Controls.Add(confirmation);
+            prompt.Controls.Add(cancel);
+            prompt.Controls.Add(textLabel);
+            prompt.AcceptButton = confirmation; // Bấm Enter là xác nhận
+            prompt.CancelButton = cancel;       // Bấm Esc là hủy
+
+            // 2. Hiển thị hộp thoại và kiểm tra kết quả
+            if (prompt.ShowDialog() == DialogResult.OK)
+            {
+                string matKhauNhapVao = txtPassword.Text;
+
+                using (var db = new QLDSVDbContext())
+                {
+                    // BƯỚC A: Lấy thông tin tài khoản từ CSDL dựa vào Mã GV (Username)
+                    var tk = db.UserAccount.FirstOrDefault(t => t.Username == maGV);
+
+                    // BƯỚC B: Sử dụng hàm Verify của BCrypt để kiểm tra
+                    if (tk != null)
+                    {
+                        // Đối số 1: Mật khẩu thô vừa gõ
+                        // Đối số 2: Mật khẩu đã mã hóa lưu trong DB
+                        bool isPasswordMatch = BCrypt.Net.BCrypt.Verify(matKhauNhapVao, tk.PasswordHash);
+
+                        if (isPasswordMatch)
+                        {
+                            return true; // Mật khẩu hoàn toàn khớp
+                        }
+                    }
+                }
+            }
+
+            return false; // Sai mật khẩu hoặc bấm Hủy
+        }
 
         // Hàm phụ trợ lấy số trực tiếp từ ô lưới
         private decimal? LayDiemTuLuoi(object cellValue)
@@ -278,27 +337,38 @@ namespace QuanLyDiemSV.Forms
                 }
             }
         }
-        private void btnLuuBangDiem_Click(object sender, EventArgs e)
+        private async void btnLuuBangDiem_Click(object sender, EventArgs e)
         {
-            // 1. Chốt dữ liệu đang nhập dở trên lưới xuống BindingSource
+            // =========================================================
+            // BƯỚC 1: CHỐT DỮ LIỆU & KIỂM TRA XEM CÓ THAY ĐỔI KHÔNG
+            // =========================================================
             DgvDSSV.EndEdit();
             bsChamDiem.EndEdit();
 
-            // 2. LẤY THÔNG TIN MÔN HỌC CỦA LỚP ĐANG CHẤM
+            // Nếu giảng viên không sửa điểm nào cả thì dừng luôn, không cần chạy kiểm tra
+            if (!dbChamDiem.ChangeTracker.HasChanges())
+            {
+                MessageBox.Show("Chưa có sự thay đổi điểm nào để lưu!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            // =========================================================
+            // BƯỚC 2: KIỂM TRA ĐIỀU KIỆN MÔN TIÊN QUYẾT
+            // =========================================================
             var lhpHienTai = dbChamDiem.LopHocPhan.FirstOrDefault(x => x.MaLHP == currentLHP);
             if (lhpHienTai == null) return;
+
             string maMonHienTai = lhpHienTai.MaMon;
-
-            // 3. KIỂM TRA MÔN NÀY CÓ MÔN TIÊN QUYẾT KHÔNG
             var listTienQuyet = dbChamDiem.DieuKienMonHoc.Where(x => x.MaMon == maMonHienTai).ToList();
-            var danhSachSV = (List<KetQuaHocTap>)bsChamDiem.DataSource;
 
-            // 4. KIỂM TRA TỪNG SINH VIÊN (NẾU CÓ MÔN TIÊN QUYẾT)
+            // Lấy danh sách đang hiển thị trên lưới một cách an toàn
+            var danhSachSV = bsChamDiem.List.OfType<KetQuaHocTap>().ToList();
+
             if (listTienQuyet.Count > 0)
             {
                 foreach (var kq in danhSachSV)
                 {
-                    // Chỉ soi những sinh viên mà Giảng viên CÓ NHẬP ĐIỂM (Khác null)
+                    // Chỉ kiểm tra những sinh viên CÓ NHẬP ĐIỂM (Khác null)
                     if (kq.DiemGK != null || kq.DiemCK != null || kq.DiemThiLan1 != null || kq.DiemThiLan2 != null)
                     {
                         foreach (var dk in listTienQuyet)
@@ -308,7 +378,7 @@ namespace QuanLyDiemSV.Forms
                                                join lhp in dbChamDiem.LopHocPhan on k.MaLHP equals lhp.MaLHP
                                                where k.MaSV == kq.MaSV
                                                      && lhp.MaMon == dk.MaMonTienQuyet
-                                                     && k.DiemTongKet != null // BẮT BUỘC PHẢI CÓ ĐIỂM TỔNG KẾT
+                                                     && k.DiemTongKet != null
                                                select k).Any();
 
                             if (!daQuaMonTQ)
@@ -322,14 +392,14 @@ namespace QuanLyDiemSV.Forms
                                 // UX: Tự động cuộn lưới và bôi đen đúng dòng của sinh viên bị lỗi
                                 foreach (DataGridViewRow row in DgvDSSV.Rows)
                                 {
-                                    if (row.Cells["MaSV"].Value.ToString() == kq.MaSV)
+                                    if (row.Cells["MaSV"].Value?.ToString() == kq.MaSV)
                                     {
                                         row.Selected = true;
                                         DgvDSSV.FirstDisplayedScrollingRowIndex = row.Index;
                                         break;
                                     }
                                 }
-                                return; // CHẶN LẠI NGAY LẬP TỨC, KHÔNG CHO LƯU XUỐNG DB
+                                return; // KHÔNG CHO ĐI TIẾP XUỐNG BƯỚC LƯU
                             }
                         }
                     }
@@ -337,25 +407,116 @@ namespace QuanLyDiemSV.Forms
             }
 
             // =========================================================
-            // 5. NẾU QUA HẾT BÀI KIỂM TRA -> TIẾN HÀNH TÍNH ĐIỂM TK & LƯU
+            // BƯỚC 3: TÍNH ĐIỂM TỔNG KẾT TRƯỚC KHI LƯU
+            // =========================================================
+            foreach (var kq in danhSachSV)
+            {
+                // Gọi trực tiếp hàm tính điểm chuẩn của bạn để đồng nhất với UC_Diem
+                // Hàm này đã tự động xử lý tỷ lệ 40/60, quy chế thi lại/cải thiện và khống chế điểm 6.0
+                kq.DiemTongKet = TinhDiemTongKetCuoiCung(kq.DiemGK, kq.DiemCK, kq.DiemThiLan1, kq.DiemThiLan2);
+            }
+
+            // =========================================================
+            // BƯỚC 4: BỨC TƯỜNG BẢO MẬT (XÁC THỰC GIẢNG VIÊN)
+            // =========================================================
+            // Hàm XacNhanMatKhau() là hàm tạo Form popup ở phản hồi trước
+            if (!XacNhanMatKhau(currentMaGV))
+            {
+                MessageBox.Show("Mật khẩu không chính xác hoặc bạn đã hủy thao tác.\nBảng điểm hiện tại chưa được lưu xuống hệ thống!", "Cảnh báo bảo mật", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+            // =========================================================
+            // BƯỚC 4.5: GHI NHẬT KÝ HOẠT ĐỘNG (AUDIT TRAIL)
+            // =========================================================
+            var changedEntries = dbChamDiem.ChangeTracker.Entries<KetQuaHocTap>()
+                .Where(e => e.State == EntityState.Modified || e.State == EntityState.Added)
+                .ToList();
+
+            int soLuongSVNhapMoi = 0;
+            List<string> chiTietSuaDiem = new List<string>();
+
+            foreach (var entry in changedEntries)
+            {
+                string maSV = entry.Entity.MaSV;
+
+                // Kiểm tra xem trước khi lưu, sinh viên này đã từng có điểm GK hoặc CK chưa?
+                // Nếu điểm cũ hoàn toàn rỗng (null), chứng tỏ đây là lần nhập điểm đầu tiên.
+                bool chuaCoDiem = (entry.OriginalValues["DiemGK"] == null && entry.OriginalValues["DiemCK"] == null);
+
+                if (chuaCoDiem)
+                {
+                    soLuongSVNhapMoi++; // Đếm số lượng SV được nhập mới
+                }
+                else
+                {
+                    // NẾU LÀ SỬA ĐIỂM CŨ: Ghi chú chi tiết ai bị sửa điểm nào
+                    List<string> thayDoi = new List<string>();
+                    foreach (var prop in entry.OriginalValues.Properties)
+                    {
+                        if (prop.Name.Contains("Diem")) // Lọc các cột có chữ Diem
+                        {
+                            var cu = entry.OriginalValues[prop]?.ToString();
+                            var moi = entry.CurrentValues[prop]?.ToString();
+                            if (cu != moi)
+                            {
+                                thayDoi.Add($"{prop.Name}: {cu ?? "Trống"} -> {moi ?? "Trống"}");
+                            }
+                        }
+                    }
+
+                    if (thayDoi.Count > 0)
+                    {
+                        chiTietSuaDiem.Add($"SV {maSV}: " + string.Join(", ", thayDoi));
+                    }
+                }
+            }
+
+            List<NhatKyHoatDong> danhSachLog = new List<NhatKyHoatDong>();
+
+            // TẠO LOG 1: Dành cho Nhập Mới Gộp
+            if (soLuongSVNhapMoi > 0)
+            {
+                danhSachLog.Add(new NhatKyHoatDong
+                {
+                    NguoiDung = currentMaGV,
+                    ThoiGian = DateTime.Now,
+                    HanhDong = "Nhập điểm mới",
+                    ChiTiet = $"Đã nhập điểm mới cho {soLuongSVNhapMoi} sinh viên thuộc LHP: {currentLHP}."
+                });
+            }
+
+            // TẠO LOG 2: Dành cho Sửa Điểm Chi Tiết
+            if (chiTietSuaDiem.Count > 0)
+            {
+                // \r\n để xuống dòng trong TextBox khi Xem chi tiết
+                string chiTietLog = $"Mã LHP: {currentLHP}\r\n" + string.Join("\r\n", chiTietSuaDiem);
+
+                danhSachLog.Add(new NhatKyHoatDong
+                {
+                    NguoiDung = currentMaGV,
+                    ThoiGian = DateTime.Now,
+                    HanhDong = "Chỉnh sửa điểm",
+                    ChiTiet = chiTietLog
+                });
+            }
+
+            if (danhSachLog.Count > 0) dbChamDiem.NhatKyHoatDong.AddRange(danhSachLog);
+
+            // =========================================================
+            // BƯỚC 5: TIẾN HÀNH LƯU XUỐNG DATABASE
             // =========================================================
             try
             {
-                foreach (var kq in danhSachSV)
-                {
-                    // Lặp qua để gọi hàm tính Điểm Tổng Kết (Bạn gọi hàm TinhDiemTongKetCuoiCung của bạn ở đây)
-                    if (kq.DiemCK != null)
-                    {
-                        // Ví dụ: kq.DiemTongKet = TinhDiemTongKet(kq.DiemGK, kq.DiemCK, ...);
-                    }
-                }
+                // Sử dụng await để tránh đơ Form trong lúc lưu dữ liệu lớn
+                await dbChamDiem.SaveChangesAsync();
+                MessageBox.Show("Đã lưu và chốt bảng điểm thành công!", "Bảo mật & Học vụ", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
-                dbChamDiem.SaveChanges();
-                MessageBox.Show("Lưu bảng điểm thành công!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                // Cập nhật lại giao diện lưới
+                DgvDSSV.Refresh();
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Lỗi khi lưu dữ liệu: " + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Lỗi khi lưu dữ liệu: " + ex.Message, "Lỗi hệ thống", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 

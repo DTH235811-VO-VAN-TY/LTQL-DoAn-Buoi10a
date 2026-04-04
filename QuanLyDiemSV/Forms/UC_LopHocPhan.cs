@@ -36,6 +36,9 @@ namespace QuanLyDiemSV
                 // 1. TẮT Visual Styles mặc định của Windows
                 dgv.EnableHeadersVisualStyles = false;
 
+                // --- DÒNG CODE FIX LỖI CRASH (THÊM VÀO ĐÂY) ---
+                dgv.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
+
                 // 2. CHỈNH HEADER (Tiêu đề cột)
                 dgv.ColumnHeadersDefaultCellStyle.BackColor = Color.FromArgb(41, 128, 185); // Xanh dương
                 dgv.ColumnHeadersDefaultCellStyle.ForeColor = Color.White;
@@ -244,6 +247,8 @@ namespace QuanLyDiemSV
 
                 bsLopHP.CurrentChanged += BsLopHP_CurrentChanged;
                 BsLopHP_CurrentChanged(null, null);
+
+                dgvLopHocPhan.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
             }
             catch (Exception ex)
             {
@@ -338,10 +343,10 @@ namespace QuanLyDiemSV
                         txtMaLHP.Focus();
                         return;
                     }
-                    
+
                     // NẾU THÊM MỚI: Phải tạo một đối tượng hoàn toàn mới (Mã LHP sẽ trống để SQL tự sinh)
                     lhp = new LopHocPhan();
-                    
+
                     lhp.MaLHP = maLopMoi;
                 }
                 else
@@ -394,10 +399,39 @@ namespace QuanLyDiemSV
 
         private void btnLamLai_Click(object sender, EventArgs e)
         {
+            // 1. Tạm gỡ sự kiện ComboBox để tránh vòng lặp lỗi
+            cboMaMon.SelectedIndexChanged -= cboMaMon_SelectedIndexChanged;
 
-            BatTatChucNang(false);
-            bsLopHP.ResetBindings(false);
-            BsLopHP_CurrentChanged(null, null);
+            xuLyThem = false;
+            BatTatChucNang(false); // Trở về trạng thái ban đầu
+
+            // 2. KHÔI PHỤC BINDING (Rất quan trọng vì nút Thêm đã SuspendBinding)
+            bsLopHP.ResumeBinding();
+
+            // 3. Kiểm tra an toàn: Chỉ Reset dữ liệu nếu lưới có dữ liệu và đang đứng ở 1 dòng hợp lệ
+            if (bsLopHP.Count > 0 && bsLopHP.Position >= 0)
+            {
+                // Ép các TextBox đọc lại dữ liệu từ dòng đang chọn
+                bsLopHP.ResetCurrentItem();
+
+                // Gọi lại hàm này để ComboBox Trạng Thái (Mở/Đóng) cập nhật đúng
+                BsLopHP_CurrentChanged(null, null);
+            }
+            else
+            {
+                // Nếu lưới đang trống trơn thì xóa trắng các ô
+                txtMaLHP.Clear();
+                txtTenLHP.Clear();
+                txtPhongHoc.Clear();
+                txtSiSo.Text = "0";
+                cboMaMon.SelectedIndex = -1;
+                cboMaGV.SelectedIndex = -1;
+                cboHocKy.SelectedIndex = -1;
+            }
+
+            // 4. Gắn sự kiện lại và gọi thủ công 1 lần để lọc lại danh sách GV
+            cboMaMon.SelectedIndexChanged += cboMaMon_SelectedIndexChanged;
+            cboMaMon_SelectedIndexChanged(null, null);
         }
 
         private void btnAddHocKy_Click(object sender, EventArgs e)
@@ -640,6 +674,37 @@ namespace QuanLyDiemSV
             // 3. Mở Form Xếp Lớp và truyền Mã Lớp, Tên Lớp sang
             FrmXepLop frm = new FrmXepLop(lhp.MaLHP, lhp.TenLopHP);
             frm.ShowDialog();
+        }
+
+        private void cboMaMon_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            // Ngăn lỗi khi Form vừa load, ComboBox chưa có dữ liệu hoàn chỉnh
+            if (cboMaMon.SelectedValue == null || !daTaiDuLieu) return;
+
+            string selectedMaMon = cboMaMon.SelectedValue.ToString();
+
+            using (var db = new QLDSVDbContext())
+            {
+                var monHoc = db.MonHoc.FirstOrDefault(m => m.MaMon == selectedMaMon);
+
+                if (monHoc != null)
+                {
+                    string maKhoa = monHoc.MaKhoa;
+                    var listGV = db.GiangVien.Where(gv => gv.MaKhoa == maKhoa).ToList();
+
+                    // BÍ QUYẾT 1: Phải gán DisplayMember và ValueMember TRƯỚC DataSource
+                    cboMaGV.DisplayMember = "HoTen";
+                    cboMaGV.ValueMember = "MaGV";
+                    cboMaGV.DataSource = listGV;
+
+                    // BÍ QUYẾT 2: Chỉ xóa trắng lựa chọn (SelectedIndex = -1) khi đang ở chế độ THÊM MỚI.
+                    // Nếu đang xem hoặc Sửa mà gán -1 thì dữ liệu lưới sẽ bị hỏng.
+                    if (xuLyThem)
+                    {
+                        cboMaGV.SelectedIndex = -1;
+                    }
+                }
+            }
         }
     }
 }

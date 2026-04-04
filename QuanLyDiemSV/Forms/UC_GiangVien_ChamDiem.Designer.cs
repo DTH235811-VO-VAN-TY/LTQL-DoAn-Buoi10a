@@ -306,7 +306,7 @@
             txtTuKhoa.Location = new Point(701, 16);
             txtTuKhoa.Multiline = true;
             txtTuKhoa.Name = "txtTuKhoa";
-            txtTuKhoa.PlaceholderText = "Nhập từ khóa tìm kiếm (F3)...";
+            txtTuKhoa.PlaceholderText = "Nhập từ khóa tìm kiếm...";
             txtTuKhoa.Size = new Size(514, 37);
             txtTuKhoa.TabIndex = 6;
             txtTuKhoa.TextAlign = HorizontalAlignment.Center;

@@ -248,7 +248,7 @@
             // 
             label3.AutoSize = true;
             label3.Font = new Font("Segoe UI", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            label3.Location = new Point(75, 198);
+            label3.Location = new Point(10, 196);
             label3.Name = "label3";
             label3.Size = new Size(65, 28);
             label3.TabIndex = 3;
@@ -258,16 +258,16 @@
             // 
             cboKhoa.Font = new Font("Times New Roman", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
             cboKhoa.FormattingEnabled = true;
-            cboKhoa.Location = new Point(146, 202);
+            cboKhoa.Location = new Point(81, 199);
             cboKhoa.Name = "cboKhoa";
-            cboKhoa.Size = new Size(244, 27);
+            cboKhoa.Size = new Size(288, 27);
             cboKhoa.TabIndex = 4;
             // 
             // label6
             // 
             label6.AutoSize = true;
             label6.Font = new Font("Segoe UI", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            label6.Location = new Point(401, 198);
+            label6.Location = new Point(373, 198);
             label6.Name = "label6";
             label6.Size = new Size(52, 28);
             label6.TabIndex = 3;
@@ -277,9 +277,9 @@
             // 
             cboLop.Font = new Font("Times New Roman", 10.2F, FontStyle.Bold);
             cboLop.FormattingEnabled = true;
-            cboLop.Location = new Point(449, 201);
+            cboLop.Location = new Point(431, 201);
             cboLop.Name = "cboLop";
-            cboLop.Size = new Size(269, 27);
+            cboLop.Size = new Size(287, 27);
             cboLop.TabIndex = 4;
             // 
             // label10

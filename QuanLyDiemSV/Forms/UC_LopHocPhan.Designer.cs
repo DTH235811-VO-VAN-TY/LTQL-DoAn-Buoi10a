@@ -28,20 +28,12 @@
         /// </summary>
         private void InitializeComponent()
         {
-            DataGridViewCellStyle dataGridViewCellStyle1 = new DataGridViewCellStyle();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(UC_LopHocPhan));
+            DataGridViewCellStyle dataGridViewCellStyle1 = new DataGridViewCellStyle();
             panel1 = new Panel();
             panel4 = new Panel();
             groupBox3 = new GroupBox();
             dgvLopHocPhan = new DataGridView();
-            MaLHP = new DataGridViewTextBoxColumn();
-            MaMon = new DataGridViewTextBoxColumn();
-            TenLopHP = new DataGridViewTextBoxColumn();
-            MaHK = new DataGridViewTextBoxColumn();
-            MaGV = new DataGridViewTextBoxColumn();
-            PhongHoc = new DataGridViewTextBoxColumn();
-            SiSoToiDa = new DataGridViewTextBoxColumn();
-            TrangThai = new DataGridViewTextBoxColumn();
             panel3 = new Panel();
             groupBox2 = new GroupBox();
             radGiam = new RadioButton();
@@ -81,6 +73,14 @@
             cboMaGV = new ComboBox();
             txtTenLHP = new TextBox();
             cboMaMon = new ComboBox();
+            MaLHP = new DataGridViewTextBoxColumn();
+            MaMon = new DataGridViewTextBoxColumn();
+            TenLopHP = new DataGridViewTextBoxColumn();
+            MaHK = new DataGridViewTextBoxColumn();
+            MaGV = new DataGridViewTextBoxColumn();
+            PhongHoc = new DataGridViewTextBoxColumn();
+            SiSoToiDa = new DataGridViewTextBoxColumn();
+            TrangThai = new DataGridViewTextBoxColumn();
             panel1.SuspendLayout();
             panel4.SuspendLayout();
             groupBox3.SuspendLayout();
@@ -128,7 +128,6 @@
             // 
             dgvLopHocPhan.AllowUserToAddRows = false;
             dgvLopHocPhan.AllowUserToDeleteRows = false;
-            dgvLopHocPhan.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
             dgvLopHocPhan.BackgroundColor = Color.White;
             dgvLopHocPhan.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             dgvLopHocPhan.Columns.AddRange(new DataGridViewColumn[] { MaLHP, MaMon, TenLopHP, MaHK, MaGV, PhongHoc, SiSoToiDa, TrangThai });
@@ -140,73 +139,6 @@
             dgvLopHocPhan.Size = new Size(1678, 765);
             dgvLopHocPhan.TabIndex = 0;
             dgvLopHocPhan.CellFormatting += dgvLopHocPhan_CellFormatting;
-            // 
-            // MaLHP
-            // 
-            MaLHP.DataPropertyName = "MaLHP";
-            MaLHP.HeaderText = "Mã LHP";
-            MaLHP.MinimumWidth = 6;
-            MaLHP.Name = "MaLHP";
-            MaLHP.ReadOnly = true;
-            // 
-            // MaMon
-            // 
-            MaMon.DataPropertyName = "MaMon";
-            MaMon.HeaderText = "Mã Môn";
-            MaMon.MinimumWidth = 6;
-            MaMon.Name = "MaMon";
-            MaMon.ReadOnly = true;
-            // 
-            // TenLopHP
-            // 
-            TenLopHP.DataPropertyName = "TenLopHP";
-            TenLopHP.HeaderText = "Tên Lớp HP";
-            TenLopHP.MinimumWidth = 6;
-            TenLopHP.Name = "TenLopHP";
-            TenLopHP.ReadOnly = true;
-            // 
-            // MaHK
-            // 
-            MaHK.DataPropertyName = "MaHK";
-            MaHK.HeaderText = "Học Kỳ";
-            MaHK.MinimumWidth = 6;
-            MaHK.Name = "MaHK";
-            MaHK.ReadOnly = true;
-            // 
-            // MaGV
-            // 
-            MaGV.DataPropertyName = "TenGV";
-            MaGV.HeaderText = "Giảng Viên";
-            MaGV.MinimumWidth = 6;
-            MaGV.Name = "MaGV";
-            MaGV.ReadOnly = true;
-            // 
-            // PhongHoc
-            // 
-            PhongHoc.DataPropertyName = "PhongHoc";
-            PhongHoc.HeaderText = "Phòng Học";
-            PhongHoc.MinimumWidth = 6;
-            PhongHoc.Name = "PhongHoc";
-            PhongHoc.ReadOnly = true;
-            // 
-            // SiSoToiDa
-            // 
-            SiSoToiDa.DataPropertyName = "SiSoToiDa";
-            SiSoToiDa.HeaderText = "Sĩ số";
-            SiSoToiDa.MinimumWidth = 6;
-            SiSoToiDa.Name = "SiSoToiDa";
-            SiSoToiDa.ReadOnly = true;
-            // 
-            // TrangThai
-            // 
-            TrangThai.DataPropertyName = "TrangThai";
-            dataGridViewCellStyle1.Alignment = DataGridViewContentAlignment.MiddleCenter;
-            dataGridViewCellStyle1.Font = new Font("Microsoft Sans Serif", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            TrangThai.DefaultCellStyle = dataGridViewCellStyle1;
-            TrangThai.HeaderText = "Trạng Thái";
-            TrangThai.MinimumWidth = 6;
-            TrangThai.Name = "TrangThai";
-            TrangThai.ReadOnly = true;
             // 
             // panel3
             // 
@@ -672,6 +604,82 @@
             cboMaMon.Name = "cboMaMon";
             cboMaMon.Size = new Size(243, 31);
             cboMaMon.TabIndex = 127;
+            cboMaMon.SelectedIndexChanged += cboMaMon_SelectedIndexChanged;
+            // 
+            // MaLHP
+            // 
+            MaLHP.DataPropertyName = "MaLHP";
+            MaLHP.HeaderText = "Mã LHP";
+            MaLHP.MinimumWidth = 6;
+            MaLHP.Name = "MaLHP";
+            MaLHP.ReadOnly = true;
+            MaLHP.Width = 203;
+            // 
+            // MaMon
+            // 
+            MaMon.DataPropertyName = "MaMon";
+            MaMon.HeaderText = "Mã Môn";
+            MaMon.MinimumWidth = 6;
+            MaMon.Name = "MaMon";
+            MaMon.ReadOnly = true;
+            MaMon.Width = 203;
+            // 
+            // TenLopHP
+            // 
+            TenLopHP.DataPropertyName = "TenLopHP";
+            TenLopHP.HeaderText = "Tên Lớp HP";
+            TenLopHP.MinimumWidth = 6;
+            TenLopHP.Name = "TenLopHP";
+            TenLopHP.ReadOnly = true;
+            TenLopHP.Width = 203;
+            // 
+            // MaHK
+            // 
+            MaHK.DataPropertyName = "TenHK";
+            MaHK.HeaderText = "Học Kỳ";
+            MaHK.MinimumWidth = 6;
+            MaHK.Name = "MaHK";
+            MaHK.ReadOnly = true;
+            MaHK.Width = 204;
+            // 
+            // MaGV
+            // 
+            MaGV.DataPropertyName = "TenGV";
+            MaGV.HeaderText = "Giảng Viên";
+            MaGV.MinimumWidth = 6;
+            MaGV.Name = "MaGV";
+            MaGV.ReadOnly = true;
+            MaGV.Width = 203;
+            // 
+            // PhongHoc
+            // 
+            PhongHoc.DataPropertyName = "PhongHoc";
+            PhongHoc.HeaderText = "Phòng Học";
+            PhongHoc.MinimumWidth = 6;
+            PhongHoc.Name = "PhongHoc";
+            PhongHoc.ReadOnly = true;
+            PhongHoc.Width = 203;
+            // 
+            // SiSoToiDa
+            // 
+            SiSoToiDa.DataPropertyName = "SiSoToiDa";
+            SiSoToiDa.HeaderText = "Sĩ số";
+            SiSoToiDa.MinimumWidth = 6;
+            SiSoToiDa.Name = "SiSoToiDa";
+            SiSoToiDa.ReadOnly = true;
+            SiSoToiDa.Width = 203;
+            // 
+            // TrangThai
+            // 
+            TrangThai.DataPropertyName = "TrangThai";
+            dataGridViewCellStyle1.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            dataGridViewCellStyle1.Font = new Font("Microsoft Sans Serif", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            TrangThai.DefaultCellStyle = dataGridViewCellStyle1;
+            TrangThai.HeaderText = "Trạng Thái";
+            TrangThai.MinimumWidth = 6;
+            TrangThai.Name = "TrangThai";
+            TrangThai.ReadOnly = true;
+            TrangThai.Width = 203;
             // 
             // UC_LopHocPhan
             // 
@@ -740,6 +748,7 @@
         private Button btnAddHocKy;
         private Button btnNhap;
         private Button btnXuat;
+        private Button btnXepLop;
         private DataGridViewTextBoxColumn MaLHP;
         private DataGridViewTextBoxColumn MaMon;
         private DataGridViewTextBoxColumn TenLopHP;
@@ -748,6 +757,5 @@
         private DataGridViewTextBoxColumn PhongHoc;
         private DataGridViewTextBoxColumn SiSoToiDa;
         private DataGridViewTextBoxColumn TrangThai;
-        private Button btnXepLop;
     }
 }

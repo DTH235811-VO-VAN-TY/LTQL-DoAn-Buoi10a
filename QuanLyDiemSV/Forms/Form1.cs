@@ -223,6 +223,11 @@ namespace QuanLyDiemSV
                 uC_ThongKe1.Visible = true;
                 uC_ThongKe1.BringToFront();
             }
+            if (Session.RoleID != 1)
+            {
+                // Ẩn hoàn toàn nút Nhật ký hoạt động đối với người không phải Admin
+                btnNhatKyHoatDong.Visible = false;
+            }
             KhoiTaoRadarThongBao();
         }
         private void KhoiTaoRadarThongBao()
@@ -378,6 +383,12 @@ namespace QuanLyDiemSV
         {
             FrmDoiMatKhaucs frmDoiMatKhaucs = new FrmDoiMatKhaucs();
             frmDoiMatKhaucs.ShowDialog();
+        }
+
+        private void btnNhatKyHoatDong_Click(object sender, EventArgs e)
+        {
+            ActivateButton(sender);
+            uC_NhatKyHoatDong1.BringToFront();
         }
     }
 }
