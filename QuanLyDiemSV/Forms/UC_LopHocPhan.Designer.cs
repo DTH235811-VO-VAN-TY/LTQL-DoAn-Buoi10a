@@ -30,6 +30,7 @@
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(UC_LopHocPhan));
             DataGridViewCellStyle dataGridViewCellStyle1 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle2 = new DataGridViewCellStyle();
             panel1 = new Panel();
             panel4 = new Panel();
             groupBox3 = new GroupBox();
@@ -81,6 +82,7 @@
             PhongHoc = new DataGridViewTextBoxColumn();
             SiSoToiDa = new DataGridViewTextBoxColumn();
             TrangThai = new DataGridViewTextBoxColumn();
+            ThaoTac = new DataGridViewButtonColumn();
             panel1.SuspendLayout();
             panel4.SuspendLayout();
             groupBox3.SuspendLayout();
@@ -130,7 +132,7 @@
             dgvLopHocPhan.AllowUserToDeleteRows = false;
             dgvLopHocPhan.BackgroundColor = Color.White;
             dgvLopHocPhan.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dgvLopHocPhan.Columns.AddRange(new DataGridViewColumn[] { MaLHP, MaMon, TenLopHP, MaHK, MaGV, PhongHoc, SiSoToiDa, TrangThai });
+            dgvLopHocPhan.Columns.AddRange(new DataGridViewColumn[] { MaLHP, MaMon, TenLopHP, MaHK, MaGV, PhongHoc, SiSoToiDa, TrangThai, ThaoTac });
             dgvLopHocPhan.Dock = DockStyle.Fill;
             dgvLopHocPhan.Location = new Point(3, 26);
             dgvLopHocPhan.MultiSelect = false;
@@ -138,6 +140,7 @@
             dgvLopHocPhan.RowHeadersWidth = 51;
             dgvLopHocPhan.Size = new Size(1678, 765);
             dgvLopHocPhan.TabIndex = 0;
+            dgvLopHocPhan.CellContentClick += dgvLopHocPhan_CellContentClick;
             dgvLopHocPhan.CellFormatting += dgvLopHocPhan_CellFormatting;
             // 
             // panel3
@@ -272,7 +275,7 @@
             btnTimKiem.TabIndex = 79;
             btnTimKiem.Text = "Tìm Kiếm";
             btnTimKiem.UseVisualStyleBackColor = false;
-            btnTimKiem.Click += btnTimKiem_Click;
+            btnTimKiem.Click +=  btnTimKiem_Click;
             // 
             // panel2
             // 
@@ -681,6 +684,21 @@
             TrangThai.ReadOnly = true;
             TrangThai.Width = 203;
             // 
+            // ThaoTac
+            // 
+            dataGridViewCellStyle2.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            dataGridViewCellStyle2.BackColor = Color.Green;
+            dataGridViewCellStyle2.ForeColor = Color.FromArgb(192, 0, 0);
+            dataGridViewCellStyle2.SelectionBackColor = Color.Cyan;
+            dataGridViewCellStyle2.SelectionForeColor = Color.FromArgb(64, 64, 64);
+            ThaoTac.DefaultCellStyle = dataGridViewCellStyle2;
+            ThaoTac.HeaderText = "Thao Tác";
+            ThaoTac.MinimumWidth = 6;
+            ThaoTac.Name = "ThaoTac";
+            ThaoTac.Text = "Xếp Lớp";
+            ThaoTac.Width = 125;
+            ThaoTac.UseColumnTextForButtonValue = true;
+            // 
             // UC_LopHocPhan
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
@@ -757,5 +775,6 @@
         private DataGridViewTextBoxColumn PhongHoc;
         private DataGridViewTextBoxColumn SiSoToiDa;
         private DataGridViewTextBoxColumn TrangThai;
+        private DataGridViewButtonColumn ThaoTac;
     }
 }

@@ -381,6 +381,7 @@
             cboLop.Name = "cboLop";
             cboLop.Size = new Size(328, 31);
             cboLop.TabIndex = 3;
+            cboLop.SelectedIndexChanged += cboLop_SelectedIndexChanged;
             // 
             // label2
             // 

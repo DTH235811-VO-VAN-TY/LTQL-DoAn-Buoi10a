@@ -167,110 +167,125 @@ namespace QuanLyDiemSV.Forms
             cboDieuKien.ValueMember = "Value";
         }
 
-        private void btnThongKe_Click(object sender, EventArgs e)
+        bool dangTruyVan = false;
+        private async void btnThongKe_Click(object sender, EventArgs e)
         {
-            string maKhoa = cboKhoa.SelectedValue?.ToString();
-            string maLop = cboLop.SelectedValue?.ToString();
-            string maHK = cboHocKy.SelectedValue?.ToString();
-            string dieuKien = cboDieuKien.SelectedValue?.ToString();
+            if(dangTruyVan) return; // Ngăn chặn việc bấm liên tục khi đang truy vấn
+            dangTruyVan = true;
 
-            // 1. Lọc danh sách sinh viên ban đầu
-            var querySV = context.SinhVien
-                                 .Include(s => s.MaLopNavigation)
-                                 .ThenInclude(l => l.MaNganhNavigation)
-                                 .AsQueryable();
-
-            if (maKhoa != "ALL" && !string.IsNullOrEmpty(maKhoa))
-                querySV = querySV.Where(s => s.MaLopNavigation.MaNganhNavigation.MaKhoa == maKhoa);
-
-            if (maLop != "ALL" && !string.IsNullOrEmpty(maLop))
-                querySV = querySV.Where(s => s.MaLop == maLop);
-
-            var listSV = querySV.ToList();
-            var listResult = new List<ThongKeDTO>();
-
-            // 2. [TỐI ƯU TỐC ĐỘ]: Lấy trước toàn bộ điểm của các SV này lên Ram 1 lần duy nhất
-            var maSVs = listSV.Select(s => s.MaSV).ToList();
-            var allDiem = (from kq in context.KetQuaHocTap
-                           join lhp in context.LopHocPhan on kq.MaLHP equals lhp.MaLHP
-                           join mh in context.MonHoc on lhp.MaMon equals mh.MaMon
-                           where maSVs.Contains(kq.MaSV) && kq.DiemTongKet != null
-                           select new { kq.MaSV, DiemTK = kq.DiemTongKet.Value, mh.SoTinChi, lhp.MaHK }).ToList();
-
-            // 3. Tính điểm cho từng sinh viên
-            foreach (var sv in listSV)
+            try
             {
-                // Rút trích điểm chỉ của riêng sinh viên này
-                var diemCuaSV = allDiem.Where(d => d.MaSV == sv.MaSV).ToList();
+                string maKhoa = cboKhoa.SelectedValue?.ToString();
+                string maLop = cboLop.SelectedValue?.ToString();
+                string maHK = cboHocKy.SelectedValue?.ToString();
+                string dieuKien = cboDieuKien.SelectedValue?.ToString();
 
-                // Nếu có chọn Học Kỳ, lọc bỏ các môn học kỳ khác đi
-                if (maHK != "ALL" && !string.IsNullOrEmpty(maHK))
+                // 1. Lọc danh sách sinh viên ban đầu
+                var querySV = context.SinhVien
+                                     .Include(s => s.MaLopNavigation)
+                                     .ThenInclude(l => l.MaNganhNavigation)
+                                     .AsQueryable();
+
+                if (maKhoa != "ALL" && !string.IsNullOrEmpty(maKhoa))
+                    querySV = querySV.Where(s => s.MaLopNavigation.MaNganhNavigation.MaKhoa == maKhoa);
+
+                if (maLop != "ALL" && !string.IsNullOrEmpty(maLop))
+                    querySV = querySV.Where(s => s.MaLop == maLop);
+
+                var listSV = await querySV.ToListAsync();
+                var listResult = new List<ThongKeDTO>();
+
+                // 2. [TỐI ƯU TỐC ĐỘ]: Lấy trước toàn bộ điểm của các SV này lên Ram 1 lần duy nhất
+                var maSVs = listSV.Select(s => s.MaSV).ToList();
+                var allDiem = (from kq in context.KetQuaHocTap
+                               join lhp in context.LopHocPhan on kq.MaLHP equals lhp.MaLHP
+                               join mh in context.MonHoc on lhp.MaMon equals mh.MaMon
+                               where maSVs.Contains(kq.MaSV) && kq.DiemTongKet != null
+                               select new { kq.MaSV, DiemTK = kq.DiemTongKet.Value, mh.SoTinChi, lhp.MaHK }).ToList();
+
+                // 3. Tính điểm cho từng sinh viên
+                foreach (var sv in listSV)
                 {
-                    diemCuaSV = diemCuaSV.Where(d => d.MaHK == maHK).ToList();
+                    // Rút trích điểm chỉ của riêng sinh viên này
+                    var diemCuaSV = allDiem.Where(d => d.MaSV == sv.MaSV).ToList();
+
+                    // Nếu có chọn Học Kỳ, lọc bỏ các môn học kỳ khác đi
+                    if (maHK != "ALL" && !string.IsNullOrEmpty(maHK))
+                    {
+                        diemCuaSV = diemCuaSV.Where(d => d.MaHK == maHK).ToList();
+                    }
+
+                    decimal diemThongKe = 0;
+                    if (diemCuaSV.Count > 0)
+                    {
+                        decimal tongDiem = diemCuaSV.Sum(x => x.DiemTK * x.SoTinChi);
+                        int tongTC = diemCuaSV.Sum(x => x.SoTinChi);
+                        diemThongKe = Math.Round(tongDiem / tongTC, 2);
+                    }
+
+                    // --- XỬ LÝ LỌC HỌC BỔNG ---
+                    // Theo quy chế: Cần xét thêm điều kiện không được rớt môn nào (< 4.0) và ĐTB >= 7.0
+                    bool coMonRot = diemCuaSV.Any(x => x.DiemTK < 4.0m);
+                    if (dieuKien == "HOCBONG")
+                    {
+                        // Nếu rớt môn, điểm trung bình dưới Khá, hoặc không có điểm -> Loại khỏi danh sách xét
+                        if (coMonRot || diemThongKe < 7.0m || diemCuaSV.Count == 0)
+                            continue;
+                    }
+
+                    listResult.Add(new ThongKeDTO
+                    {
+                        MaSV = sv.MaSV,
+                        HoTen = sv.HoTen,
+                        TenLop = sv.MaLopNavigation?.TenLop,
+                        DiemTK = diemThongKe,
+                        XepLoai = XepLoaiHe10(diemThongKe)
+                    });
                 }
 
-                decimal diemThongKe = 0;
-                if (diemCuaSV.Count > 0)
-                {
-                    decimal tongDiem = diemCuaSV.Sum(x => x.DiemTK * x.SoTinChi);
-                    int tongTC = diemCuaSV.Sum(x => x.SoTinChi);
-                    diemThongKe = Math.Round(tongDiem / tongTC, 2);
-                }
+                // 4. Sắp xếp giảm dần theo điểm
+                listResult = listResult.OrderByDescending(x => x.DiemTK).ToList();
 
-                // --- XỬ LÝ LỌC HỌC BỔNG ---
-                // Theo quy chế: Cần xét thêm điều kiện không được rớt môn nào (< 4.0) và ĐTB >= 7.0
-                bool coMonRot = diemCuaSV.Any(x => x.DiemTK < 4.0m);
+                // CHỐT HỌC BỔNG: Chỉ lấy đúng 5 người đứng đầu danh sách
                 if (dieuKien == "HOCBONG")
                 {
-                    // Nếu rớt môn, điểm trung bình dưới Khá, hoặc không có điểm -> Loại khỏi danh sách xét
-                    if (coMonRot || diemThongKe < 7.0m || diemCuaSV.Count == 0)
-                        continue;
+                    listResult = listResult.Take(5).ToList();
                 }
 
-                listResult.Add(new ThongKeDTO
+                // Đánh số STT cho đẹp
+                for (int i = 0; i < listResult.Count; i++) listResult[i].STT = i + 1;
+
+                // 5. Đổ dữ liệu lên Lưới (Grid)
+                dgvThongKe.AutoGenerateColumns = false;
+                dgvThongKe.DataSource = listResult;
+
+                // 6. Cập nhật 4 thẻ KPI
+                int tongSV = listResult.Count;
+                int svGioi = listResult.Count(x => x.DiemTK >= 8.0m);
+                int svRot = listResult.Count(x => x.DiemTK < 4.0m);
+                int svXuatSac = listResult.Count(x => x.XepLoai == "Xuất sắc");
+                lblSVXuatSac.Text = svXuatSac.ToString();
+                lblTongSV.Text = tongSV.ToString();
+                lblSVGioi.Text = svGioi.ToString();
+                lblSVRot.Text = svRot.ToString();
+
+                if (tongSV > 0)
                 {
-                    MaSV = sv.MaSV,
-                    HoTen = sv.HoTen,
-                    TenLop = sv.MaLopNavigation?.TenLop,
-                    DiemTK = diemThongKe,
-                    XepLoai = XepLoaiHe10(diemThongKe)
-                });
+                    decimal tyLe = ((decimal)(tongSV - svRot) / tongSV) * 100m;
+                    lblTyLeDat.Text = Math.Round(tyLe, 1).ToString() + "%";
+                }
+                else
+                {
+                    lblTyLeDat.Text = "0%";
+                }
             }
-
-            // 4. Sắp xếp giảm dần theo điểm
-            listResult = listResult.OrderByDescending(x => x.DiemTK).ToList();
-
-            // CHỐT HỌC BỔNG: Chỉ lấy đúng 5 người đứng đầu danh sách
-            if (dieuKien == "HOCBONG")
+            catch (Exception ex)
             {
-                listResult = listResult.Take(5).ToList();
+                MessageBox.Show("Lỗi khi thống kê: " + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
-
-            // Đánh số STT cho đẹp
-            for (int i = 0; i < listResult.Count; i++) listResult[i].STT = i + 1;
-
-            // 5. Đổ dữ liệu lên Lưới (Grid)
-            dgvThongKe.AutoGenerateColumns = false;
-            dgvThongKe.DataSource = listResult;
-
-            // 6. Cập nhật 4 thẻ KPI
-            int tongSV = listResult.Count;
-            int svGioi = listResult.Count(x => x.DiemTK >= 8.0m);
-            int svRot = listResult.Count(x => x.DiemTK < 4.0m);
-            int svXuatSac = listResult.Count(x => x.XepLoai == "Xuất sắc");
-            lblSVXuatSac.Text = svXuatSac.ToString();
-            lblTongSV.Text = tongSV.ToString();
-            lblSVGioi.Text = svGioi.ToString();
-            lblSVRot.Text = svRot.ToString();
-
-            if (tongSV > 0)
+            finally
             {
-                decimal tyLe = ((decimal)(tongSV - svRot) / tongSV) * 100m;
-                lblTyLeDat.Text = Math.Round(tyLe, 1).ToString() + "%";
-            }
-            else
-            {
-                lblTyLeDat.Text = "0%";
+                dangTruyVan = false;
             }
         }
         private string XepLoaiHe10(decimal diem10)

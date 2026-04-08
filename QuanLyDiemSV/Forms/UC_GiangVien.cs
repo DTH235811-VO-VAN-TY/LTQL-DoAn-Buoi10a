@@ -20,7 +20,7 @@ namespace QuanLyDiemSV.Forms
         BindingSource bsGiangVien = new BindingSource();
         bool xuLyThem = false;
         bool daTaiDuLieu = false;
-
+        ErrorProvider errorProvider = new ErrorProvider();
         public UC_GiangVien()
         {
             InitializeComponent();
@@ -28,6 +28,32 @@ namespace QuanLyDiemSV.Forms
             this.VisibleChanged += UC_GiangVien_VisibleChanged;
             StyleDataGridView(dgvAdminGiangVien);
 
+        }
+        private void RegisterValidations()
+        {
+            // Kiểm tra Mã GV không được để trống
+            txtMaGV.Validating += (s, e) => {
+                if (string.IsNullOrWhiteSpace(txtMaGV.Text))
+                    errorProvider.SetError(txtMaGV, "Mã Giảng Viên không được để trống!");
+                else
+                    errorProvider.SetError(txtMaGV, "");
+            };
+
+            // Kiểm tra Email Giảng viên (Định dạng email chung)
+            txtEmail.Validating += (s, e) => {
+                if (!string.IsNullOrEmpty(txtEmail.Text) && !Regex.IsMatch(txtEmail.Text, @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))
+                    errorProvider.SetError(txtEmail, "Định dạng Email không hợp lệ!");
+                else
+                    errorProvider.SetError(txtEmail, "");
+            };
+
+            // Kiểm tra Số điện thoại (10 số, bắt đầu bằng 0)
+            txtSDT.Validating += (s, e) => {
+                if (!string.IsNullOrEmpty(txtSDT.Text) && !Regex.IsMatch(txtSDT.Text, @"^0\d{9}$"))
+                    errorProvider.SetError(txtSDT, "Số điện thoại phải có đúng 10 chữ số và bắt đầu bằng số 0!");
+                else
+                    errorProvider.SetError(txtSDT, "");
+            };
         }
         private void StyleDataGridView(DataGridView dgv)
         {
@@ -74,6 +100,7 @@ namespace QuanLyDiemSV.Forms
         {
             BatTatChucNang(false);
             KhoiTaoCboTimKiemSapXep();
+            RegisterValidations();
             // Đã ẩn các hàm Load dữ liệu khỏi đây
         }
 
@@ -318,6 +345,7 @@ namespace QuanLyDiemSV.Forms
 
         private void btnThem_Click(object sender, EventArgs e)
         {
+            errorProvider.Clear();
             xuLyThem = true;
             BatTatChucNang(true);
 
@@ -338,6 +366,7 @@ namespace QuanLyDiemSV.Forms
 
         private void btnSua_Click(object sender, EventArgs e)
         {
+            errorProvider.Clear();
             if (bsGiangVien.Current == null) return;
 
             xuLyThem = false;
@@ -347,6 +376,7 @@ namespace QuanLyDiemSV.Forms
 
         private void btnXoa_Click(object sender, EventArgs e)
         {
+            errorProvider.Clear();
             if (bsGiangVien.Current == null) return;
             var gv = (GiangVien)bsGiangVien.Current;
 
@@ -368,6 +398,7 @@ namespace QuanLyDiemSV.Forms
 
         private void btnLuu_Click(object sender, EventArgs e)
         {
+            errorProvider.Clear();
             // --- GỌI HÀM KIỂM TRA RÀNG BUỘC Ở ĐÂY ---
             if (!ValidateInput())
             {
@@ -430,7 +461,8 @@ namespace QuanLyDiemSV.Forms
 
         private void btnLamLai_Click(object sender, EventArgs e)
         {
-           // xuLyThem = false;
+            errorProvider.Clear();
+            // xuLyThem = false;
             BatTatChucNang(false);
 
             //bsGiangVien.ResumeBinding();

@@ -33,11 +33,6 @@ namespace QuanLyDiemSV
 
         private void UC_SinhVien_Load(object sender, EventArgs e)
         {
-            //BatTatChucNang(false);
-            //// LoadComboBoxLop();
-            //// LoadDuLieuSinhVien(); // Hàm quan trọng nhất để Binding
-            //KhoiTaoCboTimKiemSapXep();
-            //RegisterValidations();
             // 1. Tạm thời tắt các tính năng cập nhật layout để tăng tốc và tránh lỗi
             dgvAdminSinhVien.SuspendLayout();
 
@@ -63,13 +58,13 @@ namespace QuanLyDiemSV
 
         }
 
-        public void CapNhatDuLieuMoiNhat()
+        public async Task CapNhatDuLieuMoiNhat()
         {
             using (var freshContext = new QLDSVDbContext())
             {
                 var oldLop = cboAdSV_TenLop.SelectedValue;
 
-                cboAdSV_TenLop.DataSource = freshContext.LopHanhChinh.AsNoTracking().ToList();
+                cboAdSV_TenLop.DataSource = await freshContext.LopHanhChinh.AsNoTracking().ToListAsync();
                 cboAdSV_TenLop.DisplayMember = "TenLop";
                 cboAdSV_TenLop.ValueMember = "MaLop";
 
@@ -110,9 +105,11 @@ namespace QuanLyDiemSV
                 cboAdSV_TenLop.ValueMember = "MaLop";
             }
         }
-
-        public void LoadDuLieuSinhVien()
+        bool dangTruyVan = false;
+        public async Task LoadDuLieuSinhVien()
         {
+            if(dangTruyVan) return; // Nếu đang truy vấn thì thôi (tránh gọi chồng chéo khi có nhiều sự kiện thay đổi tìm kiếm/sắp xếp)
+            dangTruyVan = true;
             try
             {
                 dgvAdminSinhVien.AutoGenerateColumns = false;
@@ -171,7 +168,7 @@ namespace QuanLyDiemSV
                 // =====================================
 
 
-                var listSV = query.ToList();
+                var listSV = await query.ToListAsync();
 
                 // Gán vào BindingSource
                 bsSinhVien.DataSource = listSV;
@@ -211,6 +208,11 @@ namespace QuanLyDiemSV
             catch (Exception ex)
             {
                 MessageBox.Show("Lỗi tải dữ liệu: " + ex.Message);
+            }
+            finally
+            {
+                // 2. MỞ KHÓA: Dù lấy dữ liệu thành công hay bị lỗi cũng phải mở cửa ra cho luồng khác
+                dangTruyVan = false;
             }
         }
 
@@ -346,6 +348,48 @@ namespace QuanLyDiemSV
 
             return true; // Dữ liệu hợp lệ
         }
+        private bool ValidateInput2()
+        {
+            errorProvider.Clear(); // Xóa tất cả lỗi cũ
+            bool isValid = true;
+
+            // 1. Kiểm tra Mã SV (3 chữ, 6 số)
+            if (!IsValidMaSV(txtAdMaSV.Text))
+            {
+                errorProvider.SetError(txtAdMaSV, "Mã Sinh Viên phải gồm 3 chữ cái và 6 chữ số (VD: DTH235811)!");
+                isValid = false;
+            }
+
+            // 2. Kiểm tra Họ tên (không để trống)
+            if (string.IsNullOrWhiteSpace(txtAdHoTenSV.Text))
+            {
+                errorProvider.SetError(txtAdHoTenSV, "Họ tên không được để trống!");
+                isValid = false;
+            }
+
+            // 3. Kiểm tra Email (@student.edu.vn)
+            if (!IsValidEmailSV(txtAdSV_Email.Text))
+            {
+                errorProvider.SetError(txtAdSV_Email, "Email phải có định dạng xxx@student.edu.vn!");
+                isValid = false;
+            }
+
+            // 4. Kiểm tra CCCD (12 số)
+            if (!IsValidCCCD(txtAdCCCDsv.Text))
+            {
+                errorProvider.SetError(txtAdCCCDsv, "CCCD phải bao gồm đúng 12 chữ số!");
+                isValid = false;
+            }
+
+            // 5. Kiểm tra Số điện thoại (10 số)
+            if (!IsValidSDT(txtAdSDT_SV.Text))
+            {
+                errorProvider.SetError(txtAdSDT_SV, "Số điện thoại phải có đúng 10 chữ số!");
+                isValid = false;
+            }
+
+            return isValid;
+        }
 
         #endregion
 
@@ -353,6 +397,7 @@ namespace QuanLyDiemSV
 
         private void btnAdThem_SV_Click(object sender, EventArgs e)
         {
+            errorProvider.Clear();
             xuLyThem = true;
             BatTatChucNang(true);
 
@@ -369,6 +414,7 @@ namespace QuanLyDiemSV
 
         private void btnAdSua_SV_Click(object sender, EventArgs e)
         {
+            errorProvider.Clear();
             if (bsSinhVien.Current == null) return; // Nếu chưa chọn dòng nào thì thôi
 
             xuLyThem = false;
@@ -378,6 +424,7 @@ namespace QuanLyDiemSV
 
         private void btnAdXoa_SV_Click(object sender, EventArgs e)
         {
+            errorProvider.Clear();
             if (bsSinhVien.Current == null) return;
             var currentSV = (SinhVien)bsSinhVien.Current;
 
@@ -401,11 +448,18 @@ namespace QuanLyDiemSV
             }
         }
 
+       
         // Đã thêm từ khóa 'async' vào khai báo hàm
         private async void btnAdLua_SV_Click(object sender, EventArgs e)
         {
-            // --- QUAN TRỌNG: GỌI HÀM KIỂM TRA RÀNG BUỘC TẠI ĐÂY ---
-            if (!ValidateInput()) return; // Nếu dữ liệu sai, dừng lại không lưu
+            errorProvider.Clear(); // Dọn dẹp lỗi cũ trước khi kiểm tra mới
+            if (!ValidateInput2())
+            {
+                MessageBox.Show("Dữ liệu nhập vào chưa hợp lệ. Vui lòng kiểm tra các ô báo đỏ!",
+                                "Cảnh báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
             // -------------------------------------------------------
 
             try
@@ -455,6 +509,7 @@ namespace QuanLyDiemSV
 
         private void btnAdLamLai_SV_Click(object sender, EventArgs e)
         {
+            errorProvider.Clear();
             // 1. Nếu đang Thêm mới mà bấm Làm lại -> Hủy dòng trắng vừa tạo ra
             if (xuLyThem)
             {
@@ -537,36 +592,36 @@ namespace QuanLyDiemSV
             catch { }
         }
 
-        private void btnAdTimKiem_SV_Click(object sender, EventArgs e)
+        private async void btnAdTimKiem_SV_Click(object sender, EventArgs e)
         {
-            LoadDuLieuSinhVien();
+            await LoadDuLieuSinhVien();
         }
 
-        private void btnAdShowAll_SV_Click(object sender, EventArgs e)
+        private async void btnAdShowAll_SV_Click(object sender, EventArgs e)
         {
             txtAdTuKhoa_SV.Clear();
             cboAdTimKiem_SV.SelectedIndex = 1;
             cboKieuSX.SelectedIndex = 0;
             radTang.Checked = true;
 
-            LoadDuLieuSinhVien();
+            await LoadDuLieuSinhVien();
         }
 
-        private void cboKieuSX_SelectedIndexChanged(object sender, EventArgs e)
+        private async void cboKieuSX_SelectedIndexChanged(object sender, EventArgs e)
         {
-            LoadDuLieuSinhVien();
+            await LoadDuLieuSinhVien();
         }
 
-        private void radTang_CheckedChanged(object sender, EventArgs e)
+        private async void radTang_CheckedChanged(object sender, EventArgs e)
         {
             if (radTang.Checked)
-                LoadDuLieuSinhVien();
+                await LoadDuLieuSinhVien();
         }
 
-        private void radGiam_CheckedChanged(object sender, EventArgs e)
+        private async void radGiam_CheckedChanged(object sender, EventArgs e)
         {
             if (radGiam.Checked)
-                LoadDuLieuSinhVien();
+                await LoadDuLieuSinhVien();
         }
 
         private void btnNhap_Click(object sender, EventArgs e)
@@ -824,17 +879,31 @@ namespace QuanLyDiemSV
         }
 
         // Kiểm tra định dạng Email
-        private bool IsValidEmail(string email)
+        private bool IsValidEmailSV(string email)
         {
-            try
-            {
-                var addr = new System.Net.Mail.MailAddress(email);
-                return addr.Address == email;
-            }
-            catch { return false; }
+            return Regex.IsMatch(email, @"^[a-zA-Z0-9._%+-]+@student\.edu\.vn$");
+        }
+        private bool IsValidMaSV(string maSV)
+        {
+            return Regex.IsMatch(maSV, @"^[a-zA-Z]{3}\d{6}$");
         }
         private void RegisterValidations()
         {
+            // 1. Kiểm tra Mã Sinh Viên
+            txtAdMaSV.Validating += (s, e) => {
+                if (!string.IsNullOrEmpty(txtAdMaSV.Text) && !IsValidMaSV(txtAdMaSV.Text))
+                    errorProvider.SetError(txtAdMaSV, "Mã Sinh Viên phải gồm 3 chữ cái và 6 chữ số (VD: DTH235811)!");
+                else
+                    errorProvider.SetError(txtAdMaSV, "");
+            };
+
+            // 2. Kiểm tra Email Sinh Viên
+            txtAdSV_Email.Validating += (s, e) => {
+                if (!string.IsNullOrEmpty(txtAdSV_Email.Text) && !IsValidEmailSV(txtAdSV_Email.Text))
+                    errorProvider.SetError(txtAdSV_Email, "Email sinh viên phải có đuôi @student.edu.vn!");
+                else
+                    errorProvider.SetError(txtAdSV_Email, "");
+            };
             // 1. Kiểm tra CCCD ngay khi rời ô
             txtAdCCCDsv.Validating += (s, e) => {
                 if (!string.IsNullOrEmpty(txtAdCCCDsv.Text) && !IsValidCCCD(txtAdCCCDsv.Text))
@@ -860,19 +929,6 @@ namespace QuanLyDiemSV
                     errorProvider.SetError(txtAdSDT_SV, "");
                 }
             };
-
-            // 3. Kiểm tra Email
-            txtAdSV_Email.Validating += (s, e) => {
-                if (!string.IsNullOrEmpty(txtAdSV_Email.Text) && !IsValidEmail(txtAdSV_Email.Text))
-                {
-                    errorProvider.SetError(txtAdSV_Email, "Định dạng Email không hợp lệ (thiếu @ hoặc sai tên miền)!");
-                }
-                else
-                {
-                    errorProvider.SetError(txtAdSV_Email, "");
-                }
-            };
         }
-
     }
 }

@@ -20,6 +20,9 @@ namespace QuanLyDiemSV.Forms
         BindingSource bsChamDiem = new BindingSource();
         int currentLHP = 0; // Lưu tạm mã LHP đang chấm
         string currentMaGV = ""; //Lưu mã giáo viên đang đăng nhập
+        ErrorProvider errorProvider = new ErrorProvider();
+        bool dangCapNhatUI = false;
+        bool dangTruyVan = false;
         public UC_GiangVien_ChamDiem()
         {
             InitializeComponent();
@@ -27,6 +30,7 @@ namespace QuanLyDiemSV.Forms
             DgvDSSV.CellFormatting += DgvDSSV_CellFormatting;
             DgvDSSV.CellValueChanged += DgvDSSV_CellValueChanged;
             DgvDSSV.CellValidating += DgvDSSV_CellValidating;
+            DgvDSSV.DataError += DgvDSSV_DataError;
             StyleDataGridView(DgvDSSV);
             StyleButtons();
 
@@ -63,6 +67,8 @@ namespace QuanLyDiemSV.Forms
 
                 cboKieuSX.Items.AddRange(new string[] { "Mã SV", "Họ Tên", "Điểm Tổng Kết" });
                 cboKieuSX.SelectedIndex = 0; // Mặc định sắp xếp theo Mã SV
+
+                dangCapNhatUI = false;
             }
         }
         private void btnTaiLai_Click(object sender, EventArgs e)
@@ -71,7 +77,8 @@ namespace QuanLyDiemSV.Forms
             txtTimKiem.Clear();
             if (!string.IsNullOrEmpty(currentMaGV))
             {
-                LoadDanhSachLopCuaToi(currentMaGV);
+                LoadDanhSachLopCuaToiAsync
+                    (currentMaGV);
             }
         }
         private void StyleDataGridView(DataGridView dgv)
@@ -164,42 +171,86 @@ namespace QuanLyDiemSV.Forms
                 }
             }
         }
+        private void DgvDSSV_DataError(object sender, DataGridViewDataErrorEventArgs e)
+        {
+            e.ThrowException = false; // Tắt bảng lỗi tiếng Anh
+                                      // Báo đỏ nhưng không nhốt chuột. Lưới sẽ tự động xóa chữ 'a' và trả về số cũ.
+            DgvDSSV.Rows[e.RowIndex].Cells[e.ColumnIndex].ErrorText = "Dữ liệu nhập vào sai định dạng (không phải là số)!";
+        }
         private void DgvDSSV_CellValidating(object sender, DataGridViewCellValidatingEventArgs e)
-        {// Chỉ bắt lỗi khi đang gõ ở các cột điểm
+        {
             string colName = DgvDSSV.Columns[e.ColumnIndex].Name;
             if (colName == "DiemGK" || colName == "DiemCK" || colName == "DiemThiLan1" || colName == "DiemThiLan2")
             {
                 string newValue = e.FormattedValue.ToString();
-                if (!string.IsNullOrEmpty(newValue)) // Nếu GV đang gõ chữ số vào
+
+                // 1. Cho phép xóa trắng ô điểm
+                if (string.IsNullOrWhiteSpace(newValue))
                 {
-                    string maSV = DgvDSSV.Rows[e.RowIndex].Cells["MaSV"].Value.ToString();
-                    var lhpHienTai = dbChamDiem.LopHocPhan.FirstOrDefault(x => x.MaLHP == currentLHP);
+                    DgvDSSV.Rows[e.RowIndex].Cells[e.ColumnIndex].ErrorText = "";
+                    return;
+                }
 
-                    if (lhpHienTai != null)
+                // ====================================================================
+                // 2. KIỂM TRA ĐỊNH DẠNG SỐ VÀ KHOẢNG ĐIỂM [0 - 10]
+                // ====================================================================
+                if (!double.TryParse(newValue, out double diem))
+                {
+                    DgvDSSV.Rows[e.RowIndex].Cells[e.ColumnIndex].ErrorText = "Lỗi: Điểm bắt buộc phải là con số!";
+                    return; // Thoát ngay, để lại icon đỏ
+                }
+                else if (diem < 0 || diem > 10)
+                {
+                    DgvDSSV.Rows[e.RowIndex].Cells[e.ColumnIndex].ErrorText = "Lỗi: Điểm phải nằm trong khoảng từ 0 đến 10!";
+                    return; // Thoát ngay, để lại icon đỏ
+                }
+
+                // ====================================================================
+                // 3. KIỂM TRA MÔN TIÊN QUYẾT (Ngay khi vừa nhập xong)
+                // ====================================================================
+                string maSV = DgvDSSV.Rows[e.RowIndex].Cells["MaSV"].Value?.ToString();
+                var lhpHienTai = dbChamDiem.LopHocPhan.FirstOrDefault(x => x.MaLHP == currentLHP);
+
+                if (lhpHienTai != null)
+                {
+                    var listTienQuyet = dbChamDiem.DieuKienMonHoc.Where(dk => dk.MaMon == lhpHienTai.MaMon).ToList();
+                    foreach (var dk in listTienQuyet)
                     {
-                        var listTienQuyet = dbChamDiem.DieuKienMonHoc.Where(dk => dk.MaMon == lhpHienTai.MaMon).ToList();
-                        foreach (var dk in listTienQuyet)
+                        bool daQuaMonTQ = (from k in dbChamDiem.KetQuaHocTap
+                                           join lhp in dbChamDiem.LopHocPhan on k.MaLHP equals lhp.MaLHP
+                                           where k.MaSV == maSV && lhp.MaMon == dk.MaMonTienQuyet && k.DiemTongKet != null
+                                           select k).Any();
+
+                        if (!daQuaMonTQ)
                         {
-                            bool daQuaMonTQ = (from k in dbChamDiem.KetQuaHocTap
-                                               join lhp in dbChamDiem.LopHocPhan on k.MaLHP equals lhp.MaLHP
-                                               where k.MaSV == maSV && lhp.MaMon == dk.MaMonTienQuyet && k.DiemTongKet != null
-                                               select k).Any();
+                            string tenMonTQ = dbChamDiem.MonHoc.Where(m => m.MaMon == dk.MaMonTienQuyet).Select(m => m.TenMon).FirstOrDefault() ?? dk.MaMonTienQuyet;
 
-                            if (!daQuaMonTQ)
-                            {
-                                string tenMonTQ = dbChamDiem.MonHoc.Where(m => m.MaMon == dk.MaMonTienQuyet).Select(m => m.TenMon).FirstOrDefault() ?? dk.MaMonTienQuyet;
-
-                                MessageBox.Show($"Sinh viên [{maSV}] CHƯA ĐỦ ĐIỀU KIỆN NHẬP ĐIỂM!\n\nLý do: Chưa có điểm tổng kết môn {tenMonTQ}.",
-                                                "Chặn Nhập Điểm", MessageBoxButtons.OK, MessageBoxIcon.Stop);
-
-                                e.Cancel = true;      // Hủy thao tác gõ
-                                DgvDSSV.CancelEdit(); // Xóa số GV vừa gõ, trả lại ô trống
-                                return;
-                            }
+                            // Gắn thẳng icon đỏ vào ô kèm lời nhắn, KHÔNG DÙNG MessageBox nữa
+                            DgvDSSV.Rows[e.RowIndex].Cells[e.ColumnIndex].ErrorText = $"Chưa đủ điều kiện: Thiếu điểm tổng kết môn {tenMonTQ}!";
+                            return; // Thoát ngay, để lại icon đỏ
                         }
                     }
                 }
+
+                // ====================================================================
+                // 4. VƯỢT QUA TẤT CẢ BÀI KIỂM TRA -> XÓA SẠCH ICON LỖI
+                // ====================================================================
+                DgvDSSV.Rows[e.RowIndex].Cells[e.ColumnIndex].ErrorText = "";
             }
+        }
+        private bool IsGridHopLe()
+        {
+            foreach (DataGridViewRow row in DgvDSSV.Rows)
+            {
+                foreach (DataGridViewCell cell in row.Cells)
+                {
+                    if (!string.IsNullOrEmpty(cell.ErrorText))
+                    {
+                        return false; // Tìm thấy ít nhất 1 lỗi
+                    }
+                }
+            }
+            return true;
         }
         //Xác nhận mật khẩu trước khi cho phép nhập điểm
         // Xác nhận mật khẩu trước khi cho phép nhập điểm
@@ -344,6 +395,12 @@ namespace QuanLyDiemSV.Forms
             // =========================================================
             DgvDSSV.EndEdit();
             bsChamDiem.EndEdit();
+            if (!IsGridHopLe())
+            {
+                MessageBox.Show("Không thể lưu! Có dữ liệu điểm không hợp lệ (bị báo đỏ trên lưới).\nVui lòng kiểm tra lại khoảng điểm từ 0-10 hoặc các ký tự lạ.",
+                                "Cảnh báo dữ liệu", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return; // Chặn đứng tại đây, không chạy code xác nhận mật khẩu hay lưu DB
+            }
 
             // Nếu giảng viên không sửa điểm nào cả thì dừng luôn, không cần chạy kiểm tra
             if (!dbChamDiem.ChangeTracker.HasChanges())
@@ -590,7 +647,7 @@ namespace QuanLyDiemSV.Forms
             gb.Controls.Add(btnNhapDiem);
             flpDanhSachLop.Controls.Add(gb);
         }
-        public void LoadDanhSachLopCuaToi(string maGVDangNhap)
+        public async Task LoadDanhSachLopCuaToiAsync(string maGVDangNhap)
         {
             // Lưu lại mã GV để dùng cho các nút Lọc / Cbo Changed
             currentMaGV = maGVDangNhap;
@@ -622,7 +679,7 @@ namespace QuanLyDiemSV.Forms
                                              l.PhongHoc.ToLower().Contains(tuKhoa));
                 }
 
-                var danhSachLop = query.ToList();
+                var danhSachLop = await query.ToListAsync();
 
                 if (danhSachLop.Count == 0)
                 {
@@ -699,54 +756,68 @@ namespace QuanLyDiemSV.Forms
         // ==============================================================
         // HÀM TẢI DỮ LIỆU KÈM LỌC VÀ SẮP XẾP
         // ==============================================================
-        private void LoadDanhSachSinhVienLop()
+        private async void LoadDanhSachSinhVienLop()
         {
-            if (currentLHP == 0 || dbChamDiem == null) return;
+            // 1. Ổ KHÓA BẢO VỆ: Nếu đang truy vấn dở dang thì chặn lại ngay lập tức
+            if (currentLHP == 0 || dbChamDiem == null || dangTruyVan) return;
 
-            // 1. Kéo toàn bộ SV trong lớp lên
-            var query = dbChamDiem.KetQuaHocTap
-                                  .Include(kq => kq.MaSVNavigation)
-                                  .Where(kq => kq.MaLHP == currentLHP)
-                                  .AsQueryable();
+            dangTruyVan = true; // Khóa cửa lại, không cho luồng khác chạy vào
+            Cursor.Current = Cursors.WaitCursor;
 
-            // 2. LOGIC TÌM KIẾM
-            string tuKhoa = txtTuKhoa.Text.Trim().ToLower();
-            if (!string.IsNullOrEmpty(tuKhoa) && cboLoaiTK.SelectedIndex != -1)
+            try
             {
-                string loaiTK = cboLoaiTK.SelectedItem.ToString();
-                if (loaiTK == "Mã SV")
-                    query = query.Where(q => q.MaSV.ToLower().Contains(tuKhoa));
-                else if (loaiTK == "Họ Tên")
-                    query = query.Where(q => q.MaSVNavigation.HoTen.ToLower().Contains(tuKhoa));
-            }
+                var query = dbChamDiem.KetQuaHocTap
+                                      .Include(kq => kq.MaSVNavigation)
+                                      .Where(kq => kq.MaLHP == currentLHP)
+                                      .AsQueryable();
 
-            // 3. LOGIC SẮP XẾP
-            bool isTang = radTang.Checked;
-            if (cboKieuSX.SelectedIndex != -1)
-            {
-                string kieuSX = cboKieuSX.SelectedItem.ToString();
-                switch (kieuSX)
+                string tuKhoa = txtTuKhoa.Text.Trim().ToLower();
+                if (!string.IsNullOrEmpty(tuKhoa) && cboLoaiTK.SelectedIndex != -1)
                 {
-                    case "Mã SV":
-                        query = isTang ? query.OrderBy(q => q.MaSV) : query.OrderByDescending(q => q.MaSV);
-                        break;
-                    case "Họ Tên":
-                        query = isTang ? query.OrderBy(q => q.MaSVNavigation.HoTen) : query.OrderByDescending(q => q.MaSVNavigation.HoTen);
-                        break;
-                    case "Điểm Tổng Kết":
-                        query = isTang ? query.OrderBy(q => q.DiemTongKet) : query.OrderByDescending(q => q.DiemTongKet);
-                        break;
+                    string loaiTK = cboLoaiTK.SelectedItem.ToString();
+                    if (loaiTK == "Mã SV")
+                        query = query.Where(q => q.MaSV.ToLower().Contains(tuKhoa));
+                    else if (loaiTK == "Họ Tên")
+                        query = query.Where(q => q.MaSVNavigation.HoTen.ToLower().Contains(tuKhoa));
                 }
+
+                bool isTang = radTang.Checked;
+                if (cboKieuSX.SelectedIndex != -1)
+                {
+                    string kieuSX = cboKieuSX.SelectedItem.ToString();
+                    switch (kieuSX)
+                    {
+                        case "Mã SV":
+                            query = isTang ? query.OrderBy(q => q.MaSV) : query.OrderByDescending(q => q.MaSV);
+                            break;
+                        case "Họ Tên":
+                            query = isTang ? query.OrderBy(q => q.MaSVNavigation.HoTen) : query.OrderByDescending(q => q.MaSVNavigation.HoTen);
+                            break;
+                        case "Điểm Tổng Kết":
+                            query = isTang ? query.OrderBy(q => q.DiemTongKet) : query.OrderByDescending(q => q.DiemTongKet);
+                            break;
+                    }
+                }
+
+                // Đẩy công việc lấy dữ liệu sang luồng ngầm (Async)
+                var dsSinhVien = await query.ToListAsync();
+
+                lblSoLuongSV.Text = $"Số lượng: {dsSinhVien.Count} sinh viên";
+
+                bsChamDiem.DataSource = dsSinhVien;
+                DgvDSSV.AutoGenerateColumns = false;
+                DgvDSSV.DataSource = bsChamDiem;
             }
-
-            var dsSinhVien = query.ToList();
-            lblSoLuongSV.Text = $"Số lượng: {dsSinhVien.Count} sinh viên";
-
-            // Đổ vào DataGridView
-            bsChamDiem.DataSource = dsSinhVien;
-            DgvDSSV.AutoGenerateColumns = false;
-            DgvDSSV.DataSource = bsChamDiem;
-            DgvDSSV.EndEdit(); // Ngăn lỗi dở dang khi reload lưới
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi tải danh sách: " + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                // 2. MỞ KHÓA BẢO VỆ: Dù code chạy thành công hay văng lỗi cũng phải mở khóa
+                dangTruyVan = false;
+                Cursor.Current = Cursors.Default;
+            }
         }
 
         // ==============================================================
@@ -760,18 +831,32 @@ namespace QuanLyDiemSV.Forms
             cboLoaiTK.SelectedIndex = 1;
             cboKieuSX.SelectedIndex = 0;
             radTang.Checked = true;
+
+            dangCapNhatUI = false;
             LoadDanhSachSinhVienLop();
+
         }
 
-        private void CboKieuSX_SelectedIndexChanged(object sender, EventArgs e) => LoadDanhSachSinhVienLop();
-        private void RadTang_CheckedChanged(object sender, EventArgs e) { if (radTang.Checked) LoadDanhSachSinhVienLop(); }
-        private void RadGiam_CheckedChanged(object sender, EventArgs e) { if (radGiam.Checked) LoadDanhSachSinhVienLop(); }
+        private void CboKieuSX_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (!dangCapNhatUI) LoadDanhSachSinhVienLop();
+        }
+
+        private void RadTang_CheckedChanged(object sender, EventArgs e)
+        {
+            if (!dangCapNhatUI && radTang.Checked) LoadDanhSachSinhVienLop();
+        }
+
+        private void RadGiam_CheckedChanged(object sender, EventArgs e)
+        {
+            if (!dangCapNhatUI && radGiam.Checked) LoadDanhSachSinhVienLop();
+        }
 
         private void cboHocKy_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (!string.IsNullOrEmpty(currentMaGV))
             {
-                LoadDanhSachLopCuaToi(currentMaGV);
+                LoadDanhSachLopCuaToiAsync(currentMaGV);
             }
         }
 
@@ -779,7 +864,7 @@ namespace QuanLyDiemSV.Forms
         {
             if (!string.IsNullOrEmpty(currentMaGV))
             {
-                LoadDanhSachLopCuaToi(currentMaGV);
+                LoadDanhSachLopCuaToiAsync(currentMaGV);
             }
         }
 
@@ -861,6 +946,186 @@ namespace QuanLyDiemSV.Forms
                     {
                         MessageBox.Show("Lỗi xuất file: " + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     }
+                }
+            }
+        }
+
+        private void btnXuatExcel_Click(object sender, EventArgs e)
+        {
+            if (currentLHP == 0)
+            {
+                MessageBox.Show("Vui lòng chọn một lớp học phần ở bên trái để xuất bảng điểm!", "Cảnh báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            SaveFileDialog sfd = new SaveFileDialog() { Filter = "Excel Workbook|*.xlsx", FileName = $"BangDiem_LHP_{currentLHP}.xlsx" };
+            if (sfd.ShowDialog() == DialogResult.OK)
+            {
+                try
+                {
+                    Cursor.Current = Cursors.WaitCursor;
+                    using (var workbook = new XLWorkbook())
+                    {
+                        var worksheet = workbook.Worksheets.Add("Bảng Điểm");
+
+                        // 1. Tạo Tiêu Đề
+                        worksheet.Cell(1, 1).Value = "Mã SV";
+                        worksheet.Cell(1, 2).Value = "Họ Tên";
+                        worksheet.Cell(1, 3).Value = "Điểm Quá Trình";
+                        worksheet.Cell(1, 4).Value = "Điểm Cuối Kỳ";
+                        worksheet.Cell(1, 5).Value = "Điểm Lần 1 (Thi Lại)";
+                        worksheet.Cell(1, 6).Value = "Điểm Lần 2 (Cải Thiện)";
+
+                        var header = worksheet.Range("A1:F1");
+                        header.Style.Font.Bold = true;
+                        header.Style.Fill.BackgroundColor = XLColor.LightGray;
+
+                        // 2. Đổ dữ liệu sinh viên trong lớp ra file
+                        var dsSV = dbChamDiem.KetQuaHocTap
+                                             .Include(k => k.MaSVNavigation)
+                                             .Where(k => k.MaLHP == currentLHP)
+                                             .ToList();
+                        int row = 2;
+                        foreach (var sv in dsSV)
+                        {
+                            worksheet.Cell(row, 1).Value = sv.MaSV;
+                            worksheet.Cell(row, 2).Value = sv.MaSVNavigation.HoTen;
+                            worksheet.Cell(row, 3).Value = sv.DiemGK;
+                            worksheet.Cell(row, 4).Value = sv.DiemCK;
+                            worksheet.Cell(row, 5).Value = sv.DiemThiLan1;
+                            worksheet.Cell(row, 6).Value = sv.DiemThiLan2;
+                            row++;
+                        }
+
+                        worksheet.Columns().AdjustToContents();
+                        workbook.SaveAs(sfd.FileName);
+                        MessageBox.Show("Đã xuất file Excel mẫu thành công!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Lỗi xuất file: " + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+                finally
+                {
+                    Cursor.Current = Cursors.Default;
+                }
+            }
+        }
+        // Hàm hỗ trợ 1: Chuyển đổi thành decimal?
+        private decimal? ParseDiemImport(string val)
+        {
+            if (string.IsNullOrWhiteSpace(val)) return null;
+            if (decimal.TryParse(val, out decimal diem)) return diem;
+            return -1m; // Chữ 'm' đại diện cho kiểu decimal
+        }
+
+        // Hàm hỗ trợ 2: Kiểm tra hợp lệ bằng decimal?
+        private bool KiemTraHopLeImport(decimal? diem)
+        {
+            if (!diem.HasValue) return true;
+            return diem.Value >= 0m && diem.Value <= 10m;
+        }
+        private async void btnNhapExcel_Click(object sender, EventArgs e)
+        {
+            if (currentLHP == 0)
+            {
+                MessageBox.Show("Vui lòng chọn một lớp học phần trước khi import điểm!", "Cảnh báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            OpenFileDialog ofd = new OpenFileDialog() { Filter = "Excel Workbook|*.xlsx", Title = "Chọn file bảng điểm đã nhập" };
+            if (ofd.ShowDialog() == DialogResult.OK)
+            {
+                try
+                {
+                    Cursor.Current = Cursors.WaitCursor;
+                    int soDongThanhCong = 0;
+                    List<string> dsLoi = new List<string>();
+
+                    using (var workbook = new XLWorkbook(ofd.FileName))
+                    {
+                        var worksheet = workbook.Worksheet(1);
+                        var rows = worksheet.RangeUsed().RowsUsed().Skip(1); // Bỏ qua dòng Tiêu đề (Header)
+
+                        // Lấy thông tin lớp và môn tiên quyết để kiểm tra
+                        var lhpHienTai = await dbChamDiem.LopHocPhan.FirstOrDefaultAsync(x => x.MaLHP == currentLHP);
+                        var listTienQuyet = await dbChamDiem.DieuKienMonHoc.Where(dk => dk.MaMon == lhpHienTai.MaMon).ToListAsync();
+
+                        foreach (var row in rows)
+                        {
+                            string maSV = row.Cell(1).GetString().Trim();
+                            if (string.IsNullOrEmpty(maSV)) continue;
+
+                            var kqHocTap = bsChamDiem.List.OfType<KetQuaHocTap>().FirstOrDefault(k => k.MaSV == maSV);
+                            if (kqHocTap == null)
+                            {
+                                dsLoi.Add($"- Dòng {row.RowNumber()}: SV [{maSV}] không có danh sách lớp này.");
+                                continue;
+                            }
+
+                            // SỬA LỖI CS0266: Đổi double? thành decimal?
+                            decimal? diemQT = ParseDiemImport(row.Cell(3).GetString());
+                            decimal? diemCK = ParseDiemImport(row.Cell(4).GetString());
+                            decimal? diemL1 = ParseDiemImport(row.Cell(5).GetString());
+                            decimal? diemL2 = ParseDiemImport(row.Cell(6).GetString());
+
+                            if (!KiemTraHopLeImport(diemQT) || !KiemTraHopLeImport(diemCK) || !KiemTraHopLeImport(diemL1) || !KiemTraHopLeImport(diemL2))
+                            {
+                                dsLoi.Add($"- Dòng {row.RowNumber()}: SV [{maSV}] điểm chứa chữ cái hoặc ngoài khoảng 0-10.");
+                                continue;
+                            }
+
+                            if (diemQT != null || diemCK != null || diemL1 != null || diemL2 != null)
+                            {
+                                bool duDieuKien = true;
+                                foreach (var dk in listTienQuyet)
+                                {
+                                    // SỬA LỖI CS8602: Thêm dấu ? an toàn vào k.MaLHPNavigation?.MaMon
+                                    bool daQua = await dbChamDiem.KetQuaHocTap.AnyAsync(k => k.MaSV == maSV && k.MaLHPNavigation != null && k.MaLHPNavigation.MaMon == dk.MaMonTienQuyet && k.DiemTongKet != null);
+                                    if (!daQua)
+                                    {
+                                        dsLoi.Add($"- Dòng {row.RowNumber()}: SV [{maSV}] CHƯA qua môn tiên quyết.");
+                                        duDieuKien = false;
+                                        break;
+                                    }
+                                }
+                                if (!duDieuKien) continue;
+                            }
+
+                            kqHocTap.DiemGK = diemQT;
+                            kqHocTap.DiemCK = diemCK;
+                            kqHocTap.DiemThiLan1 = diemL1;
+                            kqHocTap.DiemThiLan2 = diemL2;
+
+                            soDongThanhCong++;
+                        }
+
+                        // Làm mới lưới DataGridView để GV nhìn thấy ngay số điểm vừa Import
+                        bsChamDiem.ResetBindings(false);
+
+                        // 6. Báo cáo tổng kết mượt mà
+                        string thongBao = $"Đã nạp thành công điểm cho {soDongThanhCong} sinh viên lên lưới.\n\n*** LƯU Ý: Bạn cần bấm nút LƯU BẢNG ĐIỂM để xác nhận chốt điểm xuống cơ sở dữ liệu. ***\n";
+                        if (dsLoi.Count > 0)
+                        {
+                            thongBao += $"\nCó {dsLoi.Count} dòng dữ liệu bị bỏ qua vì vi phạm quy chế:\n" + string.Join("\n", dsLoi.Take(10));
+                            if (dsLoi.Count > 10) thongBao += "\n...(và một số lỗi khác)";
+
+                            MessageBox.Show(thongBao, "Kết quả nạp Excel (Có cảnh báo)", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        }
+                        else
+                        {
+                            MessageBox.Show(thongBao, "Import Thành Công", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Lỗi xử lý file Excel: Hãy đảm bảo bạn đã đóng file Excel trước khi Import.\nChi tiết: " + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+                finally
+                {
+                    Cursor.Current = Cursors.Default;
                 }
             }
         }

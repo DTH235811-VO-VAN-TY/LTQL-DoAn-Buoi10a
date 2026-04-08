@@ -44,45 +44,49 @@ namespace QuanLyDiemSV.Forms
         {
             try
             {
-                // Bước 1: Tìm Khoa của môn học mà Lớp HP này đang dạy
-                var lhp = (from l in context.LopHocPhan
-                           join m in context.MonHoc on l.MaMon equals m.MaMon
-                           where l.MaLHP == currentMaLHP
-                           select new { m.MaKhoa }).FirstOrDefault();
+                var lhpInfo = (from l in context.LopHocPhan
+                               join m in context.MonHoc on l.MaMon equals m.MaMon
+                               where l.MaLHP == currentMaLHP
+                               select new { m.MaKhoa }).FirstOrDefault();
 
-                string maKhoaMonHoc = lhp?.MaKhoa?.Trim();
+                string maKhoaMonHoc = lhpInfo?.MaKhoa?.Trim();
 
-                // Bước 2: Truy vấn toàn bộ sinh viên đang đi học
                 var querySV = from sv in context.SinhVien
                               join lop in context.LopHanhChinh on sv.MaLop equals lop.MaLop
                               join nganh in context.Nganh on lop.MaNganh equals nganh.MaNganh
                               where sv.TrangThai == 1
-                              select new { sv, KhoaCuaSV = nganh.MaKhoa };
+                              select new
+                              {
+                                  sv.MaSV,
+                                  sv.HoTen,
+                                  MaKhoaSinhVien = nganh.MaKhoa
+                              };
 
-                // Bước 3: Nếu môn có Khoa cụ thể -> Ép điều kiện cùng Khoa. (Nếu NULL thì là đại cương, bỏ qua)
                 if (!string.IsNullOrEmpty(maKhoaMonHoc))
                 {
-                    querySV = querySV.Where(x => x.KhoaCuaSV.Trim() == maKhoaMonHoc);
+                    querySV = querySV.Where(x => x.MaKhoaSinhVien.Trim() == maKhoaMonHoc);
                 }
 
-                var listSV = querySV.Select(x => x.sv).ToList();
+                var listSV = querySV.ToList().Select(x => new
+                {
+                    MaSV = x.MaSV,
+                    HoTen = x.HoTen,
+                    HienThi = $"[{x.MaSV} - {x.HoTen}]"
+                }).ToList();
 
-                // Lưu danh sách mã hợp lệ ra biến toàn cục để lát nữa chặn Excel
                 listMaSVHopLe = listSV.Select(x => x.MaSV).ToList();
 
-                // Đổ vào ComboBox
                 cboMaSV.DataSource = listSV;
-                cboMaSV.DisplayMember = "MaSV";
+                cboMaSV.DisplayMember = "HienThi";
                 cboMaSV.ValueMember = "MaSV";
                 cboMaSV.SelectedIndex = -1;
 
-                // Bật tính năng gõ tìm kiếm cực nhanh cho ComboBox
                 cboMaSV.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
                 cboMaSV.AutoCompleteSource = AutoCompleteSource.ListItems;
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Lỗi tải danh sách sinh viên hợp lệ: " + ex.Message);
+                MessageBox.Show("Lỗi tải danh sách sinh viên hợp lệ: " + ex.Message, "Thông báo lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -90,7 +94,7 @@ namespace QuanLyDiemSV.Forms
         {
             if (cboMaSV.SelectedItem != null)
             {
-                var sv = (SinhVien)cboMaSV.SelectedItem;
+                dynamic sv = cboMaSV.SelectedItem;
                 txtTenSV.Text = sv.HoTen;
             }
             else
@@ -121,12 +125,13 @@ namespace QuanLyDiemSV.Forms
                 if (!string.IsNullOrWhiteSpace(tuKhoa))
                 {
                     tuKhoa = tuKhoa.ToLower();
-                    query = query.Where(x => x.MaSV.ToLower().Contains(tuKhoa) || x.HoTen.ToLower().Contains(tuKhoa));
+                    query = query.Where(x => x.MaSV.ToLower().Contains(tuKhoa) ||
+                                             x.HoTen.ToLower().Contains(tuKhoa) ||
+                                             x.TenLop.ToLower().Contains(tuKhoa));
                 }
 
                 dgvSinhVien.DataSource = query.ToList();
 
-                // Cập nhật Sĩ số
                 var lhp = context.LopHocPhan.FirstOrDefault(x => x.MaLHP == currentMaLHP);
                 int siSoMax = lhp != null ? (int)lhp.SiSoToiDa : 0;
                 int hienTai = context.KetQuaHocTap.Count(x => x.MaLHP == currentMaLHP);
@@ -139,7 +144,7 @@ namespace QuanLyDiemSV.Forms
 
         private void btnTimKiem_Click(object sender, EventArgs e)
         {
-            LoadDanhSachLop(textBox1.Text.Trim());
+            LoadDanhSachLop(txtTuKhoa.Text.Trim());
         }
 
         // ===============================================
@@ -301,6 +306,53 @@ namespace QuanLyDiemSV.Forms
         private void btnHuyBo_Click(object sender, EventArgs e)
         {
             this.Close();
+        }
+
+        private void btnXuat_Click(object sender, EventArgs e)
+        {
+            SaveFileDialog sfd = new SaveFileDialog() { Filter = "Excel Workbook|*.xlsx", FileName = $"DanhSachLop_{currentMaLHP}.xlsx" };
+            if (sfd.ShowDialog() == DialogResult.OK)
+            {
+                using (var workbook = new XLWorkbook())
+                {
+                    var ws = workbook.Worksheets.Add("SinhVien");
+                    ws.Cell(1, 1).Value = "Mã Sinh Viên";
+                    ws.Cell(1, 2).Value = "Họ Tên";
+
+                    for (int i = 0; i < dgvSinhVien.Rows.Count; i++)
+                    {
+                        ws.Cell(i + 2, 1).Value = dgvSinhVien.Rows[i].Cells["MaSV"].Value?.ToString();
+                        ws.Cell(i + 2, 2).Value = dgvSinhVien.Rows[i].Cells["HoTen"].Value?.ToString();
+                    }
+
+                    workbook.SaveAs(sfd.FileName);
+                    MessageBox.Show("Xuất file thành công!");
+                }
+            }
+        }
+
+        private void dgvSinhVien_CellClick(object sender, DataGridViewCellEventArgs e)
+        {
+            if (e.RowIndex >= 0)
+            {
+                DataGridViewRow row = dgvSinhVien.Rows[e.RowIndex];
+                string maSV = row.Cells["MaSV"].Value?.ToString();
+                string hoTen = row.Cells["HoTen"].Value?.ToString();
+
+                // Gán SelectedValue sẽ tự động hiển thị dạng [Mã SV - Họ tên] nhờ đã set DisplayMember = "HienThi"
+                cboMaSV.SelectedValue = maSV;
+                txtTenSV.Text = hoTen;
+            }
+        }
+
+        private void btnTimKiem_Click_1(object sender, EventArgs e)
+        {
+            LoadDanhSachLop(txtTuKhoa.Text.Trim());
+        }
+
+        private void btnHienTatCa_Click(object sender, EventArgs e)
+        {
+            LoadDanhSachLop();
         }
     }
 }

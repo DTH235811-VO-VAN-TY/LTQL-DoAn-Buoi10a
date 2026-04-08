@@ -11,6 +11,7 @@ using ClosedXML.Excel;
 using iTextSharp.text;
 using iTextSharp.text.pdf;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace QuanLyDiemSV.Forms
 {
@@ -43,30 +44,31 @@ namespace QuanLyDiemSV.Forms
                 cboKhoa.Enabled = false;   // Khóa ô chọn Khoa
                 cboLop.Enabled = false;    // Khóa ô chọn Lớp
             }
-            else if (Session.RoleID == 2) {
+            else if (Session.RoleID == 2)
+            {
                 cboKhoa.Enabled = false;
             }
             // =======================================================
 
-            LoadDanhSachSinhVien();
+            //LoadDanhSachSinhVien();
 
-            // Gán sự kiện sau khi load dữ liệu xong để tránh trigger sớm
-            cboKhoa.SelectedIndexChanged += cboKhoa_SelectedIndexChanged;
-            cboLop.SelectedIndexChanged += (s, ev) => LoadDanhSachSinhVien();
-            cboLoaiSX.SelectedIndexChanged += (s, ev) => LoadDanhSachSinhVien();
-            radTang.CheckedChanged += (s, ev) => LoadDanhSachSinhVien();
-            radGiam.CheckedChanged += (s, ev) => LoadDanhSachSinhVien();
+            //// Gán sự kiện sau khi load dữ liệu xong để tránh trigger sớm
+            //cboKhoa.SelectedIndexChanged += cboKhoa_SelectedIndexChanged;
+            //cboLop.SelectedIndexChanged += (s, ev) => LoadDanhSachSinhVien();
+            //cboLoaiSX.SelectedIndexChanged += (s, ev) => LoadDanhSachSinhVien();
+            //radTang.CheckedChanged += (s, ev) => LoadDanhSachSinhVien();
+            //radGiam.CheckedChanged += (s, ev) => LoadDanhSachSinhVien();
 
             dgvDanhSachSV.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
         }
 
-        public void CapNhatDuLieuMoiNhat()
+        public async Task CapNhatDuLieuMoiNhat()
         {
             using (var freshContext = new QLDSVDbContext())
             {
                 var oldKhoa = cboKhoa.SelectedValue;
 
-                var listKhoa = freshContext.Khoa.AsNoTracking().ToList();
+                var listKhoa = await freshContext.Khoa.AsNoTracking().ToListAsync();
                 listKhoa.Insert(0, new Khoa { MaKhoa = "ALL", TenKhoa = "--- Tất cả Khoa ---" });
 
                 // Tạm thời gỡ sự kiện SelectedIndexChanged để không bị load data 2 lần
@@ -84,7 +86,7 @@ namespace QuanLyDiemSV.Forms
 
             // Tải lại lưới
             context.ChangeTracker.Clear();
-            LoadDanhSachSinhVien();
+            await LoadDanhSachSinhVien();
         }
 
 
@@ -134,154 +136,189 @@ namespace QuanLyDiemSV.Forms
             catch { }
         }
 
-        private void cboKhoa_SelectedIndexChanged(object sender, EventArgs e)
+        private async void cboKhoa_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (cboKhoa.SelectedValue == null) return;
-            // Kiểm tra an toàn xem giá trị có phải chuỗi ID không
-            if (cboKhoa.SelectedValue is string maKhoa)
+
+            // 1. KIỂM TRA Ổ KHÓA: Nếu luồng khác đang dùng context thì chặn lại
+            if (dangTruyVan) return;
+            dangTruyVan = true; // Đóng cửa
+
+            try
             {
-                List<LopHanhChinh> listLop;
-                if (maKhoa == "ALL")
+                if (cboKhoa.SelectedValue is string maKhoa)
                 {
-                    listLop = context.LopHanhChinh.ToList();
+                    List<LopHanhChinh> listLop;
+
+                    // 2. ĐỔI .ToList() ĐỒNG BỘ THÀNH .ToListAsync() BẤT ĐỒNG BỘ
+                    if (maKhoa == "ALL")
+                    {
+                        listLop = await context.LopHanhChinh.ToListAsync();
+                    }
+                    else
+                    {
+                        listLop = await context.LopHanhChinh
+                                         .Include(l => l.MaNganhNavigation)
+                                         .Where(l => l.MaNganhNavigation.MaKhoa == maKhoa)
+                                         .ToListAsync();
+                    }
+
+                    listLop.Insert(0, new LopHanhChinh { MaLop = "ALL", TenLop = "--- Tất cả Lớp ---" });
+
+                    // 3. GỠ SỰ KIỆN CỦA LỚP RA (Để khi gán DataSource nó không tự động chạy LoadDanhSachSinhVien)
+                    cboLop.SelectedIndexChanged -= cboLop_SelectedIndexChanged;
+
+                    cboLop.DataSource = null;
+                    cboLop.DisplayMember = "TenLop";
+                    cboLop.ValueMember = "MaLop";
+                    cboLop.DataSource = listLop;
+                    cboLop.SelectedIndex = 0;
+
+                    // 4. Gắn sự kiện lại bình thường
+                    cboLop.SelectedIndexChanged += cboLop_SelectedIndexChanged;
+                }
+            }
+            catch { }
+            finally
+            {
+                dangTruyVan = false; // Xử lý xong -> Mở cửa
+            }
+
+            // 5. Lúc này mới an toàn để gọi hàm Load lưới
+            await LoadDanhSachSinhVien();
+        }
+        bool dangTruyVan = false;
+        private async Task LoadDanhSachSinhVien()
+        {
+            if (dangTruyVan) return; // Tránh gọi chồng chéo nếu người dùng thay đổi filter quá nhanh
+            dangTruyVan = true;
+
+            try
+            {
+                string maKhoa = cboKhoa.SelectedValue?.ToString();
+                string maLop = cboLop.SelectedValue?.ToString();
+                string tuKhoa = txtTuKhoa.Text.Trim().ToLower();
+
+
+
+                // 1. Lọc danh sách sinh viên theo các ComboBox và Textbox tìm kiếm
+                var querySV = context.SinhVien
+                    .Include(s => s.MaLopNavigation)
+                    .ThenInclude(l => l.MaNganhNavigation)
+                    .ThenInclude(n => n.MaKhoaNavigation)
+                    .AsQueryable();
+
+                if (Session.RoleID == 3)
+                {
+                    // Nếu là sinh viên: BỎ QUA mọi điều kiện lọc, ép cứng truy vấn chỉ lấy mã SV này
+                    string maSVDangNhap = Session.MaNguoiDung.ToLower();
+                    querySV = querySV.Where(s => s.MaSV.ToLower() == maSVDangNhap);
+                }
+                else if (Session.RoleID == 2)
+                {
+                    var gv = context.GiangVien.FirstOrDefault(g => g.MaGV == Session.MaNguoiDung);
+                    if (gv != null)
+                    {
+                        querySV = querySV.Where(s => s.MaLopNavigation.MaNganhNavigation.MaKhoa == gv.MaKhoa);
+                    }
+
+                    // Vẫn cho phép Giảng viên tìm kiếm theo Lớp và Từ khóa trong phạm vi Khoa của mình
+                    if (!string.IsNullOrEmpty(maLop) && maLop != "ALL")
+                        querySV = querySV.Where(s => s.MaLop == maLop);
+
+                    if (!string.IsNullOrEmpty(tuKhoa))
+                        querySV = querySV.Where(s => s.MaSV.ToLower().Contains(tuKhoa) || s.HoTen.ToLower().Contains(tuKhoa));
                 }
                 else
                 {
-                    listLop = context.LopHanhChinh
-                                     .Include(l => l.MaNganhNavigation)
-                                     .Where(l => l.MaNganhNavigation.MaKhoa == maKhoa)
-                                     .ToList();
+                    if (!string.IsNullOrEmpty(maKhoa) && maKhoa != "ALL")
+                        querySV = querySV.Where(s => s.MaLopNavigation.MaNganhNavigation.MaKhoa == maKhoa);
+
+                    if (!string.IsNullOrEmpty(maLop) && maLop != "ALL")
+                        querySV = querySV.Where(s => s.MaLop == maLop);
+
+                    if (!string.IsNullOrEmpty(tuKhoa))
+                        querySV = querySV.Where(s => s.MaSV.ToLower().Contains(tuKhoa) || s.HoTen.ToLower().Contains(tuKhoa));
                 }
 
-                listLop.Insert(0, new LopHanhChinh { MaLop = "ALL", TenLop = "--- Tất cả Lớp ---" });
 
-                cboLop.DataSource = null;
-                cboLop.DisplayMember = "TenLop";
-                cboLop.ValueMember = "MaLop";
-                cboLop.DataSource = listLop;
-                cboLop.SelectedIndex = 0;
+                var listSV = await querySV.ToListAsync();
 
-                LoadDanhSachSinhVien();
-            }
-        }
-
-        private void LoadDanhSachSinhVien()
-        {
-            string maKhoa = cboKhoa.SelectedValue?.ToString();
-            string maLop = cboLop.SelectedValue?.ToString();
-            string tuKhoa = txtTuKhoa.Text.Trim().ToLower();
-
-
-
-            // 1. Lọc danh sách sinh viên theo các ComboBox và Textbox tìm kiếm
-            var querySV = context.SinhVien
-                .Include(s => s.MaLopNavigation)
-                .ThenInclude(l => l.MaNganhNavigation)
-                .ThenInclude(n => n.MaKhoaNavigation)
-                .AsQueryable();
-
-            if (Session.RoleID == 3)
-            {
-                // Nếu là sinh viên: BỎ QUA mọi điều kiện lọc, ép cứng truy vấn chỉ lấy mã SV này
-                string maSVDangNhap = Session.MaNguoiDung.ToLower();
-                querySV = querySV.Where(s => s.MaSV.ToLower() == maSVDangNhap);
-            }
-            else if(Session.RoleID == 2)
-            {
-                var gv = context.GiangVien.FirstOrDefault(g => g.MaGV == Session.MaNguoiDung);
-                if (gv != null)
+                // Nếu không có SV nào thì làm rỗng lưới và thoát
+                if (listSV.Count == 0)
                 {
-                    querySV = querySV.Where(s => s.MaLopNavigation.MaNganhNavigation.MaKhoa == gv.MaKhoa);
+                    dgvDanhSachSV.DataSource = null;
+                    return;
                 }
 
-                // Vẫn cho phép Giảng viên tìm kiếm theo Lớp và Từ khóa trong phạm vi Khoa của mình
-                if (!string.IsNullOrEmpty(maLop) && maLop != "ALL")
-                    querySV = querySV.Where(s => s.MaLop == maLop);
+                // 2. Lấy TOÀN BỘ ĐIỂM của các sinh viên này từ CSDL (Chỉ lấy môn đã có DiemTongKet)
+                var maSVs = listSV.Select(s => s.MaSV).ToList();
+                var listDiem = (from kq in context.KetQuaHocTap.AsNoTracking()
+                                join lhp in context.LopHocPhan.AsNoTracking() on kq.MaLHP equals lhp.MaLHP
+                                join mh in context.MonHoc.AsNoTracking() on lhp.MaMon equals mh.MaMon
+                                where maSVs.Contains(kq.MaSV) && kq.DiemTongKet != null
+                                select new
+                                {
+                                    kq.MaSV,
+                                    DiemTongKet = kq.DiemTongKet.Value,
+                                    mh.SoTinChi
+                                }).ToList();
 
-                if (!string.IsNullOrEmpty(tuKhoa))
-                    querySV = querySV.Where(s => s.MaSV.ToLower().Contains(tuKhoa) || s.HoTen.ToLower().Contains(tuKhoa));
-            }
-            else
-            {
-                if (!string.IsNullOrEmpty(maKhoa) && maKhoa != "ALL")
-                    querySV = querySV.Where(s => s.MaLopNavigation.MaNganhNavigation.MaKhoa == maKhoa);
+                // 3. Tính toán Điểm Trung Bình Hệ 10 tích lũy cho từng sinh viên
+                var listResult = new List<dynamic>();
 
-                if (!string.IsNullOrEmpty(maLop) && maLop != "ALL")
-                    querySV = querySV.Where(s => s.MaLop == maLop);
-
-                if (!string.IsNullOrEmpty(tuKhoa))
-                    querySV = querySV.Where(s => s.MaSV.ToLower().Contains(tuKhoa) || s.HoTen.ToLower().Contains(tuKhoa));
-            }
-
-
-            var listSV = querySV.ToList();
-
-            // Nếu không có SV nào thì làm rỗng lưới và thoát
-            if (listSV.Count == 0)
-            {
-                dgvDanhSachSV.DataSource = null;
-                return;
-            }
-
-            // 2. Lấy TOÀN BỘ ĐIỂM của các sinh viên này từ CSDL (Chỉ lấy môn đã có DiemTongKet)
-            var maSVs = listSV.Select(s => s.MaSV).ToList();
-            var listDiem = (from kq in context.KetQuaHocTap.AsNoTracking()
-                            join lhp in context.LopHocPhan.AsNoTracking() on kq.MaLHP equals lhp.MaLHP
-                            join mh in context.MonHoc.AsNoTracking() on lhp.MaMon equals mh.MaMon
-                            where maSVs.Contains(kq.MaSV) && kq.DiemTongKet != null
-                            select new
-                            {
-                                kq.MaSV,
-                                DiemTongKet = kq.DiemTongKet.Value,
-                                mh.SoTinChi
-                            }).ToList();
-
-            // 3. Tính toán Điểm Trung Bình Hệ 10 tích lũy cho từng sinh viên
-            var listResult = new List<dynamic>();
-
-            foreach (var sv in listSV)
-            {
-                var diemCuaSV = listDiem.Where(d => d.MaSV == sv.MaSV).ToList();
-
-                double tongDiem10 = 0;
-                int tongTinChi = 0;
-
-                foreach (var d in diemCuaSV)
+                foreach (var sv in listSV)
                 {
-                    tongDiem10 += (double)d.DiemTongKet * d.SoTinChi;
-                    tongTinChi += d.SoTinChi;
+                    var diemCuaSV = listDiem.Where(d => d.MaSV == sv.MaSV).ToList();
+
+                    double tongDiem10 = 0;
+                    int tongTinChi = 0;
+
+                    foreach (var d in diemCuaSV)
+                    {
+                        tongDiem10 += (double)d.DiemTongKet * d.SoTinChi;
+                        tongTinChi += d.SoTinChi;
+                    }
+
+                    // Trung bình = Tổng (Điểm * Tín chỉ) / Tổng tín chỉ
+                    double dtb10 = tongTinChi > 0 ? Math.Round(tongDiem10 / tongTinChi, 2) : 0;
+
+                    listResult.Add(new
+                    {
+                        MaSV = sv.MaSV,
+                        HoTen = sv.HoTen,
+                        TenLop = sv.MaLopNavigation?.TenLop,
+                        TenKhoa = sv.MaLopNavigation?.MaNganhNavigation?.MaKhoaNavigation?.TenKhoa,
+                        DiemTrungBinh = dtb10,
+                        SoTinChi = tongTinChi
+                    });
                 }
 
-                // Trung bình = Tổng (Điểm * Tín chỉ) / Tổng tín chỉ
-                double dtb10 = tongTinChi > 0 ? Math.Round(tongDiem10 / tongTinChi, 2) : 0;
-
-                listResult.Add(new
+                // 4. Xử lý logic sắp xếp (Theo Mã SV hoặc Theo Điểm)
+                string kieuSapXep = cboLoaiSX.SelectedItem?.ToString();
+                if (kieuSapXep == "Điểm Tích Lũy")
                 {
-                    MaSV = sv.MaSV,
-                    HoTen = sv.HoTen,
-                    TenLop = sv.MaLopNavigation?.TenLop,
-                    TenKhoa = sv.MaLopNavigation?.MaNganhNavigation?.MaKhoaNavigation?.TenKhoa,
-                    DiemTrungBinh = dtb10,
-                    SoTinChi = tongTinChi
-                });
-            }
+                    if (radTang.Checked) listResult = listResult.OrderBy(x => x.DiemTrungBinh).ToList();
+                    else listResult = listResult.OrderByDescending(x => x.DiemTrungBinh).ToList();
+                }
+                else // Mặc định sắp xếp theo Mã SV
+                {
+                    if (radTang.Checked) listResult = listResult.OrderBy(x => x.MaSV).ToList();
+                    else listResult = listResult.OrderByDescending(x => x.MaSV).ToList();
+                }
 
-            // 4. Xử lý logic sắp xếp (Theo Mã SV hoặc Theo Điểm)
-            string kieuSapXep = cboLoaiSX.SelectedItem?.ToString();
-            if (kieuSapXep == "Điểm Tích Lũy")
-            {
-                if (radTang.Checked) listResult = listResult.OrderBy(x => x.DiemTrungBinh).ToList();
-                else listResult = listResult.OrderByDescending(x => x.DiemTrungBinh).ToList();
+                // 5. Đổ dữ liệu lên DataGridView
+                dgvDanhSachSV.AutoGenerateColumns = false;
+                dgvDanhSachSV.DataSource = listResult;
             }
-            else // Mặc định sắp xếp theo Mã SV
+            catch
             {
-                if (radTang.Checked) listResult = listResult.OrderBy(x => x.MaSV).ToList();
-                else listResult = listResult.OrderByDescending(x => x.MaSV).ToList();
-            }
 
-            // 5. Đổ dữ liệu lên DataGridView
-            dgvDanhSachSV.AutoGenerateColumns = false;
-            dgvDanhSachSV.DataSource = listResult;
+            }
+            finally
+            {
+                dangTruyVan = false;
+            }
         }
 
         private void btnXemChitiet_Click(object sender, EventArgs e)
@@ -326,27 +363,27 @@ namespace QuanLyDiemSV.Forms
             groupBox2.Visible = true;
         }
 
-        private void btnTimKiem_Click(object sender, EventArgs e) { LoadDanhSachSinhVien(); }
-        private void btnReset_Click(object sender, EventArgs e)
+        private async void btnTimKiem_Click(object sender, EventArgs e) { await LoadDanhSachSinhVien(); }
+        private async void btnReset_Click(object sender, EventArgs e)
         {
             cboKhoa.SelectedIndex = 0;
             txtTuKhoa.Clear();
-            LoadDanhSachSinhVien();
+            await LoadDanhSachSinhVien();
         }
 
-        private void radTang_CheckedChanged(object sender, EventArgs e)
+        private async void radTang_CheckedChanged(object sender, EventArgs e)
         {
-
+            await LoadDanhSachSinhVien();
         }
 
-        private void radGiam_CheckedChanged(object sender, EventArgs e)
+        private async void radGiam_CheckedChanged(object sender, EventArgs e)
         {
-
+            await LoadDanhSachSinhVien();
         }
 
-        private void cboLoaiSX_SelectedIndexChanged(object sender, EventArgs e)
+        private async void cboLoaiSX_SelectedIndexChanged(object sender, EventArgs e)
         {
-
+            await LoadDanhSachSinhVien();
         }
 
         private void btnXuat_Click(object sender, EventArgs e)
@@ -533,14 +570,19 @@ namespace QuanLyDiemSV.Forms
 
             // Bạn cần tạo một Form mới chứa ReportViewer (VD: FrmBaoCaoDanhSachSV) 
             // Form này sẽ nhận mã Khoa, Lớp để tự động truy vấn và in ra danh sách
-            
+
             using (var frm = new QuanLyDiemSV.Reports.FrmBaoCaoDanhSachSV(maKhoa, maLop))
             {
                 frm.ShowDialog();
             }
-            
+
 
             MessageBox.Show("Tại đây bạn hãy gọi Form Report in danh sách sinh viên của bạn (ví dụ FrmBaoCaoDanhSachSV) nhé!", "Chỉ dẫn");
+        }
+
+        private async void cboLop_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            await LoadDanhSachSinhVien();
         }
     }
 }

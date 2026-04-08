@@ -18,6 +18,7 @@ namespace GUI
         // Biến cờ kiểm tra trạng thái Thêm/Sửa
         bool xuLyThem = false;
         bool daTaiDuLieu = false; // Biến cờ
+        ErrorProvider errorProvider = new ErrorProvider();
 
         public UC_MonHoc()
         {
@@ -26,6 +27,38 @@ namespace GUI
             this.VisibleChanged += UC_MonHoc_VisibleChanged;
             StyleDataGridView(dgvDSMon);
             StyleDataGridView(dgvMonTienQuyet);
+        }
+        private void RegisterValidations()
+        {
+            // Kiểm tra Mã Môn
+            txtMaMon.Validating += (s, e) => {
+                if (string.IsNullOrWhiteSpace(txtMaMon.Text))
+                    errorProvider.SetError(txtMaMon, "Mã Môn không được để trống!");
+                else
+                    errorProvider.SetError(txtMaMon, "");
+            };
+
+            // Kiểm tra Số tín chỉ phải > 0
+            txtSTC.Validating += (s, e) => {
+                if (!string.IsNullOrEmpty(txtSTC.Text) && (!int.TryParse(txtSTC.Text, out int stc) || stc <= 0))
+                    errorProvider.SetError(txtSTC, "Số tín chỉ phải là số nguyên lớn hơn 0!");
+                else
+                    errorProvider.SetError(txtSTC, "");
+            };
+            txtSoTietLT.Validating += (s, e) =>
+            {
+                if (!string.IsNullOrEmpty(txtSoTietLT.Text) && (!int.TryParse(txtSoTietLT.Text, out int stlt) || stlt < 0))
+                    errorProvider.SetError(txtSoTietLT, "Số tiết lý thuyết phải là số nguyên không âm!");
+                else
+                    errorProvider.SetError(txtSoTietLT, "");
+            };
+            txtSoTietTH.Validating += (s, e) =>
+            {
+                if (!string.IsNullOrEmpty(txtSoTietTH.Text) && (!int.TryParse(txtSoTietTH.Text, out int stth) || stth < 0))
+                    errorProvider.SetError(txtSoTietTH, "Số tiết thực hành phải là số nguyên không âm!");
+                else
+                    errorProvider.SetError(txtSoTietTH, "");
+            };
         }
         private void StyleDataGridView(DataGridView dgv)
         {
@@ -89,6 +122,7 @@ namespace GUI
                     txtTuKhoa.ForeColor = System.Drawing.Color.Gray;
                 }
             };
+            RegisterValidations();
         }
 
         private void UC_MonHoc_VisibleChanged(object sender, EventArgs e)
@@ -102,7 +136,7 @@ namespace GUI
                 Cursor.Current = Cursors.Default;
             }
         }
-        private void LocVaTimKiem()
+        private  void LocVaTimKiem()
         {
             try
             {
@@ -121,11 +155,11 @@ namespace GUI
                 // Bỏ qua nếu từ khóa rỗng hoặc đang là dòng chữ mặc định
                 if (!string.IsNullOrEmpty(tuKhoa) && tuKhoa != "vui lòng nhập tên môn")
                 {
-                    query = query.Where(m => m.TenMon.ToLower().Contains(tuKhoa));
+                    query =  query.Where(m => m.TenMon.ToLower().Contains(tuKhoa));
                 }
 
                 // 3. Gán dữ liệu đã lọc vào BindingSource
-                bsMonHoc.DataSource = query.ToList();
+                bsMonHoc.DataSource =  query.ToList();
             }
             catch (Exception ex)
             {
@@ -278,6 +312,7 @@ namespace GUI
 
         private void btnThem_Click(object sender, EventArgs e)
         {
+            errorProvider.Clear();
             xuLyThem = true;
             BatTatChucNang(true);
 
@@ -294,6 +329,7 @@ namespace GUI
 
         private void btnSua_Click(object sender, EventArgs e)
         {
+            errorProvider.Clear();
             if (bsMonHoc.Current == null) return;
 
             xuLyThem = false;
@@ -303,6 +339,7 @@ namespace GUI
 
         private void btnXoa_Click(object sender, EventArgs e)
         {
+            errorProvider.Clear();
             if (bsMonHoc.Current == null) return;
             var curMon = (MonHoc)bsMonHoc.Current;
 
@@ -326,9 +363,47 @@ namespace GUI
 
         private void btnLuu_Click(object sender, EventArgs e)
         {
-            if (string.IsNullOrWhiteSpace(txtMaMon.Text) || string.IsNullOrWhiteSpace(txtTenMon.Text))
+            errorProvider.Clear(); // Dọn dẹp lỗi cũ trước khi kiểm tra mới
+            bool coLoi = false;
+
+            // 1. Kiểm tra Mã môn
+            if (string.IsNullOrWhiteSpace(txtMaMon.Text))
             {
-                MessageBox.Show("Vui lòng nhập Mã môn và Tên môn!");
+                errorProvider.SetError(txtMaMon, "Mã môn không được để trống!");
+                coLoi = true;
+            }
+
+            // 2. Kiểm tra Tên môn
+            if (string.IsNullOrWhiteSpace(txtTenMon.Text))
+            {
+                errorProvider.SetError(txtTenMon, "Tên môn không được để trống!");
+                coLoi = true;
+            }
+            // 3. Kiểm tra Số tín chỉ
+            if (!int.TryParse(txtSTC.Text, out int stc) || stc <= 0)
+            {
+                errorProvider.SetError(txtSTC, "Tín chỉ phải là số nguyên > 0!");
+                coLoi = true;
+            }
+
+            // 4. Kiểm tra Số tiết Lý thuyết (Chấp nhận số 0 nhưng không được số âm)
+            if (!int.TryParse(txtSoTietLT.Text, out int lt) || lt < 0)
+            {
+                errorProvider.SetError(txtSoTietLT, "Số tiết Lý thuyết không được là số âm!");
+                coLoi = true;
+            }
+
+            // 5. Kiểm tra Số tiết Thực hành (Chấp nhận số 0 nhưng không được số âm)
+            if (!int.TryParse(txtSoTietTH.Text, out int th) || th < 0)
+            {
+                errorProvider.SetError(txtSoTietTH, "Số tiết Thực hành không được là số âm!");
+                coLoi = true;
+            }
+
+            // Nếu phát hiện có bất kỳ lỗi nào ở trên thì chặn đứng luôn, không cho chạy code lưu
+            if (coLoi)
+            {
+                MessageBox.Show("Dữ liệu nhập vào chưa hợp lệ, vui lòng kiểm tra lại các ô bị báo đỏ!", "Cảnh báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
@@ -496,6 +571,7 @@ namespace GUI
         // Khi bấm nút Bỏ Lọc / Reset
         private void btnReset_Click(object sender, EventArgs e)
         {
+            errorProvider.Clear();
             // Reset ComboBox lọc Khoa
             cboLoc.SelectedIndex = -1;
 

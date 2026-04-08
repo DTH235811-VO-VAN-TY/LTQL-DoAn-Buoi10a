@@ -40,13 +40,13 @@ namespace QuanLyDiemSV.Forms
             radTang.CheckedChanged += (s, ev) => { if (radTang.Checked) LoadData(); };
             radGiam.CheckedChanged += (s, ev) => { if (radGiam.Checked) LoadData(); };
         }
-        public void CapNhatDuLieuMoiNhat()
+        public async Task CapNhatDuLieuMoiNhat()
         {
             using (var freshContext = new QLDSVDbContext())
             {
                 var oldKhoa = cboKhoa.SelectedValue;
 
-                var listKhoa = freshContext.Khoa.AsNoTracking().ToList();
+                var listKhoa = await freshContext.Khoa.AsNoTracking().ToListAsync();
                 listKhoa.Insert(0, new Khoa { MaKhoa = "ALL", TenKhoa = "--- Tất cả Khoa ---" });
 
                 cboKhoa.DataSource = listKhoa;
@@ -148,8 +148,11 @@ namespace QuanLyDiemSV.Forms
         // ==========================================
         // 2. XỬ LÝ LỌC, TÌM KIẾM & SẮP XẾP CHÍNH
         // ==========================================
-        private void LoadData()
+        bool dangTruyVan = false;
+        private async Task LoadData()
         {
+            if(dangTruyVan) return; // Tránh gọi LoadData nhiều lần cùng lúc
+            dangTruyVan = true;
             try
             {
                 // 1. Khởi tạo Query & Join các bảng liên quan (Include)
@@ -163,7 +166,7 @@ namespace QuanLyDiemSV.Forms
                 if (cboKhoa.SelectedValue != null && cboKhoa.SelectedValue.ToString() != "ALL")
                 {
                     string maKhoa = cboKhoa.SelectedValue.ToString();
-                    query = query.Where(s => s.MaLopNavigation.MaNganhNavigation.MaKhoa == maKhoa);
+                    query =  query.Where(s => s.MaLopNavigation.MaNganhNavigation.MaKhoa == maKhoa);
                 }
 
                 // 3. Xử lý TÌM KIẾM
@@ -203,9 +206,9 @@ namespace QuanLyDiemSV.Forms
                             break;
                     }
                 }
-
+                var listDuLieu = await query.ToListAsync();
                 // 5. Chuẩn bị dữ liệu hiển thị (Định dạng lại cho đẹp)
-                var listHienThi = query.ToList().Select(s => new
+                var listHienThi =  listDuLieu. Select(s => new 
                 {
                     MaSV = s.MaSV,
                     HoTen = s.HoTen,
@@ -223,17 +226,22 @@ namespace QuanLyDiemSV.Forms
             {
                 // Bỏ qua lỗi mốc thời gian load form chưa xong
             }
+            finally
+            {
+                // 2. MỞ KHÓA: Dù lấy dữ liệu thành công hay bị lỗi cũng phải mở cửa ra cho luồng khác
+                dangTruyVan = false;
+            }
         }
 
         // ==========================================
         // 3. SỰ KIỆN NÚT BẤM
         // ==========================================
-        private void btnTimKiem_Click(object sender, EventArgs e)
+        private async void btnTimKiem_Click(object sender, EventArgs e)
         {
-            LoadData();
+            await LoadData();
         }
 
-        private void btnShowAll_Click(object sender, EventArgs e)
+        private async void btnShowAll_Click(object sender, EventArgs e)
         {
             // Reset các bộ lọc về mặc định
             txtTuKhoa.Clear();
@@ -242,7 +250,7 @@ namespace QuanLyDiemSV.Forms
             cboKieuSX.SelectedIndex = 0;
             radTang.Checked = true;
 
-            LoadData();
+            await LoadData();
         }
 
         // Sự kiện Click vào cột nút "Nhập Điểm"
@@ -257,21 +265,21 @@ namespace QuanLyDiemSV.Forms
             }
         }
 
-        private void cboKieuSX_SelectedIndexChanged(object sender, EventArgs e)
+        private async void cboKieuSX_SelectedIndexChanged(object sender, EventArgs e)
         {
-            LoadData();
+            await LoadData();
         }
 
-        private void radTang_CheckedChanged(object sender, EventArgs e)
+        private async void radTang_CheckedChanged(object sender, EventArgs e)
         {
             if (radTang.Checked == true)
-                LoadData();
+               await LoadData();
         }
 
-        private void radGiam_CheckedChanged(object sender, EventArgs e)
+        private async void radGiam_CheckedChanged(object sender, EventArgs e)
         {
             if(radGiam.Checked)
-                LoadData();
+                await LoadData();
         }
         private void StyleDataGridView()
         {

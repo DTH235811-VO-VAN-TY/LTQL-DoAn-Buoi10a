@@ -86,6 +86,33 @@ namespace QuanLyDiemSV.Forms
                 }
             }
         }
+        // Hàm tính điểm chuẩn copy từ màn hình Chấm Điểm
+        private decimal? TinhDiemTongKetCuoiCung(decimal? diemGK, decimal? diemCK, decimal? diemThiL1, decimal? diemThiL2)
+        {
+            if (!diemCK.HasValue) return null;
+
+            decimal gk = diemGK ?? 0m;
+            decimal tkChinhThuc = Math.Round((gk * 0.4m) + (diemCK.Value * 0.6m), 1);
+
+            decimal? diemThiLai = diemThiL2.HasValue ? diemThiL2 : diemThiL1;
+
+            if (!diemThiLai.HasValue) return tkChinhThuc;
+
+            decimal tkThiLai = Math.Round((gk * 0.4m) + (diemThiLai.Value * 0.6m), 1);
+
+            if (tkChinhThuc < 5.0m)
+            {
+                // Rớt -> Thi lại: Tối đa 6.0
+                if (tkThiLai >= 5.0m) return 6.0m;
+                return tkThiLai;
+            }
+            else
+            {
+                // Đậu -> Thi cải thiện: Lấy điểm cao nhất, không giới hạn
+                if (tkThiLai > tkChinhThuc) return tkThiLai;
+                return tkChinhThuc;
+            }
+        }
 
         // =========================================================
         // 3. XỬ LÝ NÚT DUYỆT (CHẤP NHẬN SỬA ĐIỂM)
@@ -94,68 +121,95 @@ namespace QuanLyDiemSV.Forms
         {
             if (maKNDangChon == -1)
             {
-                MessageBox.Show("Vui lòng chọn một đơn khiếu nại trên lưới trước!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show("Vui lòng chọn một đơn khiếu nại để duyệt!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
-            if (string.IsNullOrEmpty(txtPhanHoi.Text.Trim()))
+            // ======================================================================
+            // 1. XỬ LÝ CHUẨN HÓA DẤU CHẤM/PHẨY (Phòng lỗi win tiếng Việt nhập 8.5 ra 85)
+            // ======================================================================
+            string strGK = txtDiemGKMoi.Text.Trim().Replace(',', '.');
+            string strCK = txtDiemCKMoi.Text.Trim().Replace(',', '.');
+
+            if (!decimal.TryParse(strGK, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out decimal diemGKMoi) ||
+                !decimal.TryParse(strCK, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out decimal diemCKMoi))
             {
-                MessageBox.Show("Vui lòng ghi lời phản hồi cho Sinh viên!", "Thiếu thông tin", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("Vui lòng nhập điểm số hợp lệ (VD: 8.5 hoặc 8,5)!", "Lỗi nhập liệu", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
 
-            // BƯỚC NGOẶT ĐỂ HẾT LỖI: Chuyển đổi toàn bộ double sang decimal
-            if (!decimal.TryParse(txtDiemGKMoi.Text, out decimal diemGK_Moi) || !decimal.TryParse(txtDiemCKMoi.Text, out decimal diemCK_Moi))
+            if (diemGKMoi < 0 || diemGKMoi > 10 || diemCKMoi < 0 || diemCKMoi > 10)
             {
-                MessageBox.Show("Điểm mới nhập vào không hợp lệ! Vui lòng nhập số hợp lệ.", "Cảnh báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("Điểm số phải nằm trong khoảng từ 0 đến 10!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
             try
             {
-                // A. Cập nhật lại điểm trong bảng KetQuaHocTap
-                var diemHT = context.KetQuaHocTap.FirstOrDefault(k => k.MaSV == maSVDangChon && k.MaLHP == maLHPDangChon);
-                if (diemHT != null)
+                // ======================================================================
+                // 2. BÍ QUYẾT: DÙNG MỘT DBCONTEXT MỚI TOANH ĐỂ ÉP LƯU XUỐNG DATABASE
+                // ======================================================================
+                using (var dbUpdate = new QLDSVDbContext())
                 {
-                    diemHT.DiemGK = diemGK_Moi;
-                    diemHT.DiemCK = diemCK_Moi;
+                    // A. Lấy đơn khiếu nại
+                    var don = dbUpdate.DonKhieuNai
+                                      .Include(d => d.MaLHPNavigation) // Lấy LHP để lát lấy tên môn gửi thông báo
+                                      .ThenInclude(l => l.MaMonNavigation)
+                                      .FirstOrDefault(d => d.MaKN == maKNDangChon);
 
-                    // BỔ SUNG DÒNG NÀY: Tính toán lại Điểm Tổng Kết ngay lập tức và làm tròn 1 chữ số.
-                    // Lưu ý: Tôi đang để tạm tỷ lệ 40% GK - 60% CK. Bạn hãy chỉnh lại hệ số 0.4 và 0.6 cho khớp với quy chế học vụ thực tế nhé!
-                    diemHT.DiemTongKet = Math.Round((diemGK_Moi * 0.4m) + (diemCK_Moi * 0.6m), 1);
-                }
+                    if (don == null) return;
 
-                // B. Chuyển trạng thái Đơn thành Đã Duyệt
-                var don = context.DonKhieuNai.FirstOrDefault(d => d.MaKN == maKNDangChon);
-                if (don != null)
-                {
-                    don.TrangThai = 1; // Đã duyệt
+                    // B. Lấy bảng điểm KetQuaHocTap tương ứng của sinh viên đó
+                    var kq = dbUpdate.KetQuaHocTap.FirstOrDefault(k => k.MaSV == don.MaSV && k.MaLHP == don.MaLHP);
+
+                    if (kq != null)
+                    {
+                        // Gán điểm mới
+                        kq.DiemGK = diemGKMoi;
+                        kq.DiemCK = diemCKMoi;
+
+                        // TÍNH LẠI ĐIỂM TỔNG KẾT BẰNG HÀM CHUẨN (Đã xét cả thi lại, cải thiện)
+                        kq.DiemTongKet = TinhDiemTongKetCuoiCung(diemGKMoi, diemCKMoi, kq.DiemThiLan1, kq.DiemThiLan2);
+                    }
+                    else
+                    {
+                        MessageBox.Show("Không tìm thấy bảng điểm gốc của sinh viên này để cập nhật!", "Lỗi hệ thống", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        return;
+                    }
+
+                    // C. Cập nhật thông tin đơn khiếu nại
+                    don.TrangThai = 1; // 1 = Đã duyệt/Chấp nhận
                     don.PhanHoi = txtPhanHoi.Text.Trim();
                     don.DaXem = false;
+
+                    // D. Tạo thông báo mới gửi cho sinh viên
+                    string tenMon = don.MaLHPNavigation?.MaMonNavigation?.TenMon ?? "môn học";
+                    ThongBao tbMoi = new ThongBao()
+                    {
+                        MaNguoiGui = Session.MaNguoiDung,
+                        MaNguoiNhan = don.MaSV,
+                        TieuDe = "Khiếu nại môn " + tenMon + " đã được duyệt",
+                        NoiDung = $"Điểm của bạn đã được cập nhật lại. Phản hồi của GV: {don.PhanHoi}",
+                        LoaiThongBao = "KHIEU_NAI",
+                        ThamChieuID = don.MaKN.ToString(),
+                        NgayGui = DateTime.Now,
+                        DaDoc = false
+                    };
+                    dbUpdate.ThongBaos.Add(tbMoi);
+
+                    // E. LƯU TẤT CẢ VÀO SQL SERVER
+                    dbUpdate.SaveChanges();
                 }
 
-                // C. BƯỚC THÊM MỚI: TẠO THÔNG BÁO CHO SINH VIÊN
-                ThongBao tbMoi = new ThongBao()
-                {
-                    MaNguoiGui = Session.MaNguoiDung, // Lấy ID giảng viên đang đăng nhập
-                    MaNguoiNhan = maSVDangChon,       // Mã SV "DTH235801"
-                    TieuDe = "Kết quả khiếu nại môn: " + lblMonHoc.Text.Replace("Môn: ", ""),
-                    NoiDung = txtPhanHoi.Text.Trim(),
-                    LoaiThongBao = "KHIEU_NAI",
-                    ThamChieuID = maKNDangChon.ToString(),
-                    NgayGui = DateTime.Now,
-                    DaDoc = false
-                };
-                context.ThongBaos.Add(tbMoi); // Lưu vào bảng ThongBao
+                MessageBox.Show("Đã chốt điểm mới và gửi phản hồi thành công!", "Hoàn tất", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
-                context.SaveChanges();
-                MessageBox.Show("Đã duyệt đơn, cập nhật điểm và gửi thông báo cho SV thành công!", "Hoàn tất", MessageBoxButtons.OK, MessageBoxIcon.Information);
-
+                // Làm mới lại danh sách trên giao diện
                 LoadDanhSachDon();
+                ResetForm();
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Lỗi khi lưu dữ liệu: " + ex.ToString(), "Lỗi hệ thống", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Lỗi khi lưu dữ liệu: " + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 

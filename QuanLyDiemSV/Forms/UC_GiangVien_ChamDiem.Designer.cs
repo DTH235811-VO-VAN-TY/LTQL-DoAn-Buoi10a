@@ -60,6 +60,7 @@
             cboLoaiTK = new ComboBox();
             label2 = new Label();
             btnQuayLaiLop = new Button();
+            btnNhapExcel = new Button();
             panel1.SuspendLayout();
             pnlDanhSachSV.SuspendLayout();
             groupBox1.SuspendLayout();
@@ -250,6 +251,7 @@
             panel2.Controls.Add(radGiam);
             panel2.Controls.Add(radTang);
             panel2.Controls.Add(txtTuKhoa);
+            panel2.Controls.Add(btnNhapExcel);
             panel2.Controls.Add(btnXuatExcel);
             panel2.Controls.Add(btnHienTatCa);
             panel2.Controls.Add(btnTimKiem);
@@ -320,6 +322,7 @@
             btnXuatExcel.TabIndex = 2;
             btnXuatExcel.Text = "Xuất Excel";
             btnXuatExcel.UseVisualStyleBackColor = true;
+            btnXuatExcel.Click += btnXuatExcel_Click;
             // 
             // btnHienTatCa
             // 
@@ -401,6 +404,17 @@
             btnQuayLaiLop.UseVisualStyleBackColor = true;
             btnQuayLaiLop.Click += btnQuayLaiLop_Click;
             // 
+            // btnNhapExcel
+            // 
+            btnNhapExcel.Font = new Font("Segoe UI", 10.2F, FontStyle.Bold);
+            btnNhapExcel.Location = new Point(1374, 65);
+            btnNhapExcel.Name = "btnNhapExcel";
+            btnNhapExcel.Size = new Size(147, 41);
+            btnNhapExcel.TabIndex = 2;
+            btnNhapExcel.Text = "Nhập Excel";
+            btnNhapExcel.UseVisualStyleBackColor = true;
+            btnNhapExcel.Click += btnNhapExcel_Click;
+            // 
             // UC_GiangVien_ChamDiem
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
@@ -455,5 +469,6 @@
         private Label label3;
         private Button btnXuatExcel;
         private Label lblSoLuongSV;
+        private Button btnNhapExcel;
     }
 }

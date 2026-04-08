@@ -8,6 +8,7 @@ using QuanLyDiemSV.Data;
 using QuanLyDiemSV.Forms;
 using System.Text.RegularExpressions;
 using ClosedXML.Excel;
+using System.Threading.Tasks;
 
 namespace QuanLyDiemSV
 {
@@ -17,12 +18,33 @@ namespace QuanLyDiemSV
         BindingSource bsLopHP = new BindingSource();
         bool xuLyThem = false;
         bool daTaiDuLieu = false; // Biến cờ
+        ErrorProvider errorProvider = new ErrorProvider();
 
         public UC_LopHocPhan()
         {
             InitializeComponent();
             this.Load += UC_LopHocPhan_Load;
             StyleDataGridView(dgvLopHocPhan);
+        }
+        private void RegisterValidations()
+        {
+            // Kiểm tra Mã Lớp HP phải là số nguyên
+            txtMaLHP.Validating += (s, e) =>
+            {
+                if (!string.IsNullOrEmpty(txtMaLHP.Text) && !int.TryParse(txtMaLHP.Text, out _))
+                    errorProvider.SetError(txtMaLHP, "Mã Lớp Học Phần bắt buộc phải là một số nguyên!");
+                else
+                    errorProvider.SetError(txtMaLHP, "");
+            };
+
+            // Kiểm tra Sĩ số phải > 0
+            txtSiSo.Validating += (s, e) =>
+            {
+                if (!string.IsNullOrEmpty(txtSiSo.Text) && (!int.TryParse(txtSiSo.Text, out int siso) || siso <= 0))
+                    errorProvider.SetError(txtSiSo, "Sĩ số tối đa phải là số nguyên lớn hơn 0!");
+                else
+                    errorProvider.SetError(txtSiSo, "");
+            };
         }
         private void StyleDataGridView(DataGridView dgv)
         {
@@ -72,37 +94,66 @@ namespace QuanLyDiemSV
         {
             BatTatChucNang(false);
             KhoiTaoCboTimKiemSapXep();
+            RegisterValidations();
         }
         // Hàm này có chữ 'public' để Form1 có thể gọi được
-        public void CapNhatDuLieuMoiNhat()
+        //public void CapNhatDuLieuMoiNhat()
+        //{
+        //    using (var freshContext = new QLDSVDbContext())
+        //    {
+        //        var oldGV = cboMaGV.SelectedValue;
+        //        var oldMon = cboMaMon.SelectedValue;
+        //        var oldHK = cboHocKy.SelectedValue; // Thêm dòng này
+
+        //        cboMaGV.DataSource = freshContext.GiangVien.AsNoTracking().ToList();
+        //        cboMaGV.DisplayMember = "HoTen";
+        //        cboMaGV.ValueMember = "MaGV";
+
+        //        cboMaMon.DataSource = freshContext.MonHoc.AsNoTracking().ToList();
+        //        cboMaMon.DisplayMember = "TenMon";
+        //        cboMaMon.ValueMember = "MaMon";
+
+        //        // THÊM 3 DÒNG NÀY ĐỂ NẠP HỌC KỲ
+        //        cboHocKy.DataSource = freshContext.HocKy.AsNoTracking().ToList();
+        //        cboHocKy.DisplayMember = "TenHK";
+        //        cboHocKy.ValueMember = "MaHK";
+
+        //        if (oldGV != null) cboMaGV.SelectedValue = oldGV;
+        //        if (oldMon != null) cboMaMon.SelectedValue = oldMon;
+        //        if (oldHK != null) cboHocKy.SelectedValue = oldHK; // Thêm dòng này
+        //    }
+
+        //    if (!daTaiDuLieu)
+        //    {
+        //        LoadData();
+        //        daTaiDuLieu = true;
+        //    }
+        //}
+        public async Task CapNhatDuLieuMoiNhatAsync()
         {
             using (var freshContext = new QLDSVDbContext())
             {
-                var oldGV = cboMaGV.SelectedValue;
-                var oldMon = cboMaMon.SelectedValue;
-                var oldHK = cboHocKy.SelectedValue; // Thêm dòng này
+                // Sử dụng ToListAsync() với từ khóa await
+                var listGV = await freshContext.GiangVien.AsNoTracking().ToListAsync();
+                var listMon = await freshContext.MonHoc.AsNoTracking().ToListAsync();
+                var listHK = await freshContext.HocKy.AsNoTracking().ToListAsync();
 
-                cboMaGV.DataSource = freshContext.GiangVien.AsNoTracking().ToList();
+                cboMaGV.DataSource = listGV;
                 cboMaGV.DisplayMember = "HoTen";
                 cboMaGV.ValueMember = "MaGV";
 
-                cboMaMon.DataSource = freshContext.MonHoc.AsNoTracking().ToList();
+                cboMaMon.DataSource = listMon;
                 cboMaMon.DisplayMember = "TenMon";
                 cboMaMon.ValueMember = "MaMon";
 
-                // THÊM 3 DÒNG NÀY ĐỂ NẠP HỌC KỲ
-                cboHocKy.DataSource = freshContext.HocKy.AsNoTracking().ToList();
+                cboHocKy.DataSource = listHK;
                 cboHocKy.DisplayMember = "TenHK";
                 cboHocKy.ValueMember = "MaHK";
-
-                if (oldGV != null) cboMaGV.SelectedValue = oldGV;
-                if (oldMon != null) cboMaMon.SelectedValue = oldMon;
-                if (oldHK != null) cboHocKy.SelectedValue = oldHK; // Thêm dòng này
             }
 
             if (!daTaiDuLieu)
             {
-                LoadData();
+                await LoadDataAsync(); // Gọi phiên bản Async của LoadData
                 daTaiDuLieu = true;
             }
         }
@@ -165,15 +216,22 @@ namespace QuanLyDiemSV
             }
         }
 
-        private void LoadData()
+        // Thêm biến này ở đầu class (cùng chỗ với bool daTaiDuLieu)
+        bool dangTruyVan = false;
+
+        private async Task LoadDataAsync()
         {
+            // 1. Ổ KHÓA: Nếu đang có luồng lấy dữ liệu rồi thì chặn luồng đến sau
+            if (dangTruyVan) return;
+
+            dangTruyVan = true; // Bắt đầu truy vấn, khóa cửa lại
             try
             {
                 dgvLopHocPhan.AutoGenerateColumns = false;
 
                 var query = context.LopHocPhan.Include(l => l.MaGVNavigation)
-                                                .Include(l => l.MaHKNavigation)
-                                                .AsQueryable();
+                                              .Include(l => l.MaHKNavigation)
+                                              .AsQueryable();
                 string tuKhoa = txtTuKhoa.Text.Trim().ToLower();
                 if (!string.IsNullOrEmpty(tuKhoa) && cboTimKiem.SelectedIndex != -1)
                 {
@@ -197,6 +255,7 @@ namespace QuanLyDiemSV
                             break;
                     }
                 }
+
                 bool isTang = radTang.Checked;
                 if (cboKieuSX.SelectedIndex != -1)
                 {
@@ -218,7 +277,7 @@ namespace QuanLyDiemSV
                     }
                 }
 
-                var listLHP = query.ToList();
+                var listLHP = await query.ToListAsync();
 
                 bsLopHP.DataSource = listLHP;
 
@@ -231,7 +290,6 @@ namespace QuanLyDiemSV
                 cboHocKy.DataBindings.Clear();
                 cboTrangThai.DataBindings.Clear();
 
-                // Binding MaLHP (int) vào Text (string) - Tự động convert khi hiển thị
                 txtMaLHP.DataBindings.Add("Text", bsLopHP, "MaLHP", true, DataSourceUpdateMode.Never);
                 txtTenLHP.DataBindings.Add("Text", bsLopHP, "TenLopHP", true, DataSourceUpdateMode.Never);
                 txtPhongHoc.DataBindings.Add("Text", bsLopHP, "PhongHoc", true, DataSourceUpdateMode.Never);
@@ -242,9 +300,9 @@ namespace QuanLyDiemSV
                 cboHocKy.DataBindings.Add("SelectedValue", bsLopHP, "MaHK", true, DataSourceUpdateMode.Never);
                 cboTrangThai.DataBindings.Add("SelectedValue", bsLopHP, "TrangThai", true, DataSourceUpdateMode.Never);
 
-                // dgvLopHocPhan.AutoGenerateColumns = false;
                 dgvLopHocPhan.DataSource = bsLopHP;
 
+                bsLopHP.CurrentChanged -= BsLopHP_CurrentChanged; // Gỡ sự kiện cũ tránh lặp
                 bsLopHP.CurrentChanged += BsLopHP_CurrentChanged;
                 BsLopHP_CurrentChanged(null, null);
 
@@ -253,6 +311,11 @@ namespace QuanLyDiemSV
             catch (Exception ex)
             {
                 MessageBox.Show("Lỗi tải dữ liệu: " + ex.Message);
+            }
+            finally
+            {
+                // 2. MỞ KHÓA: Dù lấy dữ liệu thành công hay bị lỗi cũng phải mở cửa ra cho luồng khác
+                dangTruyVan = false;
             }
         }
 
@@ -273,6 +336,7 @@ namespace QuanLyDiemSV
 
         private void btnThem_Click(object sender, EventArgs e)
         {
+            errorProvider.Clear();
             xuLyThem = true;
             bsLopHP.SuspendBinding();
             BatTatChucNang(true);
@@ -291,6 +355,7 @@ namespace QuanLyDiemSV
 
         private void btnSua_Click(object sender, EventArgs e)
         {
+            errorProvider.Clear();
             if (bsLopHP.Current == null) return;
 
             xuLyThem = false;
@@ -300,6 +365,7 @@ namespace QuanLyDiemSV
 
         private void btnXoa_Click(object sender, EventArgs e)
         {
+            errorProvider.Clear();
             if (bsLopHP.Current == null) return;
             var lhp = (LopHocPhan)bsLopHP.Current;
 
@@ -309,7 +375,7 @@ namespace QuanLyDiemSV
                 {
                     context.LopHocPhan.Remove(lhp);
                     context.SaveChanges();
-                    LoadData();
+                    LoadDataAsync();
                     MessageBox.Show("Xóa thành công!");
                 }
                 catch (Exception ex)
@@ -321,6 +387,33 @@ namespace QuanLyDiemSV
 
         private async void btnLuu_Click(object sender, EventArgs e)
         {
+
+            errorProvider.Clear(); // Dọn dẹp lỗi cũ trước khi kiểm tra mới
+            bool coLoi = false;
+
+            // 1. Kiểm tra Mã môn
+            if (string.IsNullOrWhiteSpace(txtMaLHP.Text))
+            {
+                errorProvider.SetError(txtMaLHP, "Mã lớp học phần không được để trống!");
+                coLoi = true;
+            }
+
+            // 2. Kiểm tra Tên môn
+            if (string.IsNullOrWhiteSpace(txtTenLHP.Text))
+            {
+                errorProvider.SetError(txtTenLHP, "Tên lớp học phần không được để trống!");
+                coLoi = true;
+            }
+            if (!int.TryParse(txtSiSo.Text, out int lt) || lt < 0)
+            {
+                errorProvider.SetError(txtSiSo, "Sĩ số không được là số âm!");
+                coLoi = true;
+            }
+            if (coLoi)
+            {
+                MessageBox.Show("Dữ liệu nhập vào chưa hợp lệ, vui lòng kiểm tra lại các ô bị báo đỏ!", "Cảnh báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
             try
             {
                 LopHocPhan lhp;
@@ -381,7 +474,7 @@ namespace QuanLyDiemSV
                 await context.SaveChangesAsync();
 
                 bsLopHP.ResumeBinding();
-                LoadData();
+                LoadDataAsync();
                 BatTatChucNang(false);
                 MessageBox.Show("Lưu lớp học phần thành công!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
@@ -399,6 +492,7 @@ namespace QuanLyDiemSV
 
         private void btnLamLai_Click(object sender, EventArgs e)
         {
+            errorProvider.Clear();
             // 1. Tạm gỡ sự kiện ComboBox để tránh vòng lặp lỗi
             cboMaMon.SelectedIndexChanged -= cboMaMon_SelectedIndexChanged;
 
@@ -443,33 +537,33 @@ namespace QuanLyDiemSV
 
         #endregion
 
-        private void btnTimKiem_Click(object sender, EventArgs e)
+        private async void btnTimKiem_Click(object sender, EventArgs e)
         {
-            LoadData();
+            await LoadDataAsync();
         }
 
-        private void btnShowAll_Click(object sender, EventArgs e)
+        private async void btnShowAll_Click(object sender, EventArgs e)
         {
             txtTuKhoa.Clear();
             cboTimKiem.SelectedIndex = 1; // Đưa về mặc định tìm theo Tên LHP
             cboKieuSX.SelectedIndex = 0;  // Đưa về mặc định sắp xếp theo Mã LHP
             radTang.Checked = true;
-            LoadData();
+             await LoadDataAsync();
         }
 
-        private void cboKieuSX_SelectedIndexChanged(object sender, EventArgs e)
+        private async void cboKieuSX_SelectedIndexChanged(object sender, EventArgs e)
         {
-            LoadData();
+            await LoadDataAsync();
         }
 
-        private void radTang_CheckedChanged(object sender, EventArgs e)
+        private async void radTang_CheckedChanged(object sender, EventArgs e)
         {
-            if (radTang.Checked) LoadData();
+            if (radTang.Checked) await LoadDataAsync();
         }
 
-        private void radGiam_CheckedChanged(object sender, EventArgs e)
+        private async void radGiam_CheckedChanged(object sender, EventArgs e)
         {
-            if (radGiam.Checked) LoadData();
+            if (radGiam.Checked) await LoadDataAsync();
         }
 
         private void dgvLopHocPhan_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
@@ -579,7 +673,7 @@ namespace QuanLyDiemSV
                             }
 
                             context.SaveChanges();
-                            LoadData(); // Cập nhật lại DataGridView
+                            LoadDataAsync(); // Cập nhật lại DataGridView
 
                             string msg = $"Đã nhập thành công {rowCount} lớp học phần mới.";
                             if (duplicateCount > 0)
@@ -703,6 +797,25 @@ namespace QuanLyDiemSV
                     {
                         cboMaGV.SelectedIndex = -1;
                     }
+                }
+            }
+        }
+
+        private void dgvLopHocPhan_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        {
+            // Kiểm tra xem người dùng có nhấn đúng vào cột "XepLop" (nút bấm) hay không
+            if (e.RowIndex >= 0 && dgvLopHocPhan.Columns[e.ColumnIndex].Name == "ThaoTac")
+            {
+                // Lấy thông tin lớp học phần từ dòng hiện tại
+                var lhp = bsLopHP.Current as LopHocPhan;
+                if (lhp != null)
+                {
+                    // Mở Form Xếp Lớp và truyền dữ liệu sang
+                    FrmXepLop frm = new FrmXepLop(lhp.MaLHP, lhp.TenLopHP);
+                    frm.ShowDialog();
+
+                    // Sau khi đóng form, load lại dữ liệu để cập nhật sĩ số mới nhất
+                    LoadDataAsync(); // Cập nhật lại toàn bộ dữ liệu để hiển thị sĩ số mới nhất trên lưới
                 }
             }
         }

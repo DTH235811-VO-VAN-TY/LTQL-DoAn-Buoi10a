@@ -80,16 +80,16 @@
             panelGrid = new Panel();
             groupBoxList = new GroupBox();
             dgvAdminSinhVien = new DataGridView();
+            helpProvider1 = new HelpProvider();
             MaSV = new DataGridViewTextBoxColumn();
             HoTen = new DataGridViewTextBoxColumn();
             NgaySinh = new DataGridViewTextBoxColumn();
             GioiTinh = new DataGridViewTextBoxColumn();
-            DiaChi = new DataGridViewTextBoxColumn();
-            Email = new DataGridViewTextBoxColumn();
-            SDT = new DataGridViewTextBoxColumn();
-            MaLop = new DataGridViewTextBoxColumn();
             CCCD = new DataGridViewTextBoxColumn();
-            helpProvider1 = new HelpProvider();
+            SDT = new DataGridViewTextBoxColumn();
+            Email = new DataGridViewTextBoxColumn();
+            MaLop = new DataGridViewTextBoxColumn();
+            DiaChi = new DataGridViewTextBoxColumn();
             panelInput.SuspendLayout();
             groupBoxInfo.SuspendLayout();
             panelSearch.SuspendLayout();
@@ -685,7 +685,7 @@
             dgvAdminSinhVien.BackgroundColor = SystemColors.ButtonHighlight;
             dgvAdminSinhVien.ColumnHeadersHeight = 29;
             dgvAdminSinhVien.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
-            dgvAdminSinhVien.Columns.AddRange(new DataGridViewColumn[] { MaSV, HoTen, NgaySinh, GioiTinh, DiaChi, Email, SDT, MaLop, CCCD });
+            dgvAdminSinhVien.Columns.AddRange(new DataGridViewColumn[] { MaSV, HoTen, NgaySinh, GioiTinh, CCCD, SDT, Email, MaLop, DiaChi });
             dataGridViewCellStyle2.Alignment = DataGridViewContentAlignment.MiddleLeft;
             dataGridViewCellStyle2.BackColor = SystemColors.Window;
             dataGridViewCellStyle2.Font = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point, 0);
@@ -744,23 +744,14 @@
             GioiTinh.ReadOnly = true;
             GioiTinh.Width = 180;
             // 
-            // DiaChi
+            // CCCD
             // 
-            DiaChi.DataPropertyName = "DiaChi";
-            DiaChi.HeaderText = "Địa chỉ";
-            DiaChi.MinimumWidth = 6;
-            DiaChi.Name = "DiaChi";
-            DiaChi.ReadOnly = true;
-            DiaChi.Width = 179;
-            // 
-            // Email
-            // 
-            Email.DataPropertyName = "Email";
-            Email.HeaderText = "Email";
-            Email.MinimumWidth = 6;
-            Email.Name = "Email";
-            Email.ReadOnly = true;
-            Email.Width = 180;
+            CCCD.DataPropertyName = "CCCD";
+            CCCD.HeaderText = "CCCD";
+            CCCD.MinimumWidth = 6;
+            CCCD.Name = "CCCD";
+            CCCD.ReadOnly = true;
+            CCCD.Width = 179;
             // 
             // SDT
             // 
@@ -771,6 +762,15 @@
             SDT.ReadOnly = true;
             SDT.Width = 179;
             // 
+            // Email
+            // 
+            Email.DataPropertyName = "Email";
+            Email.HeaderText = "Email";
+            Email.MinimumWidth = 6;
+            Email.Name = "Email";
+            Email.ReadOnly = true;
+            Email.Width = 180;
+            // 
             // MaLop
             // 
             MaLop.DataPropertyName = "MaLop";
@@ -780,14 +780,14 @@
             MaLop.ReadOnly = true;
             MaLop.Width = 180;
             // 
-            // CCCD
+            // DiaChi
             // 
-            CCCD.DataPropertyName = "CCCD";
-            CCCD.HeaderText = "CCCD";
-            CCCD.MinimumWidth = 6;
-            CCCD.Name = "CCCD";
-            CCCD.ReadOnly = true;
-            CCCD.Width = 179;
+            DiaChi.DataPropertyName = "DiaChi";
+            DiaChi.HeaderText = "Địa chỉ";
+            DiaChi.MinimumWidth = 6;
+            DiaChi.Name = "DiaChi";
+            DiaChi.ReadOnly = true;
+            DiaChi.Width = 179;
             // 
             // UC_SinhVien
             // 
@@ -862,15 +862,15 @@
         private Label label14;
         private Button btnNhap;
         private Button btnXuat;
+        private HelpProvider helpProvider1;
         private DataGridViewTextBoxColumn MaSV;
         private DataGridViewTextBoxColumn HoTen;
         private DataGridViewTextBoxColumn NgaySinh;
         private DataGridViewTextBoxColumn GioiTinh;
-        private DataGridViewTextBoxColumn DiaChi;
-        private DataGridViewTextBoxColumn Email;
-        private DataGridViewTextBoxColumn SDT;
-        private DataGridViewTextBoxColumn MaLop;
         private DataGridViewTextBoxColumn CCCD;
-        private HelpProvider helpProvider1;
+        private DataGridViewTextBoxColumn SDT;
+        private DataGridViewTextBoxColumn Email;
+        private DataGridViewTextBoxColumn MaLop;
+        private DataGridViewTextBoxColumn DiaChi;
     }
 }

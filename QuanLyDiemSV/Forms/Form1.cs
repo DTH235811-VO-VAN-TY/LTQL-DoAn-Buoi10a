@@ -55,7 +55,7 @@ namespace QuanLyDiemSV
 
         // --- CÁC NÚT MENU ---
 
-        private void btnDiemSV_Click(object sender, EventArgs e)
+        private async void btnDiemSV_Click(object sender, EventArgs e)
         {
             ActivateButton(sender);
 
@@ -67,7 +67,7 @@ namespace QuanLyDiemSV
         }
 
         // ... Các nút khác giữ nguyên code BringToFront của bạn ...
-        private void btnSinhVien_Click(object sender, EventArgs e)
+        private async void btnSinhVien_Click(object sender, EventArgs e)
         {
             ActivateButton(sender);
             uC_SinhVien1.BringToFront();
@@ -88,27 +88,27 @@ namespace QuanLyDiemSV
             // uC_GiangVien1.LoadData();
         }
 
-        private void btnLopHanhChinh_Click(object sender, EventArgs e)
+        private async void btnLopHanhChinh_Click(object sender, EventArgs e)
         {
             ActivateButton(sender);
             uC_LopHanhChinh1.BringToFront();
             uC_LopHanhChinh1.CapNhatDuLieuMoiNhat();
         }
 
-        private void btnLopHocPhan_Click(object sender, EventArgs e)
+        private async void btnLopHocPhan_Click(object sender, EventArgs e)
         {
             if (Session.RoleID == 1)
             {
                 ActivateButton(sender);
                 uC_LopHocPhan1.BringToFront();
-                uC_LopHocPhan1.CapNhatDuLieuMoiNhat();
+                uC_LopHocPhan1.CapNhatDuLieuMoiNhatAsync();
             }
             else if (Session.RoleID == 2)
             {
                 ActivateButton(sender);
                 uC_GiangVien_ChamDiem1.BringToFront();
                 //uC_GiangVien_ChamDiem1.CapNhatDuLieuMoiNhat();
-                uC_GiangVien_ChamDiem1.LoadDanhSachLopCuaToi(Session.MaNguoiDung);
+                uC_GiangVien_ChamDiem1.LoadDanhSachLopCuaToiAsync(Session.MaNguoiDung);
             }
 
         }
@@ -150,7 +150,7 @@ namespace QuanLyDiemSV
             uC_TaiKhoan1.BringToFront();
         }
 
-        private void btnTraCuuDiem_Click(object sender, EventArgs e)
+        private async void btnTraCuuDiem_Click(object sender, EventArgs e)
         {
             ActivateButton(sender);
             uC_TraCuuDiem_Container1.BringToFront();
@@ -343,7 +343,7 @@ namespace QuanLyDiemSV
             uC_TrangChu1.BringToFront();
         }
 
-        private void btnTrangChu_Click(object sender, EventArgs e)
+        private async void btnTrangChu_Click(object sender, EventArgs e)
         {
             ActivateButton(sender);
             //uC_GiangVien_ChamDiem1.BringToFront();
