@@ -28,15 +28,26 @@
         /// </summary>
         private void InitializeComponent()
         {
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(UC_LopHocPhan));
             DataGridViewCellStyle dataGridViewCellStyle1 = new DataGridViewCellStyle();
             DataGridViewCellStyle dataGridViewCellStyle2 = new DataGridViewCellStyle();
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(UC_LopHocPhan));
             panel1 = new Panel();
             panel4 = new Panel();
             groupBox3 = new GroupBox();
             dgvLopHocPhan = new DataGridView();
+            MaLHP = new DataGridViewTextBoxColumn();
+            MaMon = new DataGridViewTextBoxColumn();
+            TenLopHP = new DataGridViewTextBoxColumn();
+            MaHK = new DataGridViewTextBoxColumn();
+            MaGV = new DataGridViewTextBoxColumn();
+            PhongHoc = new DataGridViewTextBoxColumn();
+            SiSoToiDa = new DataGridViewTextBoxColumn();
+            TrangThai = new DataGridViewTextBoxColumn();
+            ThaoTac = new DataGridViewButtonColumn();
             panel3 = new Panel();
             groupBox2 = new GroupBox();
+            cboLocDuLieu = new ComboBox();
+            label10 = new Label();
             radGiam = new RadioButton();
             radTang = new RadioButton();
             cboKieuSX = new ComboBox();
@@ -49,7 +60,6 @@
             btnTimKiem = new Button();
             panel2 = new Panel();
             groupBox1 = new GroupBox();
-            btnXepLop = new Button();
             btnAddHocKy = new Button();
             btnNhap = new Button();
             btnSua = new Button();
@@ -74,15 +84,6 @@
             cboMaGV = new ComboBox();
             txtTenLHP = new TextBox();
             cboMaMon = new ComboBox();
-            MaLHP = new DataGridViewTextBoxColumn();
-            MaMon = new DataGridViewTextBoxColumn();
-            TenLopHP = new DataGridViewTextBoxColumn();
-            MaHK = new DataGridViewTextBoxColumn();
-            MaGV = new DataGridViewTextBoxColumn();
-            PhongHoc = new DataGridViewTextBoxColumn();
-            SiSoToiDa = new DataGridViewTextBoxColumn();
-            TrangThai = new DataGridViewTextBoxColumn();
-            ThaoTac = new DataGridViewButtonColumn();
             panel1.SuspendLayout();
             panel4.SuspendLayout();
             groupBox3.SuspendLayout();
@@ -109,9 +110,9 @@
             panel4.BackColor = Color.White;
             panel4.Controls.Add(groupBox3);
             panel4.Dock = DockStyle.Fill;
-            panel4.Location = new Point(0, 375);
+            panel4.Location = new Point(0, 356);
             panel4.Name = "panel4";
-            panel4.Size = new Size(1684, 794);
+            panel4.Size = new Size(1684, 813);
             panel4.TabIndex = 2;
             // 
             // groupBox3
@@ -121,7 +122,7 @@
             groupBox3.Font = new Font("Segoe UI", 10.2F, FontStyle.Regular, GraphicsUnit.Point, 0);
             groupBox3.Location = new Point(0, 0);
             groupBox3.Name = "groupBox3";
-            groupBox3.Size = new Size(1684, 794);
+            groupBox3.Size = new Size(1684, 813);
             groupBox3.TabIndex = 0;
             groupBox3.TabStop = false;
             groupBox3.Text = "Thông tin Lớp học phần";
@@ -138,22 +139,114 @@
             dgvLopHocPhan.MultiSelect = false;
             dgvLopHocPhan.Name = "dgvLopHocPhan";
             dgvLopHocPhan.RowHeadersWidth = 51;
-            dgvLopHocPhan.Size = new Size(1678, 765);
+            dgvLopHocPhan.Size = new Size(1678, 784);
             dgvLopHocPhan.TabIndex = 0;
             dgvLopHocPhan.CellContentClick += dgvLopHocPhan_CellContentClick;
             dgvLopHocPhan.CellFormatting += dgvLopHocPhan_CellFormatting;
+            // 
+            // MaLHP
+            // 
+            MaLHP.DataPropertyName = "MaLHP";
+            MaLHP.HeaderText = "Mã LHP";
+            MaLHP.MinimumWidth = 6;
+            MaLHP.Name = "MaLHP";
+            MaLHP.ReadOnly = true;
+            MaLHP.Width = 203;
+            // 
+            // MaMon
+            // 
+            MaMon.DataPropertyName = "MaMon";
+            MaMon.HeaderText = "Mã Môn";
+            MaMon.MinimumWidth = 6;
+            MaMon.Name = "MaMon";
+            MaMon.ReadOnly = true;
+            MaMon.Width = 203;
+            // 
+            // TenLopHP
+            // 
+            TenLopHP.DataPropertyName = "TenLopHP";
+            TenLopHP.HeaderText = "Tên Lớp HP";
+            TenLopHP.MinimumWidth = 6;
+            TenLopHP.Name = "TenLopHP";
+            TenLopHP.ReadOnly = true;
+            TenLopHP.Width = 203;
+            // 
+            // MaHK
+            // 
+            MaHK.DataPropertyName = "TenHK";
+            MaHK.HeaderText = "Học Kỳ";
+            MaHK.MinimumWidth = 6;
+            MaHK.Name = "MaHK";
+            MaHK.ReadOnly = true;
+            MaHK.Width = 204;
+            // 
+            // MaGV
+            // 
+            MaGV.DataPropertyName = "TenGV";
+            MaGV.HeaderText = "Giảng Viên";
+            MaGV.MinimumWidth = 6;
+            MaGV.Name = "MaGV";
+            MaGV.ReadOnly = true;
+            MaGV.Width = 203;
+            // 
+            // PhongHoc
+            // 
+            PhongHoc.DataPropertyName = "PhongHoc";
+            PhongHoc.HeaderText = "Phòng Học";
+            PhongHoc.MinimumWidth = 6;
+            PhongHoc.Name = "PhongHoc";
+            PhongHoc.ReadOnly = true;
+            PhongHoc.Width = 203;
+            // 
+            // SiSoToiDa
+            // 
+            SiSoToiDa.DataPropertyName = "SiSoToiDa";
+            SiSoToiDa.HeaderText = "Sĩ số";
+            SiSoToiDa.MinimumWidth = 6;
+            SiSoToiDa.Name = "SiSoToiDa";
+            SiSoToiDa.ReadOnly = true;
+            SiSoToiDa.Width = 203;
+            // 
+            // TrangThai
+            // 
+            TrangThai.DataPropertyName = "TrangThai";
+            dataGridViewCellStyle1.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            dataGridViewCellStyle1.Font = new Font("Microsoft Sans Serif", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            TrangThai.DefaultCellStyle = dataGridViewCellStyle1;
+            TrangThai.HeaderText = "Trạng Thái";
+            TrangThai.MinimumWidth = 6;
+            TrangThai.Name = "TrangThai";
+            TrangThai.ReadOnly = true;
+            TrangThai.Width = 203;
+            // 
+            // ThaoTac
+            // 
+            dataGridViewCellStyle2.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            dataGridViewCellStyle2.BackColor = Color.Green;
+            dataGridViewCellStyle2.ForeColor = Color.FromArgb(192, 0, 0);
+            dataGridViewCellStyle2.SelectionBackColor = Color.Cyan;
+            dataGridViewCellStyle2.SelectionForeColor = Color.FromArgb(64, 64, 64);
+            ThaoTac.DefaultCellStyle = dataGridViewCellStyle2;
+            ThaoTac.HeaderText = "Thao Tác";
+            ThaoTac.MinimumWidth = 6;
+            ThaoTac.Name = "ThaoTac";
+            ThaoTac.Text = "Xếp Lớp";
+            ThaoTac.UseColumnTextForButtonValue = true;
+            ThaoTac.Width = 125;
             // 
             // panel3
             // 
             panel3.Controls.Add(groupBox2);
             panel3.Dock = DockStyle.Top;
-            panel3.Location = new Point(0, 275);
+            panel3.Location = new Point(0, 208);
             panel3.Name = "panel3";
-            panel3.Size = new Size(1684, 100);
+            panel3.Size = new Size(1684, 148);
             panel3.TabIndex = 1;
             // 
             // groupBox2
             // 
+            groupBox2.Controls.Add(cboLocDuLieu);
+            groupBox2.Controls.Add(label10);
             groupBox2.Controls.Add(radGiam);
             groupBox2.Controls.Add(radTang);
             groupBox2.Controls.Add(cboKieuSX);
@@ -168,10 +261,28 @@
             groupBox2.Font = new Font("Segoe UI", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
             groupBox2.Location = new Point(0, 0);
             groupBox2.Name = "groupBox2";
-            groupBox2.Size = new Size(1684, 100);
+            groupBox2.Size = new Size(1684, 148);
             groupBox2.TabIndex = 0;
             groupBox2.TabStop = false;
             groupBox2.Text = "Tìm Kiếm và Sắp xếp";
+            // 
+            // cboLocDuLieu
+            // 
+            cboLocDuLieu.FormattingEnabled = true;
+            cboLocDuLieu.Location = new Point(162, 91);
+            cboLocDuLieu.Name = "cboLocDuLieu";
+            cboLocDuLieu.Size = new Size(297, 31);
+            cboLocDuLieu.TabIndex = 87;
+            cboLocDuLieu.SelectedIndexChanged += cboLocDuLieu_SelectedIndexChanged;
+            // 
+            // label10
+            // 
+            label10.AutoSize = true;
+            label10.Location = new Point(25, 98);
+            label10.Name = "label10";
+            label10.Size = new Size(86, 23);
+            label10.TabIndex = 86;
+            label10.Text = "Lọc khoa:";
             // 
             // radGiam
             // 
@@ -275,7 +386,7 @@
             btnTimKiem.TabIndex = 79;
             btnTimKiem.Text = "Tìm Kiếm";
             btnTimKiem.UseVisualStyleBackColor = false;
-            btnTimKiem.Click +=  btnTimKiem_Click;
+            btnTimKiem.Click += btnTimKiem_Click;
             // 
             // panel2
             // 
@@ -283,12 +394,11 @@
             panel2.Dock = DockStyle.Top;
             panel2.Location = new Point(0, 0);
             panel2.Name = "panel2";
-            panel2.Size = new Size(1684, 275);
+            panel2.Size = new Size(1684, 208);
             panel2.TabIndex = 0;
             // 
             // groupBox1
             // 
-            groupBox1.Controls.Add(btnXepLop);
             groupBox1.Controls.Add(btnAddHocKy);
             groupBox1.Controls.Add(btnNhap);
             groupBox1.Controls.Add(btnSua);
@@ -317,24 +427,14 @@
             groupBox1.Font = new Font("Segoe UI", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
             groupBox1.Location = new Point(0, 0);
             groupBox1.Name = "groupBox1";
-            groupBox1.Size = new Size(1684, 275);
+            groupBox1.Size = new Size(1684, 208);
             groupBox1.TabIndex = 0;
             groupBox1.TabStop = false;
             groupBox1.Text = "Thông tin lớp học phần";
             // 
-            // btnXepLop
-            // 
-            btnXepLop.Location = new Point(1142, 147);
-            btnXepLop.Name = "btnXepLop";
-            btnXepLop.Size = new Size(129, 42);
-            btnXepLop.TabIndex = 149;
-            btnXepLop.Text = "Xếp Lớp";
-            btnXepLop.UseVisualStyleBackColor = true;
-            btnXepLop.Click += btnXepLop_Click;
-            // 
             // btnAddHocKy
             // 
-            btnAddHocKy.Location = new Point(1001, 157);
+            btnAddHocKy.Location = new Point(1482, 99);
             btnAddHocKy.Name = "btnAddHocKy";
             btnAddHocKy.Size = new Size(116, 31);
             btnAddHocKy.TabIndex = 148;
@@ -349,7 +449,7 @@
             btnNhap.FlatAppearance.MouseDownBackColor = Color.Blue;
             btnNhap.FlatAppearance.MouseOverBackColor = Color.Blue;
             btnNhap.ImageAlign = ContentAlignment.MiddleLeft;
-            btnNhap.Location = new Point(1212, 207);
+            btnNhap.Location = new Point(1193, 142);
             btnNhap.Margin = new Padding(3, 4, 3, 4);
             btnNhap.Name = "btnNhap";
             btnNhap.Padding = new Padding(5, 0, 0, 0);
@@ -367,7 +467,7 @@
             btnSua.FlatAppearance.MouseOverBackColor = Color.Blue;
             btnSua.Image = (Image)resources.GetObject("btnSua.Image");
             btnSua.ImageAlign = ContentAlignment.MiddleLeft;
-            btnSua.Location = new Point(766, 207);
+            btnSua.Location = new Point(732, 141);
             btnSua.Margin = new Padding(3, 4, 3, 4);
             btnSua.Name = "btnSua";
             btnSua.Padding = new Padding(5, 0, 0, 0);
@@ -385,7 +485,7 @@
             btnLamLai.FlatAppearance.MouseOverBackColor = Color.Blue;
             btnLamLai.Image = (Image)resources.GetObject("btnLamLai.Image");
             btnLamLai.ImageAlign = ContentAlignment.MiddleLeft;
-            btnLamLai.Location = new Point(536, 207);
+            btnLamLai.Location = new Point(502, 141);
             btnLamLai.Margin = new Padding(3, 4, 3, 4);
             btnLamLai.Name = "btnLamLai";
             btnLamLai.Padding = new Padding(5, 0, 0, 0);
@@ -403,7 +503,7 @@
             btnLuu.FlatAppearance.MouseOverBackColor = Color.Blue;
             btnLuu.Image = (Image)resources.GetObject("btnLuu.Image");
             btnLuu.ImageAlign = ContentAlignment.MiddleLeft;
-            btnLuu.Location = new Point(62, 206);
+            btnLuu.Location = new Point(41, 142);
             btnLuu.Margin = new Padding(3, 4, 3, 4);
             btnLuu.Name = "btnLuu";
             btnLuu.Padding = new Padding(5, 0, 0, 0);
@@ -421,7 +521,7 @@
             btnThem.FlatAppearance.MouseOverBackColor = Color.Blue;
             btnThem.Image = (Image)resources.GetObject("btnThem.Image");
             btnThem.ImageAlign = ContentAlignment.MiddleLeft;
-            btnThem.Location = new Point(317, 206);
+            btnThem.Location = new Point(283, 140);
             btnThem.Margin = new Padding(3, 4, 3, 4);
             btnThem.Name = "btnThem";
             btnThem.Padding = new Padding(5, 0, 0, 0);
@@ -439,7 +539,7 @@
             btnXuat.FlatAppearance.MouseOverBackColor = Color.Blue;
             btnXuat.Font = new Font("Microsoft Sans Serif", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
             btnXuat.ImageAlign = ContentAlignment.MiddleLeft;
-            btnXuat.Location = new Point(1434, 208);
+            btnXuat.Location = new Point(1423, 143);
             btnXuat.Margin = new Padding(3, 4, 3, 4);
             btnXuat.Name = "btnXuat";
             btnXuat.Padding = new Padding(5, 0, 0, 0);
@@ -458,7 +558,7 @@
             btnXoa.Font = new Font("Microsoft Sans Serif", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
             btnXoa.Image = (Image)resources.GetObject("btnXoa.Image");
             btnXoa.ImageAlign = ContentAlignment.MiddleLeft;
-            btnXoa.Location = new Point(988, 208);
+            btnXoa.Location = new Point(954, 142);
             btnXoa.Margin = new Padding(3, 4, 3, 4);
             btnXoa.Name = "btnXoa";
             btnXoa.Padding = new Padding(5, 0, 0, 0);
@@ -472,22 +572,22 @@
             // 
             cboTrangThai.FormattingEnabled = true;
             cboTrangThai.Items.AddRange(new object[] { "Mở lớp", "Đóng" });
-            cboTrangThai.Location = new Point(1105, 48);
+            cboTrangThai.Location = new Point(1488, 52);
             cboTrangThai.Name = "cboTrangThai";
-            cboTrangThai.Size = new Size(151, 31);
+            cboTrangThai.Size = new Size(110, 31);
             cboTrangThai.TabIndex = 136;
             // 
             // txtSiSo
             // 
-            txtSiSo.Location = new Point(425, 154);
+            txtSiSo.Location = new Point(1055, 100);
             txtSiSo.Margin = new Padding(3, 4, 3, 4);
             txtSiSo.Name = "txtSiSo";
-            txtSiSo.Size = new Size(136, 30);
+            txtSiSo.Size = new Size(98, 30);
             txtSiSo.TabIndex = 131;
             // 
             // txtPhongHoc
             // 
-            txtPhongHoc.Location = new Point(161, 154);
+            txtPhongHoc.Location = new Point(1096, 49);
             txtPhongHoc.Margin = new Padding(3, 4, 3, 4);
             txtPhongHoc.Name = "txtPhongHoc";
             txtPhongHoc.Size = new Size(187, 30);
@@ -496,7 +596,7 @@
             // label1
             // 
             label1.AutoSize = true;
-            label1.Location = new Point(367, 154);
+            label1.Location = new Point(997, 103);
             label1.Name = "label1";
             label1.Size = new Size(52, 23);
             label1.TabIndex = 132;
@@ -513,7 +613,7 @@
             // label6
             // 
             label6.AutoSize = true;
-            label6.Location = new Point(997, 48);
+            label6.Location = new Point(1380, 52);
             label6.Name = "label6";
             label6.Size = new Size(97, 23);
             label6.TabIndex = 132;
@@ -522,7 +622,7 @@
             // label2
             // 
             label2.AutoSize = true;
-            label2.Location = new Point(53, 157);
+            label2.Location = new Point(992, 52);
             label2.Name = "label2";
             label2.Size = new Size(102, 23);
             label2.TabIndex = 132;
@@ -549,7 +649,7 @@
             // label8
             // 
             label8.AutoSize = true;
-            label8.Location = new Point(619, 157);
+            label8.Location = new Point(1157, 104);
             label8.Name = "label8";
             label8.Size = new Size(70, 23);
             label8.TabIndex = 135;
@@ -567,7 +667,7 @@
             // cboHocKy
             // 
             cboHocKy.FormattingEnabled = true;
-            cboHocKy.Location = new Point(734, 157);
+            cboHocKy.Location = new Point(1233, 100);
             cboHocKy.Margin = new Padding(3, 4, 3, 4);
             cboHocKy.Name = "cboHocKy";
             cboHocKy.Size = new Size(243, 31);
@@ -608,96 +708,6 @@
             cboMaMon.Size = new Size(243, 31);
             cboMaMon.TabIndex = 127;
             cboMaMon.SelectedIndexChanged += cboMaMon_SelectedIndexChanged;
-            // 
-            // MaLHP
-            // 
-            MaLHP.DataPropertyName = "MaLHP";
-            MaLHP.HeaderText = "Mã LHP";
-            MaLHP.MinimumWidth = 6;
-            MaLHP.Name = "MaLHP";
-            MaLHP.ReadOnly = true;
-            MaLHP.Width = 203;
-            // 
-            // MaMon
-            // 
-            MaMon.DataPropertyName = "MaMon";
-            MaMon.HeaderText = "Mã Môn";
-            MaMon.MinimumWidth = 6;
-            MaMon.Name = "MaMon";
-            MaMon.ReadOnly = true;
-            MaMon.Width = 203;
-            // 
-            // TenLopHP
-            // 
-            TenLopHP.DataPropertyName = "TenLopHP";
-            TenLopHP.HeaderText = "Tên Lớp HP";
-            TenLopHP.MinimumWidth = 6;
-            TenLopHP.Name = "TenLopHP";
-            TenLopHP.ReadOnly = true;
-            TenLopHP.Width = 203;
-            // 
-            // MaHK
-            // 
-            MaHK.DataPropertyName = "TenHK";
-            MaHK.HeaderText = "Học Kỳ";
-            MaHK.MinimumWidth = 6;
-            MaHK.Name = "MaHK";
-            MaHK.ReadOnly = true;
-            MaHK.Width = 204;
-            // 
-            // MaGV
-            // 
-            MaGV.DataPropertyName = "TenGV";
-            MaGV.HeaderText = "Giảng Viên";
-            MaGV.MinimumWidth = 6;
-            MaGV.Name = "MaGV";
-            MaGV.ReadOnly = true;
-            MaGV.Width = 203;
-            // 
-            // PhongHoc
-            // 
-            PhongHoc.DataPropertyName = "PhongHoc";
-            PhongHoc.HeaderText = "Phòng Học";
-            PhongHoc.MinimumWidth = 6;
-            PhongHoc.Name = "PhongHoc";
-            PhongHoc.ReadOnly = true;
-            PhongHoc.Width = 203;
-            // 
-            // SiSoToiDa
-            // 
-            SiSoToiDa.DataPropertyName = "SiSoToiDa";
-            SiSoToiDa.HeaderText = "Sĩ số";
-            SiSoToiDa.MinimumWidth = 6;
-            SiSoToiDa.Name = "SiSoToiDa";
-            SiSoToiDa.ReadOnly = true;
-            SiSoToiDa.Width = 203;
-            // 
-            // TrangThai
-            // 
-            TrangThai.DataPropertyName = "TrangThai";
-            dataGridViewCellStyle1.Alignment = DataGridViewContentAlignment.MiddleCenter;
-            dataGridViewCellStyle1.Font = new Font("Microsoft Sans Serif", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            TrangThai.DefaultCellStyle = dataGridViewCellStyle1;
-            TrangThai.HeaderText = "Trạng Thái";
-            TrangThai.MinimumWidth = 6;
-            TrangThai.Name = "TrangThai";
-            TrangThai.ReadOnly = true;
-            TrangThai.Width = 203;
-            // 
-            // ThaoTac
-            // 
-            dataGridViewCellStyle2.Alignment = DataGridViewContentAlignment.MiddleCenter;
-            dataGridViewCellStyle2.BackColor = Color.Green;
-            dataGridViewCellStyle2.ForeColor = Color.FromArgb(192, 0, 0);
-            dataGridViewCellStyle2.SelectionBackColor = Color.Cyan;
-            dataGridViewCellStyle2.SelectionForeColor = Color.FromArgb(64, 64, 64);
-            ThaoTac.DefaultCellStyle = dataGridViewCellStyle2;
-            ThaoTac.HeaderText = "Thao Tác";
-            ThaoTac.MinimumWidth = 6;
-            ThaoTac.Name = "ThaoTac";
-            ThaoTac.Text = "Xếp Lớp";
-            ThaoTac.Width = 125;
-            ThaoTac.UseColumnTextForButtonValue = true;
             // 
             // UC_LopHocPhan
             // 
@@ -766,7 +776,6 @@
         private Button btnAddHocKy;
         private Button btnNhap;
         private Button btnXuat;
-        private Button btnXepLop;
         private DataGridViewTextBoxColumn MaLHP;
         private DataGridViewTextBoxColumn MaMon;
         private DataGridViewTextBoxColumn TenLopHP;
@@ -776,5 +785,7 @@
         private DataGridViewTextBoxColumn SiSoToiDa;
         private DataGridViewTextBoxColumn TrangThai;
         private DataGridViewButtonColumn ThaoTac;
+        private ComboBox cboLocDuLieu;
+        private Label label10;
     }
 }

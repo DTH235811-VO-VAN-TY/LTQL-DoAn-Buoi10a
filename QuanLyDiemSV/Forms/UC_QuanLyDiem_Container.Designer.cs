@@ -136,10 +136,10 @@
             // cboKhoa
             // 
             cboKhoa.FormattingEnabled = true;
-            cboKhoa.Location = new Point(151, 53);
+            cboKhoa.Location = new Point(105, 50);
             cboKhoa.Margin = new Padding(3, 4, 3, 4);
             cboKhoa.Name = "cboKhoa";
-            cboKhoa.Size = new Size(200, 31);
+            cboKhoa.Size = new Size(292, 31);
             cboKhoa.TabIndex = 83;
             // 
             // cboTimKiem

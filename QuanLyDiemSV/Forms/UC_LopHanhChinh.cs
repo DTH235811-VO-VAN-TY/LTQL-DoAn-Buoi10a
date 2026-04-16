@@ -4,6 +4,7 @@ using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using ClosedXML.Excel;
 using Microsoft.EntityFrameworkCore;
 using QuanLyDiemSV.Data; // Namespace chứa Context và Models
 using QuanLyDiemSV.Forms; // Namespace chứa FrmNganh
@@ -24,6 +25,73 @@ namespace QuanLyDiemSV.Forms
             this.Load += UC_LopHanhChinh_Load;
             StyleDataGridView(dgvLopHanhChinh);
 
+        }
+        protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
+        {
+            // =====================================================================
+            // 1. PHÍM TẮT HỆ THỐNG: HOẠT ĐỘNG TOÀN CỤC (Kể cả khi đang gõ chữ)
+            // =====================================================================
+
+            // Ctrl + S: Lưu dữ liệu
+            if (keyData == (Keys.Control | Keys.S))
+            {
+                // Lưu ý: Kiểm tra nút Lưu có đang hiện/bật không trước khi click
+                if (btnLuu.Enabled)
+                {
+                    btnLuu.PerformClick();
+                    return true;
+                }
+            }
+
+            // F5: Làm lại / Tải lại dữ liệu (Thay cho phím R cũ)
+            if (keyData == Keys.F5)
+            {
+                btnLamLai.PerformClick();
+                return true;
+            }
+
+            // Enter: Tìm kiếm khi đang đứng ở ô Từ khóa
+            if (keyData == Keys.Enter)
+            {
+                if (this.ActiveControl == txtAdTuKhoa_SV)
+                {
+                    btnAdTimKiem_SV.PerformClick();
+                    return true;
+                }
+            }
+
+            // =====================================================================
+            // 2. KHÓA AN TOÀN: Chặn phím tắt đơn khi người dùng đang nhập liệu
+            // (Để tránh việc gõ chữ 'C' trong tên mà lại nhảy sang lệnh Thêm mới)
+            // =====================================================================
+            if (this.ActiveControl is TextBox || this.ActiveControl is ComboBox)
+            {
+                return base.ProcessCmdKey(ref msg, keyData);
+            }
+
+            // =====================================================================
+            // 3. CÁC PHÍM TẮT ĐƠN: CHỈ HOẠT ĐỘNG KHI KHÔNG GÕ CHỮ
+            // =====================================================================
+            switch (keyData)
+            {
+                case Keys.C: // Thêm mới (Create)
+                    btnThem.PerformClick();
+                    return true;
+
+                case Keys.U: // Sửa (Update)
+                    btnSua.PerformClick();
+                    return true;
+
+                case Keys.D: // Xóa (Delete)
+                    btnXoa.PerformClick();
+                    return true;
+
+                case Keys.F: // Tìm kiếm (Find)
+                    txtAdTuKhoa_SV.Focus();
+                    return true;
+            }
+
+            return base.ProcessCmdKey(ref msg, keyData);
         }
         private void StyleDataGridView(DataGridView dgv)
         {
@@ -93,7 +161,16 @@ namespace QuanLyDiemSV.Forms
 
             // 2. Ép Context chính xóa bộ nhớ đệm và tải lại lưới Lớp hành chính
             context.ChangeTracker.Clear();
-            LoadData();
+            try
+            {
+                await LoadCboKhoaAsync();
+                await LoadData();
+                daTaiDuLieu = true; // Đánh dấu đã tải dữ liệu để sự kiện lọc dữ liệu hoạt động
+            }
+            catch
+            {
+
+            }
         }
 
 
@@ -157,6 +234,26 @@ namespace QuanLyDiemSV.Forms
                 MessageBox.Show("Lỗi tải danh mục: " + ex.Message);
             }
         }
+        private async Task LoadCboKhoaAsync()
+        {
+            try
+            {
+                // Lấy danh sách Khoa từ Database
+                var listKhoa = await context.Khoa.ToListAsync();
+
+                // Chèn thêm mục "Tất cả" lên vị trí đầu tiên (index 0)
+                listKhoa.Insert(0, new Khoa { MaKhoa = "ALL", TenKhoa = "--- Tất cả các khoa ---" });
+
+                // Đổ dữ liệu vào ComboBox
+                cboLocDuLieu.DataSource = listKhoa;
+                cboLocDuLieu.DisplayMember = "TenKhoa";
+                cboLocDuLieu.ValueMember = "MaKhoa";
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi tải danh sách khoa: " + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
         bool dangTruyVan = false;
         private async Task LoadData()
         {
@@ -164,7 +261,10 @@ namespace QuanLyDiemSV.Forms
             dangTruyVan = true;
             try
             {
-                var query = context.LopHanhChinh.Include(l => l.MaGVCNNavigation).AsQueryable();
+                var query = context.LopHanhChinh
+                                    .Include(l => l.MaGVCNNavigation)
+                                    .Include(l => l.MaNganhNavigation)
+                                    .AsQueryable();
                 string tuKhoa = txtAdTuKhoa_SV.Text.Trim().ToLower();
                 if (!string.IsNullOrEmpty(tuKhoa) && cboAdTimKiem_SV.SelectedIndex != -1)
                 {
@@ -181,6 +281,12 @@ namespace QuanLyDiemSV.Forms
                             query = query.Where(g => g.MaGVCNNavigation.HoTen.ToLower() == tuKhoa);
                             break;
                     }
+                }
+                if (cboLocDuLieu.SelectedValue != null && cboLocDuLieu.SelectedValue.ToString() != "ALL")
+                {
+                    string maKhoaChon = cboLocDuLieu.SelectedValue.ToString();
+                    // Lọc các Lớp Học Phần có Môn Học thuộc Khoa đã chọn
+                    query = query.Where(l => l.MaNganhNavigation != null && l.MaNganhNavigation.MaKhoa == maKhoaChon);
                 }
                 bool isTang = radTang.Checked;
                 if (cboKieuSX.SelectedIndex != -1)
@@ -426,6 +532,172 @@ namespace QuanLyDiemSV.Forms
         {
             if (radGiam.Checked) await LoadData();
 
+        }
+
+        private async void cboLocDuLieu_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (daTaiDuLieu)
+            {
+                await LoadData();
+            }
+        }
+
+        private async void btnNhap_Click(object sender, EventArgs e)
+        {
+            using (OpenFileDialog ofd = new OpenFileDialog() { Filter = "Excel Workbook|*.xlsx" })
+            {
+                if (ofd.ShowDialog() == DialogResult.OK)
+                {
+                    try
+                    {
+                        Cursor.Current = Cursors.WaitCursor;
+                        int countThanhCong = 0;
+                        List<string> dsLoi = new List<string>();
+
+                        using (var workbook = new XLWorkbook(ofd.FileName))
+                        {
+                            var worksheet = workbook.Worksheet(1);
+                            // Lấy các dòng dữ liệu, bỏ qua dòng tiêu đề (Skip 1)
+                            var rows = worksheet.RangeUsed().RowsUsed().Skip(1).ToList();
+
+                            // Lấy trước danh sách Mã Ngành và Mã GV để kiểm tra nhanh trên RAM (tối ưu tốc độ)
+                            var listMaNganh = await context.Nganh.Select(n => n.MaNganh).ToListAsync();
+                            var listMaGV = await context.GiangVien.Select(g => g.MaGV).ToListAsync();
+
+                            foreach (var row in rows)
+                            {
+                                string maLop = row.Cell(1).GetString().Trim();
+                                string tenLop = row.Cell(2).GetString().Trim();
+                                string nienKhoa = row.Cell(3).GetString().Trim();
+                                string maNganh = row.Cell(4).GetString().Trim();
+                                string maGVCN = row.Cell(5).GetString().Trim();
+
+                                if (string.IsNullOrEmpty(maLop)) continue;
+
+                                // KIỂM TRA RÀNG BUỘC
+                                // 1. Kiểm tra trùng mã lớp
+                                if (await context.LopHanhChinh.AnyAsync(x => x.MaLop == maLop))
+                                {
+                                    dsLoi.Add($"- Dòng {row.RowNumber()}: Mã lớp [{maLop}] đã tồn tại.");
+                                    continue;
+                                }
+
+                                // 2. Kiểm tra mã ngành có tồn tại không
+                                if (!listMaNganh.Contains(maNganh))
+                                {
+                                    dsLoi.Add($"- Dòng {row.RowNumber()}: Mã ngành [{maNganh}] không tồn tại.");
+                                    continue;
+                                }
+
+                                // 3. Kiểm tra mã GVCN có tồn tại không
+                                if (!listMaGV.Contains(maGVCN))
+                                {
+                                    dsLoi.Add($"- Dòng {row.RowNumber()}: Mã GVCN [{maGVCN}] không tồn tại.");
+                                    continue;
+                                }
+
+                                // Nếu mọi thứ OK -> Thêm mới
+                                LopHanhChinh lopMoi = new LopHanhChinh()
+                                {
+                                    MaLop = maLop,
+                                    TenLop = tenLop,
+                                    NienKhoa = nienKhoa,
+                                    MaNganh = maNganh,
+                                    MaGVCN = maGVCN
+                                };
+
+                                context.LopHanhChinh.Add(lopMoi);
+                                countThanhCong++;
+                            }
+
+                            // Lưu tất cả xuống Database
+                            if (countThanhCong > 0)
+                            {
+                                await context.SaveChangesAsync();
+                                await LoadData(); // Tải lại lưới
+
+                                string thongBao = $"Đã nhập thành công {countThanhCong} lớp hành chính.";
+                                if (dsLoi.Count > 0)
+                                {
+                                    thongBao += $"\n\nCác dòng bị lỗi:\n" + string.Join("\n", dsLoi.Take(5));
+                                    if (dsLoi.Count > 5) thongBao += "\n...";
+                                    MessageBox.Show(thongBao, "Hoàn tất (Có lỗi)", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                                }
+                                else
+                                {
+                                    MessageBox.Show(thongBao, "Thành công", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                                }
+                            }
+                            else
+                            {
+                                MessageBox.Show("Không có dữ liệu hợp lệ để nhập!\n" + string.Join("\n", dsLoi), "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show("Lỗi khi đọc file Excel: " + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                    finally
+                    {
+                        Cursor.Current = Cursors.Default;
+                    }
+                }
+            }
+        }
+
+        private void btnXuat_Click(object sender, EventArgs e)
+        {
+            using (SaveFileDialog sfd = new SaveFileDialog() { Filter = "Excel Workbook|*.xlsx", FileName = "DanhSachLopHanhChinh.xlsx" })
+            {
+                if (sfd.ShowDialog() == DialogResult.OK)
+                {
+                    try
+                    {
+                        Cursor.Current = Cursors.WaitCursor;
+                        using (var workbook = new XLWorkbook())
+                        {
+                            var worksheet = workbook.Worksheets.Add("Lớp Hành Chính");
+
+                            // 1. Tạo Tiêu đề cột
+                            worksheet.Cell(1, 1).Value = "Mã Lớp";
+                            worksheet.Cell(1, 2).Value = "Tên Lớp";
+                            worksheet.Cell(1, 3).Value = "Niên Khóa";
+                            worksheet.Cell(1, 4).Value = "Mã Ngành";
+                            worksheet.Cell(1, 5).Value = "Mã GVCN";
+
+                            var header = worksheet.Range("A1:E1");
+                            header.Style.Font.Bold = true;
+                            header.Style.Fill.BackgroundColor = XLColor.LightGray;
+
+                            // 2. Lấy dữ liệu từ BindingSource (bsLop)
+                            var danhSach = bsLop.List;
+                            int row = 2;
+                            foreach (dynamic item in danhSach)
+                            {
+                                worksheet.Cell(row, 1).Value = item.MaLop?.ToString() ?? "";
+                                worksheet.Cell(row, 2).Value = item.TenLop?.ToString() ?? "";
+                                worksheet.Cell(row, 3).Value = item.NienKhoa?.ToString() ?? "";
+                                worksheet.Cell(row, 4).Value = item.MaNganh?.ToString() ?? "";
+                                worksheet.Cell(row, 5).Value = item.MaGVCN?.ToString() ?? "";
+                                row++;
+                            }
+
+                            worksheet.Columns().AdjustToContents();
+                            workbook.SaveAs(sfd.FileName);
+                            MessageBox.Show("Xuất file Excel thành công!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show("Lỗi khi xuất file: " + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                    finally
+                    {
+                        Cursor.Current = Cursors.Default;
+                    }
+                }
+            }
         }
     }
 }

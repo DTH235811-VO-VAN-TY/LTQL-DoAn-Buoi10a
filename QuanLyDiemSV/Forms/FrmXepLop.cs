@@ -4,6 +4,7 @@ using System.Data;
 using System.Linq;
 using System.Windows.Forms;
 using ClosedXML.Excel;
+using DocumentFormat.OpenXml.VariantTypes;
 using QuanLyDiemSV.Data;
 
 namespace QuanLyDiemSV.Forms
@@ -40,7 +41,7 @@ namespace QuanLyDiemSV.Forms
         // ===============================================
         // 1. NẠP COMBOBOX SINH VIÊN (CHỈ LẤY SV CÙNG KHOA)
         // ===============================================
-        private void LoadDanhSachSinhVienHopLe()
+        private async Task LoadDanhSachSinhVienHopLe()
         {
             try
             {
@@ -66,7 +67,6 @@ namespace QuanLyDiemSV.Forms
                 {
                     querySV = querySV.Where(x => x.MaKhoaSinhVien.Trim() == maKhoaMonHoc);
                 }
-
                 var listSV = querySV.ToList().Select(x => new
                 {
                     MaSV = x.MaSV,

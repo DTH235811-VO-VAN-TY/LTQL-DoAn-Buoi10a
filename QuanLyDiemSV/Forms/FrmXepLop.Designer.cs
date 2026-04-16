@@ -321,7 +321,7 @@
             Controls.Add(panel1);
             Name = "FrmXepLop";
             StartPosition = FormStartPosition.CenterScreen;
-            Text = "FrmXepLop";
+            Text = "Xếp Lớp";
             Load += FrmXepLop_Load;
             groupBox1.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)dgvSinhVien).EndInit();

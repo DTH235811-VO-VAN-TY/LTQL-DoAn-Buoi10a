@@ -28,14 +28,93 @@ namespace GUI
             StyleDataGridView(dgvDSMon);
             StyleDataGridView(dgvMonTienQuyet);
         }
+        protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
+        {
+            // =====================================================================
+            // 1. PHÍM TẮT HỆ THỐNG: HOẠT ĐỘNG TOÀN CỤC (Kể cả khi đang gõ chữ)
+            // =====================================================================
+
+            // Ctrl + S: Lưu dữ liệu
+            if (keyData == (Keys.Control | Keys.S))
+            {
+                // Lưu ý: Kiểm tra nút Lưu có đang hiện/bật không trước khi click
+                if (btnLuu.Enabled)
+                {
+                    btnLuu.PerformClick();
+                    return true;
+                }
+            }
+
+            // F5: Làm lại / Tải lại dữ liệu (Thay cho phím R cũ)
+            if (keyData == Keys.F5)
+            {
+                btnLamLai.PerformClick();
+                return true;
+            }
+
+            // Enter: Tìm kiếm khi đang đứng ở ô Từ khóa
+            if (keyData == Keys.Enter)
+            {
+                if (this.ActiveControl == txtTuKhoa)
+                {
+                    btnTimKiem.PerformClick();
+                    return true;
+                }
+            }
+
+            // =====================================================================
+            // 2. KHÓA AN TOÀN: Chặn phím tắt đơn khi người dùng đang nhập liệu
+            // (Để tránh việc gõ chữ 'C' trong tên mà lại nhảy sang lệnh Thêm mới)
+            // =====================================================================
+            if (this.ActiveControl is TextBox || this.ActiveControl is ComboBox)
+            {
+                return base.ProcessCmdKey(ref msg, keyData);
+            }
+
+            // =====================================================================
+            // 3. CÁC PHÍM TẮT ĐƠN: CHỈ HOẠT ĐỘNG KHI KHÔNG GÕ CHỮ
+            // =====================================================================
+            switch (keyData)
+            {
+                case Keys.C: // Thêm mới (Create)
+                    btnThem.PerformClick();
+                    return true;
+
+                case Keys.U: // Sửa (Update)
+                    btnSua.PerformClick();
+                    return true;
+
+                case Keys.D: // Xóa (Delete)
+                    btnXoa.PerformClick();
+                    return true;
+
+                case Keys.F: // Tìm kiếm (Find)
+                    txtTuKhoa.Focus();
+                    return true;
+            }
+
+            return base.ProcessCmdKey(ref msg, keyData);
+        }
         private void RegisterValidations()
         {
             // Kiểm tra Mã Môn
             txtMaMon.Validating += (s, e) => {
                 if (string.IsNullOrWhiteSpace(txtMaMon.Text))
                     errorProvider.SetError(txtMaMon, "Mã Môn không được để trống!");
+                else if(xuLyThem && context.MonHoc.Any(m => m.MaMon == txtMaMon.Text.Trim()))
+                    errorProvider.SetError(txtMaMon, "Mã Môn đã tồn tại!");
                 else
                     errorProvider.SetError(txtMaMon, "");
+            };
+
+            txtTenMon.Validating += (s, e) =>
+            {
+                if (string.IsNullOrWhiteSpace(txtTenMon.Text))
+                    errorProvider.SetError(txtTenMon, "Tên Môn không được để trống!");
+                else if(xuLyThem && context.MonHoc.Any(m => m.TenMon == txtTenMon.Text.Trim()))
+                    errorProvider.SetError(txtTenMon, "Tên Môn đã tồn tại!");
+                else
+                    errorProvider.SetError(txtTenMon, "");
             };
 
             // Kiểm tra Số tín chỉ phải > 0
@@ -457,6 +536,7 @@ namespace GUI
 
         private void btnLamLai_Click(object sender, EventArgs e)
         {
+            errorProvider.Clear();
             BatTatChucNang(false);
             bsMonHoc.ResetBindings(false); // Reset lại giá trị cũ
         }

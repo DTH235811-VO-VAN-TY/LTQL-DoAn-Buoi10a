@@ -810,50 +810,74 @@ namespace QuanLyDiemSV
         // ===================================================================
         protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
         {
-            switch (keyData)
+            // =====================================================================
+            // 1. PHÍM TẮT HỆ THỐNG: HOẠT ĐỘNG TOÀN CỤC (Kể cả khi đang gõ chữ)
+            // =====================================================================
+
+            // Ctrl + S: Lưu dữ liệu
+            if (keyData == (Keys.Control | Keys.S))
             {
-                // 1. Nhấn F3 -> Focus vào ô tìm kiếm
-                case Keys.F3:
-                    txtAdTuKhoa_SV.Focus();
-                    txtAdTuKhoa_SV.SelectAll(); // Bôi đen text cũ (nếu có) để gõ đè luôn
-                    return true; // Báo cho hệ thống biết "Tôi đã xử lý phím này rồi"
-
-                // 2. Nhấn F5 -> Bấm nút Làm mới / Hiện tất cả
-                case Keys.F5:
-                    btnAdShowAll_SV.PerformClick();
+                // Lưu ý: Kiểm tra nút Lưu có đang hiện/bật không trước khi click
+                if (btnAdLua_SV.Enabled)
+                {
+                    btnAdLua_SV.PerformClick();
                     return true;
-
-                // 3. Nhấn Ctrl + N -> Bấm nút Thêm mới
-                case (Keys.Control | Keys.N):
-                    // Chỉ cho phép thêm nếu nút Thêm đang sáng (Enabled)
-                    if (btnAdThem_SV.Enabled) btnAdThem_SV.PerformClick();
-                    return true;
-
-                // 4. Nhấn Ctrl + S -> Bấm nút Lưu
-                case (Keys.Control | Keys.S):
-                    if (btnAdLua_SV.Enabled) btnAdLua_SV.PerformClick();
-                    return true;
-
-                // 5. Nhấn Ctrl + E -> Bấm nút Sửa
-                case (Keys.Control | Keys.E):
-                    if (btnAdSua_SV.Enabled) btnAdSua_SV.PerformClick();
-                    return true;
-
-                // 6. Nhấn phím Delete -> Bấm nút Xóa
-                case Keys.Delete:
-                    // Đảm bảo người dùng không đang gõ chữ trong Textbox thì mới Xóa
-                    if (!txtAdTuKhoa_SV.Focused)
-                    {
-                        if (btnAdXoa_SV.Enabled) btnAdXoa_SV.PerformClick();
-                        return true;
-                    }
-                    break;
-                case Keys.F:
-                    btnAdTimKiem_SV.PerformClick();
-                    break;
+                }
             }
 
-            // Nếu không phải các phím trên, để hệ thống xử lý bình thường
+            // F5: Làm lại / Tải lại dữ liệu (Thay cho phím R cũ)
+            if (keyData == Keys.F5)
+            {
+                btnAdLamLai_SV.PerformClick();
+                return true;
+            }
+
+            // Enter: Tìm kiếm khi đang đứng ở ô Từ khóa
+            if (keyData == Keys.Enter)
+            {
+                if (this.ActiveControl == txtAdTuKhoa_SV)
+                {
+                    btnAdTimKiem_SV.PerformClick();
+                    return true;
+                }
+            }
+
+            // =====================================================================
+            // 2. KHÓA AN TOÀN: Chặn phím tắt đơn khi người dùng đang nhập liệu
+            // (Để tránh việc gõ chữ 'C' trong tên mà lại nhảy sang lệnh Thêm mới)
+            // =====================================================================
+            if (this.ActiveControl is System.Windows.Forms.TextBox || this.ActiveControl is System.Windows.Forms.ComboBox)
+            {
+                return base.ProcessCmdKey(ref msg, keyData);
+            }
+
+            // =====================================================================
+            // 3. CÁC PHÍM TẮT ĐƠN: CHỈ HOẠT ĐỘNG KHI KHÔNG GÕ CHỮ
+            // =====================================================================
+            switch (keyData)
+            {
+                case Keys.C: // Thêm mới (Create)
+                    btnAdThem_SV.PerformClick();
+                    return true;
+
+                case Keys.U: // Sửa (Update)
+                    btnAdSua_SV.PerformClick();
+                    return true;
+
+                case Keys.D: // Xóa (Delete)
+                    btnAdXoa_SV.PerformClick();
+                    return true;
+
+                case Keys.F: // Tìm kiếm (Find)
+                             // Fix for CS0104: Explicitly specify the namespace for 'TextBox' and 'ComboBox' to resolve ambiguity.
+                    if (this.ActiveControl is System.Windows.Forms.TextBox || this.ActiveControl is System.Windows.Forms.ComboBox)
+                    {
+                        return base.ProcessCmdKey(ref msg, keyData);
+                    }
+                    txtAdTuKhoa_SV.Focus();
+                    return true;
+            }
+
             return base.ProcessCmdKey(ref msg, keyData);
         }
 

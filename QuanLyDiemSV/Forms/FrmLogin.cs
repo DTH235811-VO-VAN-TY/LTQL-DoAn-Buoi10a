@@ -18,6 +18,7 @@ namespace QuanLyDiemSV.Forms
         public FrmLogin()
         {
             InitializeComponent();
+            this.AcceptButton = btnDangNhap; // Nhấn Enter sẽ kích hoạt nút Đăng nhập
         }
         private string MaHoaMatKhau(string password)
         {
@@ -34,7 +35,6 @@ namespace QuanLyDiemSV.Forms
                 return sb.ToString(); // Trả về chuỗi đã mã hóa
             }
         }
-
         private void FrmLogin_Load(object sender, EventArgs e)
         {
 

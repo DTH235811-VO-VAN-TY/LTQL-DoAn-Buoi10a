@@ -16,6 +16,7 @@ namespace QuanLyDiemSV.Forms
         QLDSVDbContext context = new QLDSVDbContext();
         BindingSource bsTaiKhoan = new BindingSource();
         bool xuLyThem = false;
+        ErrorProvider errorProvider = new ErrorProvider();
 
         // Class phụ để đổ dữ liệu vào ComboBox Trạng thái
         public class TrangThaiItem
@@ -29,6 +30,66 @@ namespace QuanLyDiemSV.Forms
             InitializeComponent();
             this.Load += UC_TaiKhoan_Load;
             StyleDataGridView(dataGridView1);
+        }
+        private void RegisterValidations()
+        {
+            txtTenDangNhap.Validating += (s, e) =>
+            {
+                if (string.IsNullOrWhiteSpace(txtTenDangNhap.Text))
+                {
+                    e.Cancel = true;
+                    errorProvider.SetError(txtTenDangNhap, "Tên đăng nhập không được để trống!");
+                }
+                else if(xuLyThem && context.UserAccount.Any(x => x.Username == txtTenDangNhap.Text.Trim()))
+                {
+                    e.Cancel = true;
+                    errorProvider.SetError(txtTenDangNhap, "Tên đăng nhập này đã tồn tại!");
+                }
+                else
+                {
+                    e.Cancel = false;
+                    errorProvider.SetError(txtTenDangNhap, "");
+                }
+            };
+            txtMatKhau.Validating += (s, e) =>
+            {
+                if (xuLyThem && string.IsNullOrWhiteSpace(txtMatKhau.Text))
+                {
+                    e.Cancel = true;
+                    errorProvider.SetError(txtMatKhau, "Mật khẩu không được để trống khi tạo tài khoản mới!");
+                }
+                else
+                {
+                    e.Cancel = false;
+                    errorProvider.SetError(txtMatKhau, "");
+                }
+            };
+            cboQuyenHan.Validating += (s, e) =>
+            {
+                if (cboQuyenHan.SelectedValue == null)
+                {
+                    e.Cancel = true;
+                    errorProvider.SetError(cboQuyenHan, "Vui lòng chọn quyền hạn cho tài khoản!");
+                }
+                else
+                {
+                    e.Cancel = false;
+                    errorProvider.SetError(cboQuyenHan, "");
+                }
+            };
+            cboTrangThai.Validating += (s, e) =>
+            {
+                if (cboTrangThai.SelectedValue == null)
+                {
+                    e.Cancel = true;
+                    errorProvider.SetError(cboTrangThai, "Vui lòng chọn trạng thái cho tài khoản!");
+                }
+                else
+                {
+                    e.Cancel = false;
+                    errorProvider.SetError(cboTrangThai, "");
+                }
+            };
         }
         private string MaHoaMatKhau(string password)
         {
@@ -81,6 +142,7 @@ namespace QuanLyDiemSV.Forms
             LoadComboBoxData(); // Load quyền và trạng thái
             KhoiTaoCboTimKiemSapXep();
             LoadData();         // Load danh sách tài khoản
+            RegisterValidations(); // Đăng ký các sự kiện kiểm tra nhập liệu
         }
         private void KhoiTaoCboTimKiemSapXep()
         {
@@ -206,7 +268,7 @@ namespace QuanLyDiemSV.Forms
                 }
 
                 // 4. Lấy dữ liệu và Binding
-                var listTK = query.ToList();
+                var listTK =  query.ToList();
                 bsTaiKhoan.DataSource = listTK;
 
                 // Xóa các Binding cũ
@@ -250,6 +312,7 @@ namespace QuanLyDiemSV.Forms
 
         private void btnThem_Click(object sender, EventArgs e)
         {
+            errorProvider.Clear(); // Xóa hết lỗi cũ trước khi thêm mới
             xuLyThem = true;
             BatTatChucNang(true);
 
@@ -266,6 +329,7 @@ namespace QuanLyDiemSV.Forms
 
         private void btnSua_Click(object sender, EventArgs e)
         {
+            errorProvider.Clear(); // Xóa hết lỗi cũ trước khi sửa
             if (bsTaiKhoan.Current == null) return;
 
             xuLyThem = false;
@@ -277,6 +341,7 @@ namespace QuanLyDiemSV.Forms
 
         private void btnXoa_Click(object sender, EventArgs e)
         {
+            errorProvider.Clear(); // Xóa hết lỗi cũ trước khi xóa
             if (bsTaiKhoan.Current == null) return;
             var acc = (UserAccount)bsTaiKhoan.Current;
 
@@ -298,6 +363,7 @@ namespace QuanLyDiemSV.Forms
 
         private void btnLuu_Click(object sender, EventArgs e)
         {
+            errorProvider.Clear(); // Xóa hết lỗi cũ trước khi lưu
             // 1. Kiểm tra nhập liệu
             if (string.IsNullOrWhiteSpace(txtTenDangNhap.Text))
             {
@@ -413,6 +479,7 @@ namespace QuanLyDiemSV.Forms
 
         private void btnLamLai_Click(object sender, EventArgs e)
         {
+            errorProvider.Clear(); // Xóa hết lỗi cũ trước khi làm lại
             BatTatChucNang(false);
             bsTaiKhoan.ResetBindings(false); // Reset lại giá trị cũ
             txtMatKhau.Clear();

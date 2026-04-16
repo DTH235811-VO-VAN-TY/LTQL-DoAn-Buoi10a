@@ -18,6 +18,7 @@ namespace QuanLyDiemSV
         BindingSource bsLopHP = new BindingSource();
         bool xuLyThem = false;
         bool daTaiDuLieu = false; // Biến cờ
+        bool dangXuLy = false;
         ErrorProvider errorProvider = new ErrorProvider();
 
         public UC_LopHocPhan()
@@ -25,6 +26,73 @@ namespace QuanLyDiemSV
             InitializeComponent();
             this.Load += UC_LopHocPhan_Load;
             StyleDataGridView(dgvLopHocPhan);
+        }
+        protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
+        {
+            // =====================================================================
+            // 1. PHÍM TẮT HỆ THỐNG: HOẠT ĐỘNG TOÀN CỤC (Kể cả khi đang gõ chữ)
+            // =====================================================================
+
+            // Ctrl + S: Lưu dữ liệu
+            if (keyData == (Keys.Control | Keys.S))
+            {
+                // Lưu ý: Kiểm tra nút Lưu có đang hiện/bật không trước khi click
+                if (btnLuu.Enabled)
+                {
+                    btnLuu.PerformClick();
+                    return true;
+                }
+            }
+
+            // F5: Làm lại / Tải lại dữ liệu (Thay cho phím R cũ)
+            if (keyData == Keys.F5)
+            {
+                btnLamLai.PerformClick();
+                return true;
+            }
+
+            // Enter: Tìm kiếm khi đang đứng ở ô Từ khóa
+            if (keyData == Keys.Enter)
+            {
+                if (this.ActiveControl == txtTuKhoa)
+                {
+                    btnTimKiem.PerformClick();
+                    return true;
+                }
+            }
+
+            // =====================================================================
+            // 2. KHÓA AN TOÀN: Chặn phím tắt đơn khi người dùng đang nhập liệu
+            // (Để tránh việc gõ chữ 'C' trong tên mà lại nhảy sang lệnh Thêm mới)
+            // =====================================================================
+            if (this.ActiveControl is TextBox || this.ActiveControl is ComboBox)
+            {
+                return base.ProcessCmdKey(ref msg, keyData);
+            }
+
+            // =====================================================================
+            // 3. CÁC PHÍM TẮT ĐƠN: CHỈ HOẠT ĐỘNG KHI KHÔNG GÕ CHỮ
+            // =====================================================================
+            switch (keyData)
+            {
+                case Keys.C: // Thêm mới (Create)
+                    btnThem.PerformClick();
+                    return true;
+
+                case Keys.U: // Sửa (Update)
+                    btnSua.PerformClick();
+                    return true;
+
+                case Keys.D: // Xóa (Delete)
+                    btnXoa.PerformClick();
+                    return true;
+
+                case Keys.F: // Tìm kiếm (Find)
+                    txtTuKhoa.Focus();
+                    return true;
+            }
+
+            return base.ProcessCmdKey(ref msg, keyData);
         }
         private void RegisterValidations()
         {
@@ -96,39 +164,6 @@ namespace QuanLyDiemSV
             KhoiTaoCboTimKiemSapXep();
             RegisterValidations();
         }
-        // Hàm này có chữ 'public' để Form1 có thể gọi được
-        //public void CapNhatDuLieuMoiNhat()
-        //{
-        //    using (var freshContext = new QLDSVDbContext())
-        //    {
-        //        var oldGV = cboMaGV.SelectedValue;
-        //        var oldMon = cboMaMon.SelectedValue;
-        //        var oldHK = cboHocKy.SelectedValue; // Thêm dòng này
-
-        //        cboMaGV.DataSource = freshContext.GiangVien.AsNoTracking().ToList();
-        //        cboMaGV.DisplayMember = "HoTen";
-        //        cboMaGV.ValueMember = "MaGV";
-
-        //        cboMaMon.DataSource = freshContext.MonHoc.AsNoTracking().ToList();
-        //        cboMaMon.DisplayMember = "TenMon";
-        //        cboMaMon.ValueMember = "MaMon";
-
-        //        // THÊM 3 DÒNG NÀY ĐỂ NẠP HỌC KỲ
-        //        cboHocKy.DataSource = freshContext.HocKy.AsNoTracking().ToList();
-        //        cboHocKy.DisplayMember = "TenHK";
-        //        cboHocKy.ValueMember = "MaHK";
-
-        //        if (oldGV != null) cboMaGV.SelectedValue = oldGV;
-        //        if (oldMon != null) cboMaMon.SelectedValue = oldMon;
-        //        if (oldHK != null) cboHocKy.SelectedValue = oldHK; // Thêm dòng này
-        //    }
-
-        //    if (!daTaiDuLieu)
-        //    {
-        //        LoadData();
-        //        daTaiDuLieu = true;
-        //    }
-        //}
         public async Task CapNhatDuLieuMoiNhatAsync()
         {
             using (var freshContext = new QLDSVDbContext())
@@ -153,6 +188,7 @@ namespace QuanLyDiemSV
 
             if (!daTaiDuLieu)
             {
+                await LoadCboKhoaAsync(); // Tải danh sách Khoa vào ComboBox lọc
                 await LoadDataAsync(); // Gọi phiên bản Async của LoadData
                 daTaiDuLieu = true;
             }
@@ -178,7 +214,7 @@ namespace QuanLyDiemSV
             btnThem.Enabled = !giaTri;
             btnSua.Enabled = !giaTri;
             btnXoa.Enabled = !giaTri;
-            btnXepLop.Enabled = !giaTri;
+            //btnXepLop.Enabled = !giaTri;
         }
         private void KhoiTaoCboTimKiemSapXep()
         {
@@ -215,6 +251,26 @@ namespace QuanLyDiemSV
                 cboHocKy.ValueMember = "MaHK";
             }
         }
+        private async Task LoadCboKhoaAsync()
+        {
+            try
+            {
+                // Lấy danh sách Khoa từ Database
+                var listKhoa = await context.Khoa.ToListAsync();
+
+                // Chèn thêm mục "Tất cả" lên vị trí đầu tiên (index 0)
+                listKhoa.Insert(0, new Khoa { MaKhoa = "ALL", TenKhoa = "--- Tất cả các khoa ---" });
+
+                // Đổ dữ liệu vào ComboBox
+                cboLocDuLieu.DataSource = listKhoa;
+                cboLocDuLieu.DisplayMember = "TenKhoa";
+                cboLocDuLieu.ValueMember = "MaKhoa";
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi tải danh sách khoa: " + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
 
         // Thêm biến này ở đầu class (cùng chỗ với bool daTaiDuLieu)
         bool dangTruyVan = false;
@@ -233,6 +289,7 @@ namespace QuanLyDiemSV
                                               .Include(l => l.MaHKNavigation)
                                               .AsQueryable();
                 string tuKhoa = txtTuKhoa.Text.Trim().ToLower();
+
                 if (!string.IsNullOrEmpty(tuKhoa) && cboTimKiem.SelectedIndex != -1)
                 {
                     string loaiTK = cboTimKiem.SelectedItem.ToString();
@@ -254,6 +311,12 @@ namespace QuanLyDiemSV
                             query = query.Where(g => g.MaHK.ToLower().Contains(tuKhoa));
                             break;
                     }
+                }
+                if (cboLocDuLieu.SelectedValue != null && cboLocDuLieu.SelectedValue.ToString() != "ALL")
+                {
+                    string maKhoaChon = cboLocDuLieu.SelectedValue.ToString();
+                    // Lọc các Lớp Học Phần có Môn Học thuộc Khoa đã chọn
+                    query = query.Where(l => l.MaMonNavigation != null && l.MaMonNavigation.MaKhoa == maKhoaChon);
                 }
 
                 bool isTang = radTang.Checked;
@@ -387,7 +450,9 @@ namespace QuanLyDiemSV
 
         private async void btnLuu_Click(object sender, EventArgs e)
         {
-
+            if (dangXuLy) return;
+            dangXuLy = true; // Bắt đầu xử lý, khóa cửa lại
+            Cursor.Current = Cursors.WaitCursor;
             errorProvider.Clear(); // Dọn dẹp lỗi cũ trước khi kiểm tra mới
             bool coLoi = false;
 
@@ -447,6 +512,14 @@ namespace QuanLyDiemSV
                     // NẾU SỬA: Mới được phép lấy đối tượng đang chọn trên lưới
                     lhp = (LopHocPhan)bsLopHP.Current;
                 }
+                if (cboTrangThai.Text == "Đóng")
+                {
+                    lhp.TrangThai = 0;
+                }
+                else
+                {
+                    lhp.TrangThai = 1; // Mặc định là Mở
+                }
 
                 // Cập nhật các giá trị từ Combobox và Textbox vào đối tượng
                 if (cboHocKy.SelectedValue != null) lhp.MaHK = cboHocKy.SelectedValue.ToString();
@@ -487,6 +560,11 @@ namespace QuanLyDiemSV
                     realError = realError.InnerException;
                 }
                 MessageBox.Show("Lỗi Database: \n" + realError.Message, "Phát Hiện Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                dangXuLy = false;
+                Cursor.Current = Cursors.Default;
             }
         }
 
@@ -548,7 +626,7 @@ namespace QuanLyDiemSV
             cboTimKiem.SelectedIndex = 1; // Đưa về mặc định tìm theo Tên LHP
             cboKieuSX.SelectedIndex = 0;  // Đưa về mặc định sắp xếp theo Mã LHP
             radTang.Checked = true;
-             await LoadDataAsync();
+            await LoadDataAsync();
         }
 
         private async void cboKieuSX_SelectedIndexChanged(object sender, EventArgs e)
@@ -817,6 +895,14 @@ namespace QuanLyDiemSV
                     // Sau khi đóng form, load lại dữ liệu để cập nhật sĩ số mới nhất
                     LoadDataAsync(); // Cập nhật lại toàn bộ dữ liệu để hiển thị sĩ số mới nhất trên lưới
                 }
+            }
+        }
+
+        private async void cboLocDuLieu_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (daTaiDuLieu)
+            {
+                await LoadDataAsync();
             }
         }
     }

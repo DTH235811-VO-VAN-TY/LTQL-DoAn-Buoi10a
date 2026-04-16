@@ -28,6 +28,60 @@ namespace GUI
             this.VisibleChanged += UC_Diem_VisibleChanged;
             StyleDataGridView(dgvBangDiem);
         }
+        protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
+        {
+            // =====================================================================
+            // 1. PHÍM TẮT HỆ THỐNG: HOẠT ĐỘNG TOÀN CỤC (Kể cả khi đang gõ chữ)
+            // =====================================================================
+
+            // Ctrl + S: Lưu dữ liệu
+            if (keyData == (Keys.Control | Keys.S))
+            {
+                // Lưu ý: Kiểm tra nút Lưu có đang hiện/bật không trước khi click
+                if (btnAdLua_SV.Enabled)
+                {
+                    btnAdLua_SV.PerformClick();
+                    return true;
+                }
+            }
+
+            // F5: Làm lại / Tải lại dữ liệu (Thay cho phím R cũ)
+            if (keyData == Keys.F5)
+            {
+                btnAdLamLai_SV.PerformClick();
+                return true;
+            }
+
+            // =====================================================================
+            // 2. KHÓA AN TOÀN: Chặn phím tắt đơn khi người dùng đang nhập liệu
+            // (Để tránh việc gõ chữ 'C' trong tên mà lại nhảy sang lệnh Thêm mới)
+            // =====================================================================
+            if (this.ActiveControl is System.Windows.Forms.TextBox || this.ActiveControl is System.Windows.Forms.ComboBox)
+            {
+                return base.ProcessCmdKey(ref msg, keyData);
+            }
+
+            // =====================================================================
+            // 3. CÁC PHÍM TẮT ĐƠN: CHỈ HOẠT ĐỘNG KHI KHÔNG GÕ CHỮ
+            // =====================================================================
+            switch (keyData)
+            {
+                case Keys.C: // Thêm mới (Create)
+                    btnAdThem_SV.PerformClick();
+                    return true;
+
+                case Keys.U: // Sửa (Update)
+                    btnAdSua_SV.PerformClick();
+                    return true;
+
+                case Keys.D: // Xóa (Delete)
+                    btnAdXoa_SV.PerformClick();
+                    return true;
+
+            }
+
+            return base.ProcessCmdKey(ref msg, keyData);
+        }
         private void StyleDataGridView(DataGridView dgv)
         {
             try

@@ -375,7 +375,7 @@
             Controls.Add(groupBox1);
             Controls.Add(groupBox2);
             Name = "FrmHocKy";
-            Text = "FrmHocKy";
+            Text = "Học Kỳ";
             Load += FrmHocKy_Load;
             groupBox2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)dgvHocKy).EndInit();

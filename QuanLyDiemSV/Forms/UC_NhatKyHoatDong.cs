@@ -126,33 +126,44 @@ namespace QuanLyDiemSV.Forms
             {
                 using (var db = new QLDSVDbContext())
                 {
-                    var query = db.NhatKyHoatDong.AsNoTracking().AsQueryable();
+                    // 1. Sử dụng LINQ Left Join để bốc Tên Giảng Viên (HoTen) từ bảng GiangVien
+                    var query = from log in db.NhatKyHoatDong.AsNoTracking()
+                                join gv in db.GiangVien.AsNoTracking() on log.NguoiDung equals gv.MaGV into gvGroup
+                                from g in gvGroup.DefaultIfEmpty() // Left Join
+                                select new
+                                {
+                                    MaLog = log.MaLog,
+                                    // Nếu tìm thấy GV thì lấy Họ Tên, nếu không (ví dụ tài khoản admin) thì giữ nguyên chuỗi cũ
+                                    NguoiDung = g != null ? g.HoTen : log.NguoiDung,
+                                    ThoiGian = log.ThoiGian,
+                                    HanhDong = log.HanhDong,
+                                    ChiTiet = log.ChiTiet
+                                };
 
-                    // Lọc 1: Theo Tên / Mã GV
-                    string nguoiDung = txtTenNguoiDung.Text.Trim().ToLower();
-                    if (!string.IsNullOrEmpty(nguoiDung))
+                    // 2. Lọc theo Tên người dùng / Mã GV (Lúc này x.NguoiDung đã chứa Tên thực sự)
+                    string keyword = txtTenNguoiDung.Text.Trim().ToLower();
+                    if (!string.IsNullOrEmpty(keyword))
                     {
-                        query = query.Where(x => x.NguoiDung.ToLower().Contains(nguoiDung));
+                        query = query.Where(x => x.NguoiDung.ToLower().Contains(keyword));
                     }
 
-                    // Lọc 2: Theo Hành động
+                    // 3. Lọc theo Hành động
                     if (cboHanhDong.SelectedIndex > 0) // Loại trừ "--- Tất cả ---"
                     {
                         string hanhDong = cboHanhDong.SelectedItem.ToString();
                         query = query.Where(x => x.HanhDong == hanhDong);
                     }
 
-                    // Lọc 3: Theo Khoảng thời gian
-                    // Lưu ý: db lưu Giờ Phút Giây, nên "Đến Ngày" phải cộng thêm 1 ngày rồi trừ đi 1 giây để lấy đến tận 23:59:59 đêm
+                    // 4. Lọc theo Khoảng thời gian
                     DateTime tuNgay = dtpTuNgay.Value.Date;
                     DateTime denNgay = dtpDenNgay.Value.Date.AddDays(1).AddTicks(-1);
 
                     query = query.Where(x => x.ThoiGian >= tuNgay && x.ThoiGian <= denNgay);
 
-                    // Sắp xếp: Thời gian mới nhất hiện lên trên cùng
+                    // 5. Sắp xếp: Thời gian mới nhất hiện lên trên cùng
                     query = query.OrderByDescending(x => x.ThoiGian);
 
-                    // Nạp vào lưới
+                    // 6. Nạp vào lưới
                     var listLog = query.ToList();
                     dgvNhatKyHoatDong.DataSource = listLog;
                 }
