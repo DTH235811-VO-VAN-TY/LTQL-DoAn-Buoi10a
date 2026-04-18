@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
@@ -27,6 +27,13 @@ namespace GUI
             this.Load += UC_Diem_Load;
             this.VisibleChanged += UC_Diem_VisibleChanged;
             StyleDataGridView(dgvBangDiem);
+
+            // FIX: Cho phép bấm Làm lại/Thêm/Sửa/Xoa mà không bị chặn bởi Validate
+            btnAdLamLai_SV.CausesValidation = false;
+            btnAdThem_SV.CausesValidation = false;
+            btnAdSua_SV.CausesValidation = false;
+            btnAdXoa_SV.CausesValidation = false;
+            // (Nút tìm kiếm nếu có hãy thêm sau)
         }
         protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
         {
@@ -93,6 +100,9 @@ namespace GUI
 
                 // 1. TẮT Visual Styles mặc định của Windows
                 dgv.EnableHeadersVisualStyles = false;
+
+                // --- FIX LỖI CRASH: Chặn resizing header khi đang ở chế độ Fill ---
+                dgv.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
 
                 // 2. CHỈNH HEADER (Tiêu đề cột)
                 dgv.ColumnHeadersDefaultCellStyle.BackColor = Color.FromArgb(41, 128, 185); // Xanh dương
@@ -228,31 +238,21 @@ namespace GUI
             // Thuộc tính này sẽ lấy trực tiếp con số đã tính toán & lưu từ DB lên
             public decimal? DiemTongKet { get; set; }
 
-            public double? DiemHe4
-            {
-                get
-                {
-                    if (DiemTongKet == null) return null;
-                    float tk = (float)DiemTongKet;
-                    if (tk >= 8.5) return 4.0;
-                    if (tk >= 7.0) return 3.0;
-                    if (tk >= 5.5) return 2.0;
-                    if (tk >= 4.0) return 1.0;
-                    return 0;
-                }
-            }
-
             public string DiemChu
             {
                 get
                 {
                     if (DiemTongKet == null) return "";
-                    float tk = (float)DiemTongKet;
-                    if (tk >= 8.5) return "A";
-                    if (tk >= 7.0) return "B";
-                    if (tk >= 5.5) return "C";
-                    if (tk >= 4.0) return "D";
-                    return "F";
+                    return DiemService.LayDiemChu((double)DiemTongKet);
+                }
+            }
+
+            public double? DiemHe4
+            {
+                get
+                {
+                    if (DiemTongKet == null) return null;
+                    return DiemService.LayDiemHe4((double)DiemTongKet);
                 }
             }
         }
@@ -349,7 +349,7 @@ namespace GUI
                            join mh in context.MonHoc on lhp.MaMon equals mh.MaMon
                            where kq.MaSV == currentMaSV
                                  && lhp.MaHK == maHK
-                                 && lhp.TrangThai == 1
+                                 && (lhp.TrangThai == 1 || lhp.TrangThai == 2)
                            select mh).Distinct().ToList();
 
             cboMaMon.DataSource = null;
@@ -439,11 +439,7 @@ namespace GUI
             lblDiemHe10.Text = Math.Round(dtb10, 2).ToString();
             lblDiemHe4.Text = Math.Round(dtb4, 2).ToString();
 
-            if (dtb4 >= 3.6) lblXepLoaiHK.Text = "Xuất sắc";
-            else if (dtb4 >= 3.2) lblXepLoaiHK.Text = "Giỏi";
-            else if (dtb4 >= 2.5) lblXepLoaiHK.Text = "Khá";
-            else if (dtb4 >= 2.0) lblXepLoaiHK.Text = "Trung bình";
-            else lblXepLoaiHK.Text = "Yếu";
+            lblXepLoaiHK.Text = DiemService.LayXepLoai(dtb4);
         }
 
         #endregion
@@ -914,33 +910,26 @@ namespace GUI
         // HÀM TÍNH ĐIỂM TỔNG KẾT THEO QUY CHẾ THI LẠI / CẢI THIỆN
         private double TinhDiemTongKetCuoiCung(double diemQT, double? diemCK, double? diemThiL1, double? diemThiL2)
         {
-            // 1. Chưa có điểm thi cuối kỳ (lần chính thức) thì chưa có tổng kết
             if (!diemCK.HasValue) return 0;
 
-            // 2. Tính điểm tổng kết chính thức (Lần 1)
-            double tkChinhThuc = Math.Round((diemQT * 0.4) + (diemCK.Value * 0.6), 1);
+            decimal tkChinhThuc = DiemService.TinhDiemTongKet((decimal)diemQT, (decimal)diemCK.Value);
 
-            // 3. Nếu không thi lại/cải thiện, điểm cuối cùng là điểm chính thức
             if (!diemThiL1.HasValue && !diemThiL2.HasValue)
-                return tkChinhThuc;
+                return (double)tkChinhThuc;
 
-            // 4. Nếu có thi lại, xác định điểm thi lại mới nhất (Lần 2 đè Lần 1)
             double? diemThiLai = diemThiL2.HasValue ? diemThiL2 : diemThiL1;
-            if (!diemThiLai.HasValue) return tkChinhThuc;
+            if (!diemThiLai.HasValue) return (double)tkChinhThuc;
 
-            // Tính nháp điểm tổng kết của lần thi lại
-            double tkThiLai = Math.Round((diemQT * 0.4) + (diemThiLai.Value * 0.6), 1);
+            decimal tkThiLai = DiemService.TinhDiemTongKet((decimal)diemQT, (decimal)diemThiLai.Value);
 
-            // 5. ÁP DỤNG QUY CHẾ:
-            if (tkChinhThuc < 5.0)
+            if (tkChinhThuc < 5.0m)
             {
-                // TH rớt: Điểm tổng kết thi lại tối đa chỉ được 6.0
-                return tkThiLai > 6.0 ? 6.0 : tkThiLai;
+                return (double)(tkThiLai > 6.0m ? 6.0m : tkThiLai);
             }
             else
             {
-                // TH cải thiện: Lấy điểm thi lại * 0.6 + QT * 0.4 (Không giới hạn)
-                return tkThiLai;
+                if (tkThiLai > tkChinhThuc) return (double)tkThiLai;
+                return (double)tkChinhThuc;
             }
         }
     }

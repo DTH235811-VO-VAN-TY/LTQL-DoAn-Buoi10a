@@ -1,4 +1,4 @@
-﻿namespace QuanLyDiemSV
+namespace QuanLyDiemSV.Forms
 {
     partial class UC_SinhVien
     {
@@ -73,15 +73,16 @@
             cboKieuSX = new ComboBox();
             label14 = new Label();
             txtAdTuKhoa_SV = new TextBox();
+            label15 = new Label();
             label11 = new Label();
             label12 = new Label();
+            cboLocTheoKhoa = new ComboBox();
             cboAdTimKiem_SV = new ComboBox();
             btnAdShowAll_SV = new Button();
             btnAdTimKiem_SV = new Button();
             panelGrid = new Panel();
             groupBoxList = new GroupBox();
             dgvAdminSinhVien = new DataGridView();
-            helpProvider1 = new HelpProvider();
             MaSV = new DataGridViewTextBoxColumn();
             HoTen = new DataGridViewTextBoxColumn();
             NgaySinh = new DataGridViewTextBoxColumn();
@@ -91,6 +92,7 @@
             Email = new DataGridViewTextBoxColumn();
             MaLop = new DataGridViewTextBoxColumn();
             DiaChi = new DataGridViewTextBoxColumn();
+            helpProvider1 = new HelpProvider();
             panelInput.SuspendLayout();
             groupBoxInfo.SuspendLayout();
             panelSearch.SuspendLayout();
@@ -516,7 +518,7 @@
             // 
             // panelSearch
             // 
-            panelSearch.BackColor = SystemColors.ControlLight;
+            panelSearch.BackColor = Color.White;
             panelSearch.Controls.Add(groupBoxSearch);
             panelSearch.Dock = DockStyle.Top;
             panelSearch.Location = new Point(0, 350);
@@ -528,13 +530,16 @@
             // 
             // groupBoxSearch
             // 
+            groupBoxSearch.BackColor = Color.White;
             groupBoxSearch.Controls.Add(radGiam);
             groupBoxSearch.Controls.Add(radTang);
             groupBoxSearch.Controls.Add(cboKieuSX);
             groupBoxSearch.Controls.Add(label14);
             groupBoxSearch.Controls.Add(txtAdTuKhoa_SV);
+            groupBoxSearch.Controls.Add(label15);
             groupBoxSearch.Controls.Add(label11);
             groupBoxSearch.Controls.Add(label12);
+            groupBoxSearch.Controls.Add(cboLocTheoKhoa);
             groupBoxSearch.Controls.Add(cboAdTimKiem_SV);
             groupBoxSearch.Controls.Add(btnAdShowAll_SV);
             groupBoxSearch.Controls.Add(btnAdTimKiem_SV);
@@ -552,7 +557,7 @@
             // radGiam
             // 
             radGiam.AutoSize = true;
-            radGiam.Location = new Point(1562, 23);
+            radGiam.Location = new Point(1591, 23);
             radGiam.Name = "radGiam";
             radGiam.Size = new Size(67, 24);
             radGiam.TabIndex = 88;
@@ -564,7 +569,7 @@
             // 
             radTang.AutoSize = true;
             radTang.Checked = true;
-            radTang.Location = new Point(1478, 23);
+            radTang.Location = new Point(1499, 23);
             radTang.Name = "radTang";
             radTang.Size = new Size(64, 24);
             radTang.TabIndex = 89;
@@ -576,7 +581,7 @@
             // cboKieuSX
             // 
             cboKieuSX.FormattingEnabled = true;
-            cboKieuSX.Location = new Point(1311, 25);
+            cboKieuSX.Location = new Point(1342, 22);
             cboKieuSX.Name = "cboKieuSX";
             cboKieuSX.Size = new Size(151, 28);
             cboKieuSX.TabIndex = 87;
@@ -585,7 +590,7 @@
             // label14
             // 
             label14.AutoSize = true;
-            label14.Location = new Point(1184, 27);
+            label14.Location = new Point(1210, 25);
             label14.Name = "label14";
             label14.Size = new Size(104, 20);
             label14.TabIndex = 86;
@@ -593,17 +598,26 @@
             // 
             // txtAdTuKhoa_SV
             // 
-            txtAdTuKhoa_SV.Location = new Point(455, 26);
+            txtAdTuKhoa_SV.Location = new Point(705, 22);
             txtAdTuKhoa_SV.Margin = new Padding(3, 4, 3, 4);
             txtAdTuKhoa_SV.Name = "txtAdTuKhoa_SV";
             txtAdTuKhoa_SV.PlaceholderText = "Nhập từ khóa tìm kiếm (F3)...";
             txtAdTuKhoa_SV.Size = new Size(400, 27);
             txtAdTuKhoa_SV.TabIndex = 19;
             // 
+            // label15
+            // 
+            label15.AutoSize = true;
+            label15.Location = new Point(17, 26);
+            label15.Name = "label15";
+            label15.Size = new Size(49, 20);
+            label15.TabIndex = 74;
+            label15.Text = "Khoa:";
+            // 
             // label11
             // 
             label11.AutoSize = true;
-            label11.Location = new Point(35, 30);
+            label11.Location = new Point(313, 25);
             label11.Name = "label11";
             label11.Size = new Size(109, 20);
             label11.TabIndex = 74;
@@ -612,50 +626,63 @@
             // label12
             // 
             label12.AutoSize = true;
-            label12.Location = new Point(375, 30);
+            label12.Location = new Point(626, 25);
             label12.Name = "label12";
             label12.Size = new Size(68, 20);
             label12.TabIndex = 76;
             label12.Text = "Từ Khóa";
             // 
+            // cboLocTheoKhoa
+            // 
+            cboLocTheoKhoa.FormattingEnabled = true;
+            cboLocTheoKhoa.Location = new Point(72, 22);
+            cboLocTheoKhoa.Margin = new Padding(3, 4, 3, 4);
+            cboLocTheoKhoa.Name = "cboLocTheoKhoa";
+            cboLocTheoKhoa.Size = new Size(235, 28);
+            cboLocTheoKhoa.TabIndex = 18;
+            cboLocTheoKhoa.SelectedIndexChanged += cboLocTheoKhoa_SelectedIndexChanged;
+            // 
             // cboAdTimKiem_SV
             // 
             cboAdTimKiem_SV.FormattingEnabled = true;
-            cboAdTimKiem_SV.Location = new Point(150, 26);
+            cboAdTimKiem_SV.Location = new Point(454, 21);
             cboAdTimKiem_SV.Margin = new Padding(3, 4, 3, 4);
             cboAdTimKiem_SV.Name = "cboAdTimKiem_SV";
-            cboAdTimKiem_SV.Size = new Size(200, 28);
+            cboAdTimKiem_SV.Size = new Size(154, 28);
             cboAdTimKiem_SV.TabIndex = 18;
             // 
             // btnAdShowAll_SV
             // 
             btnAdShowAll_SV.BackColor = Color.White;
+            btnAdShowAll_SV.FlatAppearance.BorderSize = 0;
             btnAdShowAll_SV.FlatStyle = FlatStyle.Flat;
-            btnAdShowAll_SV.Location = new Point(1038, 19);
+            btnAdShowAll_SV.Image = (Image)resources.GetObject("btnAdShowAll_SV.Image");
+            btnAdShowAll_SV.Location = new Point(1153, 14);
             btnAdShowAll_SV.Margin = new Padding(3, 4, 3, 4);
             btnAdShowAll_SV.Name = "btnAdShowAll_SV";
-            btnAdShowAll_SV.Size = new Size(120, 40);
+            btnAdShowAll_SV.Size = new Size(37, 40);
             btnAdShowAll_SV.TabIndex = 21;
-            btnAdShowAll_SV.Text = "Hiện tất cả";
             btnAdShowAll_SV.UseVisualStyleBackColor = false;
             btnAdShowAll_SV.Click += btnAdShowAll_SV_Click;
             // 
             // btnAdTimKiem_SV
             // 
             btnAdTimKiem_SV.BackColor = Color.White;
+            btnAdTimKiem_SV.FlatAppearance.BorderSize = 0;
             btnAdTimKiem_SV.FlatStyle = FlatStyle.Flat;
-            btnAdTimKiem_SV.Location = new Point(903, 19);
+            btnAdTimKiem_SV.Image = (Image)resources.GetObject("btnAdTimKiem_SV.Image");
+            btnAdTimKiem_SV.Location = new Point(1103, 16);
             btnAdTimKiem_SV.Margin = new Padding(3, 4, 3, 4);
             btnAdTimKiem_SV.Name = "btnAdTimKiem_SV";
-            btnAdTimKiem_SV.Size = new Size(120, 40);
+            btnAdTimKiem_SV.Size = new Size(44, 38);
             btnAdTimKiem_SV.TabIndex = 20;
-            btnAdTimKiem_SV.Text = "Tìm Kiếm";
             btnAdTimKiem_SV.UseVisualStyleBackColor = false;
             btnAdTimKiem_SV.Click += btnAdTimKiem_SV_Click;
             btnAdTimKiem_SV.KeyDown += btnAdTimKiem_SV_KeyDown;
             // 
             // panelGrid
             // 
+            panelGrid.BackColor = Color.White;
             panelGrid.Controls.Add(groupBoxList);
             panelGrid.Dock = DockStyle.Fill;
             panelGrid.Location = new Point(0, 422);
@@ -875,5 +902,7 @@
         private DataGridViewTextBoxColumn Email;
         private DataGridViewTextBoxColumn MaLop;
         private DataGridViewTextBoxColumn DiaChi;
+        private Label label15;
+        private ComboBox cboLocTheoKhoa;
     }
 }

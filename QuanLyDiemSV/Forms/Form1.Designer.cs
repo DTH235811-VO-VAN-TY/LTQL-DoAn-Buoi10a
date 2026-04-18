@@ -1,4 +1,4 @@
-﻿namespace QuanLyDiemSV
+namespace QuanLyDiemSV
 {
     partial class Form1
     {
@@ -30,6 +30,7 @@
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
             panel1 = new Panel();
+            btnCaiDat = new Button();
             btnDangXuat = new Button();
             btnTaiKhoan = new Button();
             btnTraCuuDiem = new Button();
@@ -41,7 +42,7 @@
             btnGiangVien = new Button();
             btnSinhVien = new Button();
             btnTrangChu = new Button();
-            panel3 = new Panel();
+            pnlTenNguoiDung = new Panel();
             btnDoiMatKhau = new Button();
             panel5 = new Panel();
             lblTenNguoiDung = new Label();
@@ -49,8 +50,8 @@
             panel4 = new Panel();
             btnNhatKyHoatDong = new Button();
             btnThongBao = new Button();
-            label1 = new Label();
             panel2 = new Panel();
+            uC_NhatKyHoatDong1 = new QuanLyDiemSV.Forms.UC_NhatKyHoatDong();
             uC_TrangChu1 = new QuanLyDiemSV.Forms.UC_TrangChu();
             uC_ThongKe1 = new QuanLyDiemSV.Forms.UC_ThongKe();
             uC_GiangVien_ChamDiem1 = new QuanLyDiemSV.Forms.UC_GiangVien_ChamDiem();
@@ -63,11 +64,11 @@
             uC_LopHocPhan1 = new UC_LopHocPhan();
             uC_Diem1 = new GUI.UC_Diem();
             uC_MonHoc1 = new GUI.UC_MonHoc();
-            uC_SinhVien1 = new UC_SinhVien();
+            uC_SinhVien1 = new QuanLyDiemSV.Forms.UC_SinhVien();
             uC_Home1 = new UC_LopHocPhan();
-            uC_NhatKyHoatDong1 = new QuanLyDiemSV.Forms.UC_NhatKyHoatDong();
+            uC_CaiDat1 = new QuanLyDiemSV.Forms.UC_CaiDat();
             panel1.SuspendLayout();
-            panel3.SuspendLayout();
+            pnlTenNguoiDung.SuspendLayout();
             panel4.SuspendLayout();
             panel2.SuspendLayout();
             SuspendLayout();
@@ -75,6 +76,7 @@
             // panel1
             // 
             panel1.BackColor = Color.FromArgb(52, 73, 94);
+            panel1.Controls.Add(btnCaiDat);
             panel1.Controls.Add(btnDangXuat);
             panel1.Controls.Add(btnTaiKhoan);
             panel1.Controls.Add(btnTraCuuDiem);
@@ -86,12 +88,34 @@
             panel1.Controls.Add(btnGiangVien);
             panel1.Controls.Add(btnSinhVien);
             panel1.Controls.Add(btnTrangChu);
-            panel1.Controls.Add(panel3);
+            panel1.Controls.Add(pnlTenNguoiDung);
             panel1.Dock = DockStyle.Left;
             panel1.Location = new Point(5, 25);
             panel1.Name = "panel1";
             panel1.Size = new Size(220, 1025);
             panel1.TabIndex = 0;
+            // 
+            // btnCaiDat
+            // 
+            btnCaiDat.BackColor = Color.FromArgb(52, 73, 94);
+            btnCaiDat.Dock = DockStyle.Top;
+            btnCaiDat.FlatAppearance.BorderSize = 0;
+            btnCaiDat.FlatAppearance.MouseDownBackColor = Color.Blue;
+            btnCaiDat.FlatAppearance.MouseOverBackColor = Color.FromArgb(0, 0, 192);
+            btnCaiDat.FlatStyle = FlatStyle.Flat;
+            btnCaiDat.Font = new Font("Century Gothic", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            btnCaiDat.ForeColor = SystemColors.ButtonHighlight;
+            btnCaiDat.Image = (Image)resources.GetObject("btnCaiDat.Image");
+            btnCaiDat.ImageAlign = ContentAlignment.MiddleLeft;
+            btnCaiDat.Location = new Point(0, 826);
+            btnCaiDat.Margin = new Padding(0);
+            btnCaiDat.Name = "btnCaiDat";
+            btnCaiDat.Size = new Size(220, 41);
+            btnCaiDat.TabIndex = 14;
+            btnCaiDat.Text = "               Cài Đặt";
+            btnCaiDat.TextAlign = ContentAlignment.MiddleLeft;
+            btnCaiDat.UseVisualStyleBackColor = false;
+            btnCaiDat.Click += btnCaiDat_Click;
             // 
             // btnDangXuat
             // 
@@ -119,10 +143,10 @@
             btnTaiKhoan.ForeColor = SystemColors.ButtonHighlight;
             btnTaiKhoan.Image = (Image)resources.GetObject("btnTaiKhoan.Image");
             btnTaiKhoan.ImageAlign = ContentAlignment.MiddleLeft;
-            btnTaiKhoan.Location = new Point(0, 822);
+            btnTaiKhoan.Location = new Point(0, 759);
             btnTaiKhoan.Margin = new Padding(0);
             btnTaiKhoan.Name = "btnTaiKhoan";
-            btnTaiKhoan.Size = new Size(220, 74);
+            btnTaiKhoan.Size = new Size(220, 67);
             btnTaiKhoan.TabIndex = 8;
             btnTaiKhoan.Text = "               Tài khoản";
             btnTaiKhoan.TextAlign = ContentAlignment.MiddleLeft;
@@ -141,10 +165,10 @@
             btnTraCuuDiem.ForeColor = SystemColors.ButtonHighlight;
             btnTraCuuDiem.Image = (Image)resources.GetObject("btnTraCuuDiem.Image");
             btnTraCuuDiem.ImageAlign = ContentAlignment.MiddleLeft;
-            btnTraCuuDiem.Location = new Point(0, 748);
+            btnTraCuuDiem.Location = new Point(0, 692);
             btnTraCuuDiem.Margin = new Padding(0);
             btnTraCuuDiem.Name = "btnTraCuuDiem";
-            btnTraCuuDiem.Size = new Size(220, 74);
+            btnTraCuuDiem.Size = new Size(220, 67);
             btnTraCuuDiem.TabIndex = 7;
             btnTraCuuDiem.Text = "               Tra cứu điểm";
             btnTraCuuDiem.TextAlign = ContentAlignment.MiddleLeft;
@@ -163,10 +187,10 @@
             btnThongKe.ForeColor = SystemColors.ButtonHighlight;
             btnThongKe.Image = (Image)resources.GetObject("btnThongKe.Image");
             btnThongKe.ImageAlign = ContentAlignment.MiddleLeft;
-            btnThongKe.Location = new Point(0, 674);
+            btnThongKe.Location = new Point(0, 625);
             btnThongKe.Margin = new Padding(0);
             btnThongKe.Name = "btnThongKe";
-            btnThongKe.Size = new Size(220, 74);
+            btnThongKe.Size = new Size(220, 67);
             btnThongKe.TabIndex = 6;
             btnThongKe.Text = "               Thống kê";
             btnThongKe.TextAlign = ContentAlignment.MiddleLeft;
@@ -185,10 +209,10 @@
             btnMonHoc.ForeColor = SystemColors.ButtonHighlight;
             btnMonHoc.Image = (Image)resources.GetObject("btnMonHoc.Image");
             btnMonHoc.ImageAlign = ContentAlignment.MiddleLeft;
-            btnMonHoc.Location = new Point(0, 600);
+            btnMonHoc.Location = new Point(0, 558);
             btnMonHoc.Margin = new Padding(0);
             btnMonHoc.Name = "btnMonHoc";
-            btnMonHoc.Size = new Size(220, 74);
+            btnMonHoc.Size = new Size(220, 67);
             btnMonHoc.TabIndex = 5;
             btnMonHoc.Text = "               Môn học";
             btnMonHoc.TextAlign = ContentAlignment.MiddleLeft;
@@ -207,10 +231,10 @@
             btnDiemSV.ForeColor = SystemColors.ButtonHighlight;
             btnDiemSV.Image = (Image)resources.GetObject("btnDiemSV.Image");
             btnDiemSV.ImageAlign = ContentAlignment.MiddleLeft;
-            btnDiemSV.Location = new Point(0, 526);
+            btnDiemSV.Location = new Point(0, 491);
             btnDiemSV.Margin = new Padding(0);
             btnDiemSV.Name = "btnDiemSV";
-            btnDiemSV.Size = new Size(220, 74);
+            btnDiemSV.Size = new Size(220, 67);
             btnDiemSV.TabIndex = 4;
             btnDiemSV.Text = "               Điểm";
             btnDiemSV.TextAlign = ContentAlignment.MiddleLeft;
@@ -229,10 +253,10 @@
             btnLopHanhChinh.ForeColor = SystemColors.ButtonHighlight;
             btnLopHanhChinh.Image = (Image)resources.GetObject("btnLopHanhChinh.Image");
             btnLopHanhChinh.ImageAlign = ContentAlignment.MiddleLeft;
-            btnLopHanhChinh.Location = new Point(0, 452);
+            btnLopHanhChinh.Location = new Point(0, 424);
             btnLopHanhChinh.Margin = new Padding(0);
             btnLopHanhChinh.Name = "btnLopHanhChinh";
-            btnLopHanhChinh.Size = new Size(220, 74);
+            btnLopHanhChinh.Size = new Size(220, 67);
             btnLopHanhChinh.TabIndex = 12;
             btnLopHanhChinh.Text = "            Lớp Hành Chính";
             btnLopHanhChinh.UseVisualStyleBackColor = false;
@@ -250,10 +274,10 @@
             btnLopHocPhan.ForeColor = SystemColors.ButtonHighlight;
             btnLopHocPhan.Image = (Image)resources.GetObject("btnLopHocPhan.Image");
             btnLopHocPhan.ImageAlign = ContentAlignment.MiddleLeft;
-            btnLopHocPhan.Location = new Point(0, 378);
+            btnLopHocPhan.Location = new Point(0, 357);
             btnLopHocPhan.Margin = new Padding(0);
             btnLopHocPhan.Name = "btnLopHocPhan";
-            btnLopHocPhan.Size = new Size(220, 74);
+            btnLopHocPhan.Size = new Size(220, 67);
             btnLopHocPhan.TabIndex = 3;
             btnLopHocPhan.Text = "               Lớp học phần";
             btnLopHocPhan.TextAlign = ContentAlignment.MiddleLeft;
@@ -272,10 +296,10 @@
             btnGiangVien.ForeColor = SystemColors.ButtonHighlight;
             btnGiangVien.Image = (Image)resources.GetObject("btnGiangVien.Image");
             btnGiangVien.ImageAlign = ContentAlignment.MiddleLeft;
-            btnGiangVien.Location = new Point(0, 304);
+            btnGiangVien.Location = new Point(0, 290);
             btnGiangVien.Margin = new Padding(0);
             btnGiangVien.Name = "btnGiangVien";
-            btnGiangVien.Size = new Size(220, 74);
+            btnGiangVien.Size = new Size(220, 67);
             btnGiangVien.TabIndex = 11;
             btnGiangVien.Text = "        Giảng Viên";
             btnGiangVien.UseVisualStyleBackColor = false;
@@ -293,10 +317,10 @@
             btnSinhVien.ForeColor = SystemColors.ButtonHighlight;
             btnSinhVien.Image = (Image)resources.GetObject("btnSinhVien.Image");
             btnSinhVien.ImageAlign = ContentAlignment.MiddleLeft;
-            btnSinhVien.Location = new Point(0, 230);
+            btnSinhVien.Location = new Point(0, 223);
             btnSinhVien.Margin = new Padding(0);
             btnSinhVien.Name = "btnSinhVien";
-            btnSinhVien.Size = new Size(220, 74);
+            btnSinhVien.Size = new Size(220, 67);
             btnSinhVien.TabIndex = 2;
             btnSinhVien.Text = "               Sinh Viên";
             btnSinhVien.TextAlign = ContentAlignment.MiddleLeft;
@@ -318,23 +342,23 @@
             btnTrangChu.Location = new Point(0, 156);
             btnTrangChu.Margin = new Padding(0);
             btnTrangChu.Name = "btnTrangChu";
-            btnTrangChu.Size = new Size(220, 74);
+            btnTrangChu.Size = new Size(220, 67);
             btnTrangChu.TabIndex = 10;
             btnTrangChu.Text = "   Trang chủ";
             btnTrangChu.UseVisualStyleBackColor = false;
             btnTrangChu.Click += btnTrangChu_Click;
             // 
-            // panel3
+            // pnlTenNguoiDung
             // 
-            panel3.Controls.Add(btnDoiMatKhau);
-            panel3.Controls.Add(panel5);
-            panel3.Controls.Add(lblTenNguoiDung);
-            panel3.Controls.Add(lblVaiTro);
-            panel3.Dock = DockStyle.Top;
-            panel3.Location = new Point(0, 0);
-            panel3.Name = "panel3";
-            panel3.Size = new Size(220, 156);
-            panel3.TabIndex = 0;
+            pnlTenNguoiDung.Controls.Add(btnDoiMatKhau);
+            pnlTenNguoiDung.Controls.Add(panel5);
+            pnlTenNguoiDung.Controls.Add(lblTenNguoiDung);
+            pnlTenNguoiDung.Controls.Add(lblVaiTro);
+            pnlTenNguoiDung.Dock = DockStyle.Top;
+            pnlTenNguoiDung.Location = new Point(0, 0);
+            pnlTenNguoiDung.Name = "pnlTenNguoiDung";
+            pnlTenNguoiDung.Size = new Size(220, 156);
+            pnlTenNguoiDung.TabIndex = 0;
             // 
             // btnDoiMatKhau
             // 
@@ -385,7 +409,6 @@
             panel4.BackColor = Color.DodgerBlue;
             panel4.Controls.Add(btnNhatKyHoatDong);
             panel4.Controls.Add(btnThongBao);
-            panel4.Controls.Add(label1);
             panel4.Dock = DockStyle.Top;
             panel4.Location = new Point(225, 25);
             panel4.Name = "panel4";
@@ -420,19 +443,6 @@
             btnThongBao.UseVisualStyleBackColor = false;
             btnThongBao.Click += btnThongBao_Click;
             // 
-            // label1
-            // 
-            label1.AutoSize = true;
-            label1.BorderStyle = BorderStyle.Fixed3D;
-            label1.Font = new Font("Century Gothic", 16.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            label1.ForeColor = Color.White;
-            label1.Location = new Point(6, 22);
-            label1.Name = "label1";
-            label1.Size = new Size(517, 36);
-            label1.TabIndex = 0;
-            label1.Text = "HỆ THỐNG QUẢN LÝ ĐIỂM SINH VIÊN";
-            label1.TextAlign = ContentAlignment.MiddleCenter;
-            // 
             // panel2
             // 
             panel2.BackColor = Color.White;
@@ -451,11 +461,21 @@
             panel2.Controls.Add(uC_MonHoc1);
             panel2.Controls.Add(uC_SinhVien1);
             panel2.Controls.Add(uC_Home1);
+            panel2.Controls.Add(uC_CaiDat1);
             panel2.Dock = DockStyle.Fill;
             panel2.Location = new Point(225, 96);
             panel2.Name = "panel2";
             panel2.Size = new Size(1694, 954);
             panel2.TabIndex = 1;
+            // 
+            // uC_NhatKyHoatDong1
+            // 
+            uC_NhatKyHoatDong1.Dock = DockStyle.Fill;
+            uC_NhatKyHoatDong1.Location = new Point(0, 0);
+            uC_NhatKyHoatDong1.Name = "uC_NhatKyHoatDong1";
+            uC_NhatKyHoatDong1.Padding = new Padding(10);
+            uC_NhatKyHoatDong1.Size = new Size(1694, 954);
+            uC_NhatKyHoatDong1.TabIndex = 14;
             // 
             // uC_TrangChu1
             // 
@@ -573,14 +593,13 @@
             uC_Home1.Size = new Size(1694, 954);
             uC_Home1.TabIndex = 0;
             // 
-            // uC_NhatKyHoatDong1
+            // uC_CaiDat1
             // 
-            uC_NhatKyHoatDong1.Dock = DockStyle.Fill;
-            uC_NhatKyHoatDong1.Location = new Point(0, 0);
-            uC_NhatKyHoatDong1.Name = "uC_NhatKyHoatDong1";
-            uC_NhatKyHoatDong1.Padding = new Padding(10);
-            uC_NhatKyHoatDong1.Size = new Size(1694, 954);
-            uC_NhatKyHoatDong1.TabIndex = 14;
+            uC_CaiDat1.Dock = DockStyle.Fill;
+            uC_CaiDat1.Location = new Point(0, 0);
+            uC_CaiDat1.Name = "uC_CaiDat1";
+            uC_CaiDat1.Size = new Size(1694, 954);
+            uC_CaiDat1.TabIndex = 15;
             // 
             // Form1
             // 
@@ -597,9 +616,8 @@
             WindowState = FormWindowState.Maximized;
             Load += Form1_Load;
             panel1.ResumeLayout(false);
-            panel3.ResumeLayout(false);
+            pnlTenNguoiDung.ResumeLayout(false);
             panel4.ResumeLayout(false);
-            panel4.PerformLayout();
             panel2.ResumeLayout(false);
             ResumeLayout(false);
 
@@ -608,10 +626,9 @@
         #endregion
 
         private System.Windows.Forms.Panel panel1;
-        private System.Windows.Forms.Panel panel3;
+        private System.Windows.Forms.Panel pnlTenNguoiDung;
        
         private System.Windows.Forms.Panel panel4;
-        private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Panel panel2;
         private Button btnSinhVien;
         private Button btnMonHoc;
@@ -623,7 +640,7 @@
         private Label lblVaiTro;
         private Panel panel5;
         private UC_LopHocPhan uC_Home1;
-        private UC_SinhVien uC_SinhVien1;
+        private Forms.UC_SinhVien uC_SinhVien1;
         private GUI.UC_MonHoc uC_MonHoc1;
         private GUI.UC_Diem uC_Diem1;
         private UC_LopHocPhan uC_LopHocPhan1;
@@ -645,6 +662,8 @@
         private Button btnNhatKyHoatDong;
         private Button btnDoiMatKhau;
         private Forms.UC_NhatKyHoatDong uC_NhatKyHoatDong1;
+        private Button btnCaiDat;
+        private Forms.UC_CaiDat uC_CaiDat1;
     }
 }
 

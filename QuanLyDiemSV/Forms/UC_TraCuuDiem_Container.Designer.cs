@@ -368,7 +368,7 @@
             // 
             // txtTuKhoa
             // 
-            txtTuKhoa.Location = new Point(924, 58);
+            txtTuKhoa.Location = new Point(960, 60);
             txtTuKhoa.Name = "txtTuKhoa";
             txtTuKhoa.PlaceholderText = "Nhập từ khóa cần tìm...";
             txtTuKhoa.Size = new Size(361, 30);

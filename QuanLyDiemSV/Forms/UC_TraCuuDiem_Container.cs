@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
@@ -59,6 +59,8 @@ namespace QuanLyDiemSV.Forms
             //radTang.CheckedChanged += (s, ev) => LoadDanhSachSinhVien();
             //radGiam.CheckedChanged += (s, ev) => LoadDanhSachSinhVien();
 
+            dgvDanhSachSV.EnableHeadersVisualStyles = false;
+            dgvDanhSachSV.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
             dgvDanhSachSV.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
         }
 
@@ -97,9 +99,19 @@ namespace QuanLyDiemSV.Forms
                 ucChiTiet = new UC_TraCuu_ChiTiet();
                 ucChiTiet.Dock = DockStyle.Fill;
                 ucChiTiet.Visible = false;
+                ucChiTiet.Visible = false;
                 ucChiTiet.QuayLaiTraCuulicked += UcChiTiet_QuayLaiClicked;
                 this.Controls.Add(ucChiTiet);
                 ucChiTiet.BringToFront();
+            }
+        }
+        
+        // Cập nhật lại danh sách sinh viên bên chi tiết (nếu đang hở)
+        public async Task CapNhatDuLieuChiTietNeuDangHienAsync()
+        {
+            if (ucChiTiet != null && ucChiTiet.Visible)
+            {
+                await ucChiTiet.CapNhatDuLieuMoiNhatAsync();
             }
         }
 
@@ -216,7 +228,8 @@ namespace QuanLyDiemSV.Forms
                 }
                 else if (Session.RoleID == 2)
                 {
-                    var gv = context.GiangVien.FirstOrDefault(g => g.MaGV == Session.MaNguoiDung);
+                    // FIX LAG: Chuyển sang FirstOrDefaultAsync
+                    var gv = await context.GiangVien.AsNoTracking().FirstOrDefaultAsync(g => g.MaGV == Session.MaNguoiDung);
                     if (gv != null)
                     {
                         querySV = querySV.Where(s => s.MaLopNavigation.MaNganhNavigation.MaKhoa == gv.MaKhoa);
@@ -253,16 +266,18 @@ namespace QuanLyDiemSV.Forms
 
                 // 2. Lấy TOÀN BỘ ĐIỂM của các sinh viên này từ CSDL (Chỉ lấy môn đã có DiemTongKet)
                 var maSVs = listSV.Select(s => s.MaSV).ToList();
-                var listDiem = (from kq in context.KetQuaHocTap.AsNoTracking()
-                                join lhp in context.LopHocPhan.AsNoTracking() on kq.MaLHP equals lhp.MaLHP
-                                join mh in context.MonHoc.AsNoTracking() on lhp.MaMon equals mh.MaMon
-                                where maSVs.Contains(kq.MaSV) && kq.DiemTongKet != null
-                                select new
-                                {
-                                    kq.MaSV,
-                                    DiemTongKet = kq.DiemTongKet.Value,
-                                    mh.SoTinChi
-                                }).ToList();
+                var listDiemQuery = from kq in context.KetQuaHocTap.AsNoTracking()
+                                    join lhp in context.LopHocPhan.AsNoTracking() on kq.MaLHP equals lhp.MaLHP
+                                    join mh in context.MonHoc.AsNoTracking() on lhp.MaMon equals mh.MaMon
+                                    where maSVs.Contains(kq.MaSV) && kq.DiemTongKet != null
+                                    select new
+                                    {
+                                        kq.MaSV,
+                                        DiemTongKet = kq.DiemTongKet.Value,
+                                        mh.SoTinChi
+                                    };
+
+                var listDiem = await listDiemQuery.ToListAsync();
 
                 // 3. Tính toán Điểm Trung Bình Hệ 10 tích lũy cho từng sinh viên
                 var listResult = new List<dynamic>();
@@ -321,20 +336,20 @@ namespace QuanLyDiemSV.Forms
             }
         }
 
-        private void btnXemChitiet_Click(object sender, EventArgs e)
+        private async void btnXemChitiet_Click(object sender, EventArgs e)
         {
-            XemChiTietSinhVien();
+            await XemChiTietSinhVienAsync();
         }
 
-        private void dgvDanhSachSV_CellClick(object sender, DataGridViewCellEventArgs e)
+        private async void dgvDanhSachSV_CellClick(object sender, DataGridViewCellEventArgs e)
         {
             if (e.RowIndex >= 0 && (dgvDanhSachSV.Columns[e.ColumnIndex].Name == "ThaoTac" || dgvDanhSachSV.Columns[e.ColumnIndex].Name == "btnXemChiTiet"))
             {
-                XemChiTietSinhVien();
+                await XemChiTietSinhVienAsync();
             }
         }
 
-        private void XemChiTietSinhVien()
+        private async Task XemChiTietSinhVienAsync()
         {
             if (dgvDanhSachSV.CurrentRow == null || dgvDanhSachSV.CurrentRow.Index < 0)
             {
@@ -348,12 +363,25 @@ namespace QuanLyDiemSV.Forms
             string maSV = cellValue.ToString();
             if (ucChiTiet == null) InitChiTietView();
 
-            ucChiTiet.LoadDuLieuChiTiet(maSV);
-            ucChiTiet.Visible = true;
-            ucChiTiet.BringToFront();
+            try
+            {
+                this.Cursor = Cursors.WaitCursor;
+                await ucChiTiet.LoadDuLieuChiTietAsync(maSV);
+                
+                ucChiTiet.Visible = true;
+                ucChiTiet.BringToFront();
 
-            groupBox1.Visible = false;
-            groupBox2.Visible = false;
+                groupBox1.Visible = false;
+                groupBox2.Visible = false;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi khi tải chi tiết sinh viên: " + ex.Message, "Lỗi kết nối", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                this.Cursor = Cursors.Default;
+            }
         }
 
         private void UcChiTiet_QuayLaiClicked(object sender, EventArgs e)

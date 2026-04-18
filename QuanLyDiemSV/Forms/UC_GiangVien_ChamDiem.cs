@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -23,6 +23,7 @@ namespace QuanLyDiemSV.Forms
         ErrorProvider errorProvider = new ErrorProvider();
         bool dangCapNhatUI = false;
         bool dangTruyVan = false;
+
         public UC_GiangVien_ChamDiem()
         {
             InitializeComponent();
@@ -32,7 +33,6 @@ namespace QuanLyDiemSV.Forms
             DgvDSSV.CellValidating += DgvDSSV_CellValidating;
             DgvDSSV.DataError += DgvDSSV_DataError;
             StyleDataGridView(DgvDSSV);
-            StyleButtons();
 
             // TỰ ĐỘNG LIÊN KẾT CÁC NÚT TÌM KIẾM, SẮP XẾP BẰNG CODE
             btnTimKiem.Click += BtnTimKiem_Click;
@@ -41,7 +41,15 @@ namespace QuanLyDiemSV.Forms
             radTang.CheckedChanged += RadTang_CheckedChanged;
             radGiam.CheckedChanged += RadGiam_CheckedChanged;
 
+            // // Khởi tạo nút Biểu đồ
+            // btnBieuDoPhoDiem = new Button();
+            // ... (đã xóa)
 
+            // Gắn sự kiện cho các nút đã thêm từ Designer
+            btnChotDiem.Click += btnChotDiem_Click;
+            btnBieuDoPhoDiem.Click += BtnBieuDoPhoDiem_Click;
+
+            StyleButtons(); // Gọi sau khi đã tạo xong các control động
         }
         protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
         {
@@ -142,6 +150,9 @@ namespace QuanLyDiemSV.Forms
                 // 1. TẮT Visual Styles mặc định của Windows
                 dgv.EnableHeadersVisualStyles = false;
 
+                // --- FIX LỖI CRASH: Chặn resizing header khi đang ở chế độ Fill ---
+                dgv.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
+
                 // 2. CHỈNH HEADER (Tiêu đề cột)
                 dgv.ColumnHeadersDefaultCellStyle.BackColor = Color.FromArgb(41, 128, 185); // Xanh dương
                 dgv.ColumnHeadersDefaultCellStyle.ForeColor = Color.White;
@@ -205,6 +216,7 @@ namespace QuanLyDiemSV.Forms
             ApplyStyle(btnLuuBangDiem, successColor);
             ApplyStyle(btnQuayLaiLop, dangerColor);
             ApplyStyle(btnXuatExcel, primaryColor); // Hoặc successColor tùy bạn
+            ApplyStyle(btnChotDiem, dangerColor); // Chốt điểm dùng màu đỏ để cảnh báo tính quan trọng
         }
 
         // Hàm này bốc "Họ Tên" từ bảng SinhVien hiển thị lên lưới
@@ -361,7 +373,6 @@ namespace QuanLyDiemSV.Forms
             return false; // Sai mật khẩu hoặc bấm Hủy
         }
 
-        // Hàm phụ trợ lấy số trực tiếp từ ô lưới
         private decimal? LayDiemTuLuoi(object cellValue)
         {
             if (cellValue != null && decimal.TryParse(cellValue.ToString(), out decimal diem))
@@ -369,37 +380,26 @@ namespace QuanLyDiemSV.Forms
             return null; // Nếu ô trống hoặc nhập chữ thì trả về null
         }
 
-        // Hàm tính điểm tổng kết chuẩn 6.0
-        // Hàm tính điểm tổng kết chuẩn (Đã khóa chặt logic)
+        // Hàm tính điểm tổng kết sử dụng DiemService
         private decimal? TinhDiemTongKetCuoiCung(decimal? diemGK, decimal? diemCK, decimal? diemThiL1, decimal? diemThiL2)
         {
-            if (!diemCK.HasValue) return null; // Chưa có CK thì để trống
+            if (!diemCK.HasValue) return null;
 
             decimal gk = diemGK ?? 0m;
-            decimal tkChinhThuc = Math.Round((gk * 0.4m) + (diemCK.Value * 0.6m), 1);
+            decimal tkChinhThuc = DiemService.TinhDiemTongKet(gk, diemCK.Value);
 
-            // Xác định điểm thi lại (Ưu tiên Lần 2)
             decimal? diemThiLai = diemThiL2.HasValue ? diemThiL2 : diemThiL1;
-
-            // Không thi lại -> Trả về điểm gốc
             if (!diemThiLai.HasValue) return tkChinhThuc;
 
-            // Tính nháp điểm thi lại
-            decimal tkThiLai = Math.Round((gk * 0.4m) + (diemThiLai.Value * 0.6m), 1);
+            decimal tkThiLai = DiemService.TinhDiemTongKet(gk, diemThiLai.Value);
 
-            // --- BẮT CHẶT QUY CHẾ ---
             if (tkChinhThuc < 5.0m)
             {
-                // 1. RỚT -> THI LẠI: Tối đa chỉ được 6.0
-                if (tkThiLai > 6.0m)
-                {
-                    return 6.0m; // Chốt hạ ở 6.0
-                }
-                return tkThiLai; // Dưới 5 thì lấy đúng điểm đó
+                // Quy chế tối đa 6.0 khi thi lại (Lấy từ logic cũ hoặc cấu hình)
+                return tkThiLai > 6.0m ? 6.0m : tkThiLai;
             }
             else
             {
-                // 2. ĐẬU -> THI CẢI THIỆN: Lấy điểm cao nhất, không giới hạn
                 if (tkThiLai > tkChinhThuc) return tkThiLai;
                 return tkChinhThuc;
             }
@@ -613,12 +613,123 @@ namespace QuanLyDiemSV.Forms
         private void btnQuayLaiLop_Click(object sender, EventArgs e)
         {
             pnlDanhSachSV.Visible = false;
+            btnChotDiem.Visible = false;
+            btnBieuDoPhoDiem.Visible = false;
             flpDanhSachLop.Visible = true;
             panel1.Visible = true;
         }
+
+        private async void btnChotDiem_Click(object sender, EventArgs e)
+        {
+            if (currentLHP == 0 || dbChamDiem == null) return;
+
+            // KIỂM TRA CHẾ ĐỘ: CHỐT ĐIỂM HAY GỬI YÊU CẦU
+            var lhp = await dbChamDiem.LopHocPhan.FirstOrDefaultAsync(x => x.MaLHP == currentLHP);
+            if (lhp == null) return;
+
+            if (lhp.TrangThai == 2)
+            {
+                // CHẾ ĐỘ: GỬI YÊU CẦU SỬA ĐIỂM
+                Form prompt = new Form()
+                {
+                    Width = 500, Height = 300, Text = "Yêu cầu mở khóa sửa điểm", StartPosition = FormStartPosition.CenterParent, FormBorderStyle = FormBorderStyle.FixedDialog
+                };
+                Label lbl = new Label() { Left = 20, Top = 20, Text = "Lý do xin sửa điểm (Ví dụ: Nhầm điểm thành phần, phúc khảo...):", Width = 450 };
+                TextBox txtLyDo = new TextBox() { Left = 20, Top = 50, Width = 445, Height = 100, Multiline = true };
+                Button btnGui = new Button() { Text = "Gửi Yêu Cầu", Left = 250, Top = 180, Width = 100, DialogResult = DialogResult.OK };
+                Button btnHuy = new Button() { Text = "Hủy", Left = 360, Top = 180, Width = 100, DialogResult = DialogResult.Cancel };
+                
+                prompt.Controls.AddRange(new Control[] { lbl, txtLyDo, btnGui, btnHuy });
+                if (prompt.ShowDialog() == DialogResult.OK)
+                {
+                    if (string.IsNullOrWhiteSpace(txtLyDo.Text))
+                    {
+                        MessageBox.Show("Vui lòng nhập lý do!");
+                        return;
+                    }
+
+                    YeuCauSuaDiem yc = new YeuCauSuaDiem()
+                    {
+                        MaGV = currentMaGV,
+                        MaLHP = currentLHP,
+                        LyDo = txtLyDo.Text,
+                        NgayGui = DateTime.Now,
+                        TrangThai = 0
+                    };
+                    dbChamDiem.YeuCauSuaDiem.Add(yc);
+                    await dbChamDiem.SaveChangesAsync();
+
+                    btnChotDiem.Enabled = false;
+                    btnChotDiem.Text = "Đang chờ Admin duyệt...";
+                    MessageBox.Show("Đã gửi yêu cầu thành công. Vui lòng đợi Admin phê duyệt để được mở khóa sửa điểm.", "Thông báo");
+                }
+                return;
+            }
+
+            // 1. Kiểm tra xem có thay đổi chưa lưu không
+            if (dbChamDiem.ChangeTracker.HasChanges())
+            {
+                MessageBox.Show("Bạn có thay đổi chưa lưu! Vui lòng bấm 'LƯU BẢNG ĐIỂM' trước khi thực hiện chốt điểm.", "Cảnh báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            // 2. Xác nhận chốt điểm
+            var confirm = MessageBox.Show("XÁC NHẬN CHỐT ĐIỂM?\n\n- Sau khi chốt, bạn sẽ KHÔNG THỂ chỉnh sửa điểm của lớp này nữa.\n- Bảng điểm sẽ được gửi chính thức về phòng đào tạo.\n\nBạn có chắc chắn muốn thực hiện?", 
+                                        "Xác nhận Chốt điểm", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+
+            if (confirm == DialogResult.Yes)
+            {
+                // 3. Xác thực lại mật khẩu một lần nữa cho chắc chắn
+                if (!XacNhanMatKhau(currentMaGV))
+                {
+                    MessageBox.Show("Xác thực không thành công. Thao tác chốt điểm bị hủy.", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                try
+                {
+                    Cursor.Current = Cursors.WaitCursor;
+
+                    // 4. Cập nhật trạng thái lớp học phần sang 2 (Đã chốt)
+                    lhp = await dbChamDiem.LopHocPhan.FirstOrDefaultAsync(x => x.MaLHP == currentLHP);
+                    if (lhp != null)
+                    {
+                        lhp.TrangThai = 2;
+                        
+                        // Ghi log bảo mật
+                        dbChamDiem.NhatKyHoatDong.Add(new NhatKyHoatDong
+                        {
+                            NguoiDung = currentMaGV,
+                            ThoiGian = DateTime.Now,
+                            HanhDong = "CHỐT BẢNG ĐIỂM",
+                            ChiTiet = $"Giảng viên đã CHỐT chính thức bảng điểm cho lớp LHP: {currentLHP}. Quyền chỉnh sửa đã bị khóa."
+                        });
+
+                        await dbChamDiem.SaveChangesAsync();
+
+                        // 5. Cập nhật UI
+                        DgvDSSV.ReadOnly = true;
+                        btnLuuBangDiem.Enabled = false;
+                        btnNhapExcel.Enabled = false;
+                        btnChotDiem.Enabled = false;
+                        btnChotDiem.Text = "ĐÃ CHỐT ĐIỂM";
+
+                        MessageBox.Show("Đã chốt bảng điểm thành công! Quyền chỉnh sửa của bạn đối với lớp này đã được khóa.", "Thành công", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Lỗi khi chốt điểm: " + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+                finally
+                {
+                    Cursor.Current = Cursors.Default;
+                }
+            }
+        }
         // Hàm này có nhiệm vụ tạo ra 1 "Thẻ" (GroupBox) chứa thông tin lớp học phần
         // Bạn sẽ gọi hàm này trong vòng lặp khi lấy dữ liệu từ CSDL
-        private void TaoCardLopHocPhan(int maLHP, string tenMon, string hocKy, string phongHoc, int siSo)
+        private void TaoCardLopHocPhan(int maLHP, string tenMon, string hocKy, string phongHoc, int siSo, int trangThai)
         {
             // 1. Tạo GroupBox bên ngoài (Tăng kích thước lên cho thoáng)
             GroupBox gb = new GroupBox();
@@ -657,11 +768,20 @@ namespace QuanLyDiemSV.Forms
             lblSiSo.AutoSize = true;
             gb.Controls.Add(lblSiSo);
 
+            // Hiển thị trạng thái
+            Label lblTrangThai = new Label();
+            lblTrangThai.Text = trangThai == 2 ? "● Đã chốt điểm" : "○ Đang nhập liệu";
+            lblTrangThai.ForeColor = trangThai == 2 ? Color.Red : Color.Green;
+            lblTrangThai.Font = new Font("Segoe UI", 10F, FontStyle.Italic);
+            lblTrangThai.Location = new Point(20, 150);
+            lblTrangThai.AutoSize = true;
+            gb.Controls.Add(lblTrangThai);
+
             // 5. Tạo Nút "Nhập Điểm" 
             Button btnNhapDiem = new Button();
-            btnNhapDiem.Text = "Nhập Điểm";
+            btnNhapDiem.Text = trangThai == 2 ? "Xem Điểm" : "Nhập Điểm";
             btnNhapDiem.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
-            btnNhapDiem.BackColor = Color.FromArgb(46, 204, 113); // Màu xanh lá
+            btnNhapDiem.BackColor = trangThai == 2 ? Color.Gray : Color.FromArgb(46, 204, 113); // Màu xanh lá
             btnNhapDiem.ForeColor = Color.White;
             btnNhapDiem.FlatStyle = FlatStyle.Flat;
             btnNhapDiem.FlatAppearance.BorderSize = 0;
@@ -692,7 +812,7 @@ namespace QuanLyDiemSV.Forms
                 var query = context.LopHocPhan
                                    .Include(l => l.MaMonNavigation)
                                    .Include(l => l.MaHKNavigation)
-                                   .Where(l => l.MaGV == currentMaGV && l.TrangThai == 1)
+                                   .Where(l => l.MaGV == currentMaGV && (l.TrangThai == 1 || l.TrangThai == 2))
                                    .AsQueryable();
 
                 // 2. LỌC THEO HỌC KỲ (Nếu người dùng chọn khác "Tất cả")
@@ -734,8 +854,9 @@ namespace QuanLyDiemSV.Forms
                     string hocKy = string.IsNullOrEmpty(lhp.MaHK) ? "Chưa xác định" : lhp.MaHKNavigation?.TenHK ?? lhp.MaHK;
                     string phongHoc = string.IsNullOrEmpty(lhp.PhongHoc) ? "Chưa sắp xếp" : lhp.PhongHoc;
                     int siSo = lhp.SiSoToiDa ?? 0;
+                    int trangThai = lhp.TrangThai ?? 1;
 
-                    TaoCardLopHocPhan(maLopHP, tenMon, hocKy, phongHoc, siSo);
+                    TaoCardLopHocPhan(maLopHP, tenMon, hocKy, phongHoc, siSo, trangThai);
                 }
             }
         }
@@ -758,7 +879,44 @@ namespace QuanLyDiemSV.Forms
                 {
                     groupBox1.Text = $"Danh Sách Sinh Viên - Môn: {lhp.TenLopHP} (Mã LHP: {lhp.MaLHP})";
                     groupBox1.ForeColor = Color.MediumBlue; // Cho chữ màu xanh dương nổi bật
+
+                    // KIỂM TRA TRẠNG THÁI CHỐT ĐIỂM
+                    if (lhp.TrangThai == 2)
+                    {
+                        DgvDSSV.ReadOnly = true;
+                        btnLuuBangDiem.Enabled = false;
+                        btnNhapExcel.Enabled = false;
+
+                        // Kiểm tra xem đã có yêu cầu xử lý chưa
+                        var tcDuyet = dbChamDiem.YeuCauSuaDiem
+                            .FirstOrDefault(x => x.MaLHP == currentLHP && x.TrangThai == 0);
+
+                        if (tcDuyet != null)
+                        {
+                            btnChotDiem.Enabled = false;
+                            btnChotDiem.Text = "Đang chờ Admin duyệt...";
+                        }
+                        else
+                        {
+                            btnChotDiem.Enabled = true;
+                            btnChotDiem.Text = "Gửi Yêu Cầu Sửa Điểm";
+                        }
+
+                        MessageBox.Show("Lớp này đã được CHỐT ĐIỂM. Nếu muốn sửa, hãy dùng nút 'Gửi Yêu Cầu Sửa Điểm'.", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                    else
+                    {
+                        DgvDSSV.ReadOnly = false;
+                        btnLuuBangDiem.Enabled = true;
+                        btnNhapExcel.Enabled = true;
+                        btnChotDiem.Enabled = true;
+                        btnChotDiem.Text = "Chốt Bảng Điểm";
+                    }
                 }
+
+                // Hiện nút Chốt điểm và nút Phổ điểm
+                btnChotDiem.Visible = true;
+                btnBieuDoPhoDiem.Visible = true;
 
                 // Khởi tạo ComboBox Tìm kiếm/Sắp xếp
                 KhoiTaoCboTimKiemSapXep();
@@ -780,11 +938,11 @@ namespace QuanLyDiemSV.Forms
             flpDanhSachLop.Controls.Clear();
 
             // Cập nhật lại dữ liệu test (Học Kỳ và Phòng Học)
-            TaoCardLopHocPhan(101, "Cơ sở dữ liệu", "HK1_2025_2026", "Phòng A1", 45);
-            TaoCardLopHocPhan(102, "Lập trình Windows", "HK1_2025_2026", "Phòng A2", 42);
-            TaoCardLopHocPhan(103, "Cấu trúc dữ liệu", "HK1_2025_2026", "Phòng B1", 50);
-            TaoCardLopHocPhan(104, "Trí tuệ nhân tạo", "HK2_2025_2026", "Phòng B2", 30);
-            TaoCardLopHocPhan(105, "Mạng máy tính", "HK2_2025_2026", "Phòng C1", 40);
+            TaoCardLopHocPhan(101, "Cơ sở dữ liệu", "HK1_2025_2026", "Phòng A1", 45, 1);
+            TaoCardLopHocPhan(102, "Lập trình Windows", "HK1_2025_2026", "Phòng A2", 42, 1);
+            TaoCardLopHocPhan(103, "Cấu trúc dữ liệu", "HK1_2025_2026", "Phòng B1", 50, 1);
+            TaoCardLopHocPhan(104, "Trí tuệ nhân tạo", "HK2_2025_2026", "Phòng B2", 30, 1);
+            TaoCardLopHocPhan(105, "Mạng máy tính", "HK2_2025_2026", "Phòng C1", 40, 1);
         }
         // ==============================================================
         // HÀM TẢI DỮ LIỆU KÈM LỌC VÀ SẮP XẾP
@@ -1160,6 +1318,14 @@ namespace QuanLyDiemSV.Forms
                 {
                     Cursor.Current = Cursors.Default;
                 }
+            }
+        }
+        private void BtnBieuDoPhoDiem_Click(object sender, EventArgs e)
+        {
+            if (currentLHP == 0) return;
+            using (FrmBieuDoPhoDiem frm = new FrmBieuDoPhoDiem(currentLHP))
+            {
+                frm.ShowDialog();
             }
         }
     }

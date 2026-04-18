@@ -28,8 +28,8 @@
         /// </summary>
         private void InitializeComponent()
         {
-            DataGridViewCellStyle dataGridViewCellStyle1 = new DataGridViewCellStyle();
-            DataGridViewCellStyle dataGridViewCellStyle2 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle3 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle4 = new DataGridViewCellStyle();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(UC_LopHocPhan));
             panel1 = new Panel();
             panel4 = new Panel();
@@ -60,6 +60,8 @@
             btnTimKiem = new Button();
             panel2 = new Panel();
             groupBox1 = new GroupBox();
+            cboLocMaMonTheoKhoa = new ComboBox();
+            label13 = new Label();
             btnAddHocKy = new Button();
             btnNhap = new Button();
             btnSua = new Button();
@@ -210,9 +212,9 @@
             // TrangThai
             // 
             TrangThai.DataPropertyName = "TrangThai";
-            dataGridViewCellStyle1.Alignment = DataGridViewContentAlignment.MiddleCenter;
-            dataGridViewCellStyle1.Font = new Font("Microsoft Sans Serif", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            TrangThai.DefaultCellStyle = dataGridViewCellStyle1;
+            dataGridViewCellStyle3.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            dataGridViewCellStyle3.Font = new Font("Microsoft Sans Serif", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            TrangThai.DefaultCellStyle = dataGridViewCellStyle3;
             TrangThai.HeaderText = "Trạng Thái";
             TrangThai.MinimumWidth = 6;
             TrangThai.Name = "TrangThai";
@@ -221,12 +223,12 @@
             // 
             // ThaoTac
             // 
-            dataGridViewCellStyle2.Alignment = DataGridViewContentAlignment.MiddleCenter;
-            dataGridViewCellStyle2.BackColor = Color.Green;
-            dataGridViewCellStyle2.ForeColor = Color.FromArgb(192, 0, 0);
-            dataGridViewCellStyle2.SelectionBackColor = Color.Cyan;
-            dataGridViewCellStyle2.SelectionForeColor = Color.FromArgb(64, 64, 64);
-            ThaoTac.DefaultCellStyle = dataGridViewCellStyle2;
+            dataGridViewCellStyle4.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            dataGridViewCellStyle4.BackColor = Color.Green;
+            dataGridViewCellStyle4.ForeColor = Color.FromArgb(192, 0, 0);
+            dataGridViewCellStyle4.SelectionBackColor = Color.Cyan;
+            dataGridViewCellStyle4.SelectionForeColor = Color.FromArgb(64, 64, 64);
+            ThaoTac.DefaultCellStyle = dataGridViewCellStyle4;
             ThaoTac.HeaderText = "Thao Tác";
             ThaoTac.MinimumWidth = 6;
             ThaoTac.Name = "ThaoTac";
@@ -328,7 +330,7 @@
             // 
             // txtTuKhoa
             // 
-            txtTuKhoa.Location = new Point(475, 44);
+            txtTuKhoa.Location = new Point(488, 44);
             txtTuKhoa.Margin = new Padding(3, 4, 3, 4);
             txtTuKhoa.Name = "txtTuKhoa";
             txtTuKhoa.PlaceholderText = "Nhập từ khóa cần tìm..";
@@ -347,7 +349,7 @@
             // label12
             // 
             label12.AutoSize = true;
-            label12.Location = new Point(383, 48);
+            label12.Location = new Point(406, 47);
             label12.Name = "label12";
             label12.Size = new Size(76, 23);
             label12.TabIndex = 82;
@@ -356,7 +358,7 @@
             // cboTimKiem
             // 
             cboTimKiem.FormattingEnabled = true;
-            cboTimKiem.Location = new Point(161, 44);
+            cboTimKiem.Location = new Point(177, 44);
             cboTimKiem.Margin = new Padding(3, 4, 3, 4);
             cboTimKiem.Name = "cboTimKiem";
             cboTimKiem.Size = new Size(200, 31);
@@ -366,10 +368,10 @@
             // 
             btnShowAll.BackColor = Color.White;
             btnShowAll.FlatStyle = FlatStyle.Flat;
-            btnShowAll.Location = new Point(1025, 39);
+            btnShowAll.Location = new Point(1025, 42);
             btnShowAll.Margin = new Padding(3, 4, 3, 4);
             btnShowAll.Name = "btnShowAll";
-            btnShowAll.Size = new Size(120, 40);
+            btnShowAll.Size = new Size(130, 40);
             btnShowAll.TabIndex = 80;
             btnShowAll.Text = "Hiện tất cả";
             btnShowAll.UseVisualStyleBackColor = false;
@@ -379,10 +381,10 @@
             // 
             btnTimKiem.BackColor = Color.White;
             btnTimKiem.FlatStyle = FlatStyle.Flat;
-            btnTimKiem.Location = new Point(890, 38);
+            btnTimKiem.Location = new Point(916, 40);
             btnTimKiem.Margin = new Padding(3, 4, 3, 4);
             btnTimKiem.Name = "btnTimKiem";
-            btnTimKiem.Size = new Size(120, 40);
+            btnTimKiem.Size = new Size(103, 40);
             btnTimKiem.TabIndex = 79;
             btnTimKiem.Text = "Tìm Kiếm";
             btnTimKiem.UseVisualStyleBackColor = false;
@@ -399,6 +401,8 @@
             // 
             // groupBox1
             // 
+            groupBox1.Controls.Add(cboLocMaMonTheoKhoa);
+            groupBox1.Controls.Add(label13);
             groupBox1.Controls.Add(btnAddHocKy);
             groupBox1.Controls.Add(btnNhap);
             groupBox1.Controls.Add(btnSua);
@@ -432,11 +436,29 @@
             groupBox1.TabStop = false;
             groupBox1.Text = "Thông tin lớp học phần";
             // 
+            // cboLocMaMonTheoKhoa
+            // 
+            cboLocMaMonTheoKhoa.FormattingEnabled = true;
+            cboLocMaMonTheoKhoa.Location = new Point(868, 46);
+            cboLocMaMonTheoKhoa.Name = "cboLocMaMonTheoKhoa";
+            cboLocMaMonTheoKhoa.Size = new Size(285, 31);
+            cboLocMaMonTheoKhoa.TabIndex = 150;
+            cboLocMaMonTheoKhoa.SelectedIndexChanged += cboLocMaMonTheoKhoa_SelectedIndexChanged;
+            // 
+            // label13
+            // 
+            label13.AutoSize = true;
+            label13.Location = new Point(807, 49);
+            label13.Name = "label13";
+            label13.Size = new Size(55, 23);
+            label13.TabIndex = 149;
+            label13.Text = "Khoa:";
+            // 
             // btnAddHocKy
             // 
-            btnAddHocKy.Location = new Point(1482, 99);
+            btnAddHocKy.Location = new Point(1562, 93);
             btnAddHocKy.Name = "btnAddHocKy";
-            btnAddHocKy.Size = new Size(116, 31);
+            btnAddHocKy.Size = new Size(116, 39);
             btnAddHocKy.TabIndex = 148;
             btnAddHocKy.Text = "+ Học Kỳ";
             btnAddHocKy.UseVisualStyleBackColor = true;
@@ -449,7 +471,7 @@
             btnNhap.FlatAppearance.MouseDownBackColor = Color.Blue;
             btnNhap.FlatAppearance.MouseOverBackColor = Color.Blue;
             btnNhap.ImageAlign = ContentAlignment.MiddleLeft;
-            btnNhap.Location = new Point(1193, 142);
+            btnNhap.Location = new Point(1247, 142);
             btnNhap.Margin = new Padding(3, 4, 3, 4);
             btnNhap.Name = "btnNhap";
             btnNhap.Padding = new Padding(5, 0, 0, 0);
@@ -539,7 +561,7 @@
             btnXuat.FlatAppearance.MouseOverBackColor = Color.Blue;
             btnXuat.Font = new Font("Microsoft Sans Serif", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
             btnXuat.ImageAlign = ContentAlignment.MiddleLeft;
-            btnXuat.Location = new Point(1423, 143);
+            btnXuat.Location = new Point(1452, 142);
             btnXuat.Margin = new Padding(3, 4, 3, 4);
             btnXuat.Name = "btnXuat";
             btnXuat.Padding = new Padding(5, 0, 0, 0);
@@ -572,14 +594,14 @@
             // 
             cboTrangThai.FormattingEnabled = true;
             cboTrangThai.Items.AddRange(new object[] { "Mở lớp", "Đóng" });
-            cboTrangThai.Location = new Point(1488, 52);
+            cboTrangThai.Location = new Point(1568, 52);
             cboTrangThai.Name = "cboTrangThai";
             cboTrangThai.Size = new Size(110, 31);
             cboTrangThai.TabIndex = 136;
             // 
             // txtSiSo
             // 
-            txtSiSo.Location = new Point(1055, 100);
+            txtSiSo.Location = new Point(1063, 106);
             txtSiSo.Margin = new Padding(3, 4, 3, 4);
             txtSiSo.Name = "txtSiSo";
             txtSiSo.Size = new Size(98, 30);
@@ -587,16 +609,16 @@
             // 
             // txtPhongHoc
             // 
-            txtPhongHoc.Location = new Point(1096, 49);
+            txtPhongHoc.Location = new Point(1313, 49);
             txtPhongHoc.Margin = new Padding(3, 4, 3, 4);
             txtPhongHoc.Name = "txtPhongHoc";
-            txtPhongHoc.Size = new Size(187, 30);
+            txtPhongHoc.Size = new Size(98, 30);
             txtPhongHoc.TabIndex = 130;
             // 
             // label1
             // 
             label1.AutoSize = true;
-            label1.Location = new Point(997, 103);
+            label1.Location = new Point(1005, 109);
             label1.Name = "label1";
             label1.Size = new Size(52, 23);
             label1.TabIndex = 132;
@@ -607,13 +629,13 @@
             txtMaLHP.Location = new Point(161, 45);
             txtMaLHP.Margin = new Padding(3, 4, 3, 4);
             txtMaLHP.Name = "txtMaLHP";
-            txtMaLHP.Size = new Size(400, 30);
+            txtMaLHP.Size = new Size(200, 30);
             txtMaLHP.TabIndex = 128;
             // 
             // label6
             // 
             label6.AutoSize = true;
-            label6.Location = new Point(1380, 52);
+            label6.Location = new Point(1452, 60);
             label6.Name = "label6";
             label6.Size = new Size(97, 23);
             label6.TabIndex = 132;
@@ -622,7 +644,7 @@
             // label2
             // 
             label2.AutoSize = true;
-            label2.Location = new Point(992, 52);
+            label2.Location = new Point(1159, 52);
             label2.Name = "label2";
             label2.Size = new Size(102, 23);
             label2.TabIndex = 132;
@@ -649,7 +671,7 @@
             // label8
             // 
             label8.AutoSize = true;
-            label8.Location = new Point(1157, 104);
+            label8.Location = new Point(1191, 109);
             label8.Name = "label8";
             label8.Size = new Size(70, 23);
             label8.TabIndex = 135;
@@ -658,7 +680,7 @@
             // label7
             // 
             label7.AutoSize = true;
-            label7.Location = new Point(619, 103);
+            label7.Location = new Point(573, 101);
             label7.Name = "label7";
             label7.Size = new Size(68, 23);
             label7.TabIndex = 135;
@@ -667,7 +689,7 @@
             // cboHocKy
             // 
             cboHocKy.FormattingEnabled = true;
-            cboHocKy.Location = new Point(1233, 100);
+            cboHocKy.Location = new Point(1313, 101);
             cboHocKy.Margin = new Padding(3, 4, 3, 4);
             cboHocKy.Name = "cboHocKy";
             cboHocKy.Size = new Size(243, 31);
@@ -676,7 +698,7 @@
             // label5
             // 
             label5.AutoSize = true;
-            label5.Location = new Point(619, 48);
+            label5.Location = new Point(371, 47);
             label5.Name = "label5";
             label5.Size = new Size(81, 23);
             label5.TabIndex = 135;
@@ -685,10 +707,10 @@
             // cboMaGV
             // 
             cboMaGV.FormattingEnabled = true;
-            cboMaGV.Location = new Point(734, 103);
+            cboMaGV.Location = new Point(660, 101);
             cboMaGV.Margin = new Padding(3, 4, 3, 4);
             cboMaGV.Name = "cboMaGV";
-            cboMaGV.Size = new Size(243, 31);
+            cboMaGV.Size = new Size(326, 31);
             cboMaGV.TabIndex = 127;
             // 
             // txtTenLHP
@@ -702,10 +724,10 @@
             // cboMaMon
             // 
             cboMaMon.FormattingEnabled = true;
-            cboMaMon.Location = new Point(734, 45);
+            cboMaMon.Location = new Point(458, 45);
             cboMaMon.Margin = new Padding(3, 4, 3, 4);
             cboMaMon.Name = "cboMaMon";
-            cboMaMon.Size = new Size(243, 31);
+            cboMaMon.Size = new Size(326, 31);
             cboMaMon.TabIndex = 127;
             cboMaMon.SelectedIndexChanged += cboMaMon_SelectedIndexChanged;
             // 
@@ -787,5 +809,7 @@
         private DataGridViewButtonColumn ThaoTac;
         private ComboBox cboLocDuLieu;
         private Label label10;
+        private ComboBox cboLocMaMonTheoKhoa;
+        private Label label13;
     }
 }

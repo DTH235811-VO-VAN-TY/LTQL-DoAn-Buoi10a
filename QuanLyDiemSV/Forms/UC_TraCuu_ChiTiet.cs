@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Drawing;
@@ -31,12 +31,21 @@ namespace QuanLyDiemSV.Forms
             btnGuiKhieuNai.Visible = (Session.RoleID == 3);
         }
 
-        public void LoadDuLieuChiTiet(string maSV)
+        public async Task CapNhatDuLieuMoiNhatAsync()
+        {
+            if (string.IsNullOrEmpty(lblMaSV.Text) || lblMaSV.Text == "...") return;
+            
+            context.ChangeTracker.Clear(); // Xóa cache cũ của EF
+            await LoadDuLieuChiTietAsync(lblMaSV.Text);
+        }
+
+        public async Task LoadDuLieuChiTietAsync(string maSV)
         {
             // Load thông tin sinh viên
-            var sv = context.SinhVien
+            var sv = await context.SinhVien
                 .Include(s => s.MaLopNavigation).ThenInclude(l => l.MaNganhNavigation).ThenInclude(n => n.MaKhoaNavigation)
-                .FirstOrDefault(s => s.MaSV == maSV);
+                .AsNoTracking() // Thêm AsNoTracking để nhanh hơn
+                .FirstOrDefaultAsync(s => s.MaSV == maSV);
 
             if (sv != null)
             {
@@ -45,34 +54,35 @@ namespace QuanLyDiemSV.Forms
                 lblLop.Text = sv.MaLopNavigation?.TenLop;
                 lblNganh.Text = sv.MaLopNavigation?.MaNganhNavigation?.TenNganh;
                 lblKhoa.Text = sv.MaLopNavigation?.MaNganhNavigation?.MaKhoaNavigation?.TenKhoa;
-
             }
 
-            LoadDiemVaTaoGiaoDien(maSV);
+            await LoadDiemVaTaoGiaoDienAsync(maSV);
         }
 
-        private void LoadDiemVaTaoGiaoDien(string maSV)
+        private async Task LoadDiemVaTaoGiaoDienAsync(string maSV)
         {
             flowLayoutPanel1.Controls.Clear();
             // 1. Lấy dữ liệu thô (Bổ sung AsNoTracking() để lấy dữ liệu fresh nhất, bỏ qua Cache)
-            var listDiemRaw = (from kq in context.KetQuaHocTap.AsNoTracking()
-                               join lhp in context.LopHocPhan.AsNoTracking() on kq.MaLHP equals lhp.MaLHP
-                               join mh in context.MonHoc.AsNoTracking() on lhp.MaMon equals mh.MaMon
-                               join hk in context.HocKy.AsNoTracking() on lhp.MaHK equals hk.MaHK
-                               where kq.MaSV == maSV
-                               select new
-                               {
-                                   hk.MaHK,
-                                   hk.TenHK,
-                                   mh.MaMon,
-                                   mh.TenMon,
-                                   SoTinChi = mh.SoTinChi,
-                                   DiemQT = kq.DiemGK,
-                                   DiemThi = kq.DiemCK,
-                                   DiemThiLan1 = kq.DiemThiLan1,
-                                   DiemThiLan2 = kq.DiemThiLan2,
-                                   DiemTongKet = kq.DiemTongKet
-                               }).ToList();
+            var queryRaw = from kq in context.KetQuaHocTap.AsNoTracking()
+                           join lhp in context.LopHocPhan.AsNoTracking() on kq.MaLHP equals lhp.MaLHP
+                           join mh in context.MonHoc.AsNoTracking() on lhp.MaMon equals mh.MaMon
+                           join hk in context.HocKy.AsNoTracking() on lhp.MaHK equals hk.MaHK
+                           where kq.MaSV == maSV
+                           select new
+                           {
+                               hk.MaHK,
+                               hk.TenHK,
+                               mh.MaMon,
+                               mh.TenMon,
+                               SoTinChi = mh.SoTinChi,
+                               DiemQT = kq.DiemGK,
+                               DiemThi = kq.DiemCK,
+                               DiemThiLan1 = kq.DiemThiLan1,
+                               DiemThiLan2 = kq.DiemThiLan2,
+                               DiemTongKet = kq.DiemTongKet
+                           };
+
+            var listDiemRaw = await queryRaw.ToListAsync();
 
             if (listDiemRaw.Count == 0) return;
 

@@ -61,6 +61,8 @@
             txtHoTenGV = new TextBox();
             txtTuKhoaTK = new TextBox();
             groupBoxSearch = new GroupBox();
+            label4 = new Label();
+            cboLocTheoKhoa = new ComboBox();
             label3 = new Label();
             cboKieuSX = new ComboBox();
             radGiam = new RadioButton();
@@ -101,7 +103,7 @@
             // radNu
             // 
             radNu.AutoSize = true;
-            radNu.Location = new Point(249, 200);
+            radNu.Location = new Point(249, 168);
             radNu.Margin = new Padding(3, 4, 3, 4);
             radNu.Name = "radNu";
             radNu.Size = new Size(52, 24);
@@ -113,7 +115,7 @@
             // 
             radNam.AutoSize = true;
             radNam.Checked = true;
-            radNam.Location = new Point(182, 200);
+            radNam.Location = new Point(182, 168);
             radNam.Margin = new Padding(3, 4, 3, 4);
             radNam.Name = "radNam";
             radNam.Size = new Size(64, 24);
@@ -131,7 +133,7 @@
             groupBoxList.Margin = new Padding(3, 4, 3, 4);
             groupBoxList.Name = "groupBoxList";
             groupBoxList.Padding = new Padding(3, 4, 3, 4);
-            groupBoxList.Size = new Size(1674, 513);
+            groupBoxList.Size = new Size(1674, 517);
             groupBoxList.TabIndex = 0;
             groupBoxList.TabStop = false;
             groupBoxList.Text = "Danh sách sinh viên";
@@ -160,7 +162,7 @@
             dgvAdminGiangVien.ReadOnly = true;
             dgvAdminGiangVien.RowHeadersWidth = 51;
             dgvAdminGiangVien.RowTemplate.Height = 24;
-            dgvAdminGiangVien.Size = new Size(1668, 485);
+            dgvAdminGiangVien.Size = new Size(1668, 489);
             dgvAdminGiangVien.TabIndex = 0;
             // 
             // MaGV
@@ -234,11 +236,11 @@
             panelGrid.BackColor = Color.White;
             panelGrid.Controls.Add(groupBoxList);
             panelGrid.Dock = DockStyle.Fill;
-            panelGrid.Location = new Point(0, 417);
+            panelGrid.Location = new Point(0, 413);
             panelGrid.Margin = new Padding(3, 4, 3, 4);
             panelGrid.Name = "panelGrid";
             panelGrid.Padding = new Padding(10, 12, 10, 12);
-            panelGrid.Size = new Size(1694, 537);
+            panelGrid.Size = new Size(1694, 541);
             panelGrid.TabIndex = 6;
             // 
             // btnSua
@@ -248,11 +250,11 @@
             btnSua.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
             btnSua.Image = (Image)resources.GetObject("btnSua.Image");
             btnSua.ImageAlign = ContentAlignment.MiddleLeft;
-            btnSua.Location = new Point(711, 237);
+            btnSua.Location = new Point(473, 200);
             btnSua.Margin = new Padding(3, 4, 3, 4);
             btnSua.Name = "btnSua";
             btnSua.Padding = new Padding(10, 0, 0, 0);
-            btnSua.Size = new Size(195, 56);
+            btnSua.Size = new Size(137, 39);
             btnSua.TabIndex = 16;
             btnSua.Text = "Sửa";
             btnSua.UseVisualStyleBackColor = false;
@@ -265,11 +267,11 @@
             btnLamLai.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
             btnLamLai.Image = (Image)resources.GetObject("btnLamLai.Image");
             btnLamLai.ImageAlign = ContentAlignment.MiddleLeft;
-            btnLamLai.Location = new Point(489, 237);
+            btnLamLai.Location = new Point(330, 200);
             btnLamLai.Margin = new Padding(3, 4, 3, 4);
             btnLamLai.Name = "btnLamLai";
             btnLamLai.Padding = new Padding(10, 0, 0, 0);
-            btnLamLai.Size = new Size(195, 56);
+            btnLamLai.Size = new Size(137, 39);
             btnLamLai.TabIndex = 15;
             btnLamLai.Text = "Làm lại";
             btnLamLai.UseVisualStyleBackColor = false;
@@ -278,26 +280,28 @@
             // btnShowAll
             // 
             btnShowAll.BackColor = Color.White;
+            btnShowAll.FlatAppearance.BorderSize = 0;
             btnShowAll.FlatStyle = FlatStyle.Flat;
-            btnShowAll.Location = new Point(1038, 19);
+            btnShowAll.Image = (Image)resources.GetObject("btnShowAll.Image");
+            btnShowAll.Location = new Point(1500, 30);
             btnShowAll.Margin = new Padding(3, 4, 3, 4);
             btnShowAll.Name = "btnShowAll";
-            btnShowAll.Size = new Size(120, 40);
+            btnShowAll.Size = new Size(39, 40);
             btnShowAll.TabIndex = 21;
-            btnShowAll.Text = "Hiện tất cả";
             btnShowAll.UseVisualStyleBackColor = false;
             btnShowAll.Click += btnShowAll_Click;
             // 
             // btnTimKiem
             // 
             btnTimKiem.BackColor = Color.White;
+            btnTimKiem.FlatAppearance.BorderSize = 0;
             btnTimKiem.FlatStyle = FlatStyle.Flat;
-            btnTimKiem.Location = new Point(903, 19);
+            btnTimKiem.Image = (Image)resources.GetObject("btnTimKiem.Image");
+            btnTimKiem.Location = new Point(1445, 35);
             btnTimKiem.Margin = new Padding(3, 4, 3, 4);
             btnTimKiem.Name = "btnTimKiem";
-            btnTimKiem.Size = new Size(120, 40);
+            btnTimKiem.Size = new Size(39, 35);
             btnTimKiem.TabIndex = 20;
-            btnTimKiem.Text = "Tìm Kiếm";
             btnTimKiem.UseVisualStyleBackColor = false;
             btnTimKiem.Click += btnTimKiem_Click;
             // 
@@ -313,7 +317,7 @@
             // label12
             // 
             label12.AutoSize = true;
-            label12.Location = new Point(375, 31);
+            label12.Location = new Point(712, 42);
             label12.Name = "label12";
             label12.Size = new Size(68, 20);
             label12.TabIndex = 76;
@@ -326,11 +330,11 @@
             btnLuu.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
             btnLuu.Image = (Image)resources.GetObject("btnLuu.Image");
             btnLuu.ImageAlign = ContentAlignment.MiddleLeft;
-            btnLuu.Location = new Point(32, 237);
+            btnLuu.Location = new Point(44, 200);
             btnLuu.Margin = new Padding(3, 4, 3, 4);
             btnLuu.Name = "btnLuu";
             btnLuu.Padding = new Padding(10, 0, 0, 0);
-            btnLuu.Size = new Size(195, 56);
+            btnLuu.Size = new Size(137, 39);
             btnLuu.TabIndex = 13;
             btnLuu.Text = "Lưu";
             btnLuu.UseVisualStyleBackColor = false;
@@ -343,11 +347,11 @@
             btnThem.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
             btnThem.Image = (Image)resources.GetObject("btnThem.Image");
             btnThem.ImageAlign = ContentAlignment.MiddleLeft;
-            btnThem.Location = new Point(263, 237);
+            btnThem.Location = new Point(187, 200);
             btnThem.Margin = new Padding(3, 4, 3, 4);
             btnThem.Name = "btnThem";
             btnThem.Padding = new Padding(10, 0, 0, 0);
-            btnThem.Size = new Size(195, 56);
+            btnThem.Size = new Size(137, 39);
             btnThem.TabIndex = 14;
             btnThem.Text = "Thêm";
             btnThem.UseVisualStyleBackColor = false;
@@ -356,7 +360,7 @@
             // label1
             // 
             label1.AutoSize = true;
-            label1.Location = new Point(83, 202);
+            label1.Location = new Point(83, 170);
             label1.Name = "label1";
             label1.Size = new Size(73, 20);
             label1.TabIndex = 120;
@@ -369,11 +373,11 @@
             btnXoa.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
             btnXoa.Image = (Image)resources.GetObject("btnXoa.Image");
             btnXoa.ImageAlign = ContentAlignment.MiddleLeft;
-            btnXoa.Location = new Point(935, 237);
+            btnXoa.Location = new Point(625, 200);
             btnXoa.Margin = new Padding(3, 4, 3, 4);
             btnXoa.Name = "btnXoa";
             btnXoa.Padding = new Padding(10, 0, 0, 0);
-            btnXoa.Size = new Size(195, 56);
+            btnXoa.Size = new Size(137, 39);
             btnXoa.TabIndex = 17;
             btnXoa.Text = "Xóa";
             btnXoa.UseVisualStyleBackColor = false;
@@ -381,7 +385,7 @@
             // 
             // txtEmail
             // 
-            txtEmail.Location = new Point(171, 129);
+            txtEmail.Location = new Point(686, 99);
             txtEmail.Margin = new Padding(3, 4, 3, 4);
             txtEmail.Name = "txtEmail";
             txtEmail.Size = new Size(400, 27);
@@ -390,10 +394,10 @@
             // cboLoaiTK
             // 
             cboLoaiTK.FormattingEnabled = true;
-            cboLoaiTK.Location = new Point(150, 26);
+            cboLoaiTK.Location = new Point(519, 37);
             cboLoaiTK.Margin = new Padding(3, 4, 3, 4);
             cboLoaiTK.Name = "cboLoaiTK";
-            cboLoaiTK.Size = new Size(200, 28);
+            cboLoaiTK.Size = new Size(159, 28);
             cboLoaiTK.TabIndex = 18;
             // 
             // txtMaGV
@@ -414,16 +418,18 @@
             // 
             // txtTuKhoaTK
             // 
-            txtTuKhoaTK.Location = new Point(455, 26);
+            txtTuKhoaTK.Location = new Point(802, 37);
             txtTuKhoaTK.Margin = new Padding(3, 4, 3, 4);
             txtTuKhoaTK.Name = "txtTuKhoaTK";
             txtTuKhoaTK.PlaceholderText = "Nhập từ khóa cần tìm..";
-            txtTuKhoaTK.Size = new Size(400, 27);
+            txtTuKhoaTK.Size = new Size(597, 27);
             txtTuKhoaTK.TabIndex = 19;
             // 
             // groupBoxSearch
             // 
             groupBoxSearch.BackColor = Color.White;
+            groupBoxSearch.Controls.Add(label4);
+            groupBoxSearch.Controls.Add(cboLocTheoKhoa);
             groupBoxSearch.Controls.Add(label3);
             groupBoxSearch.Controls.Add(cboKieuSX);
             groupBoxSearch.Controls.Add(radGiam);
@@ -440,15 +446,34 @@
             groupBoxSearch.Margin = new Padding(3, 4, 3, 4);
             groupBoxSearch.Name = "groupBoxSearch";
             groupBoxSearch.Padding = new Padding(3, 4, 3, 4);
-            groupBoxSearch.Size = new Size(1674, 76);
+            groupBoxSearch.Size = new Size(1674, 121);
             groupBoxSearch.TabIndex = 0;
             groupBoxSearch.TabStop = false;
             groupBoxSearch.Text = "Tìm kiếm";
             // 
+            // label4
+            // 
+            label4.AutoSize = true;
+            label4.Location = new Point(27, 35);
+            label4.Name = "label4";
+            label4.Size = new Size(49, 20);
+            label4.TabIndex = 128;
+            label4.Text = "Khoa:";
+            // 
+            // cboLocTheoKhoa
+            // 
+            cboLocTheoKhoa.FormattingEnabled = true;
+            cboLocTheoKhoa.Location = new Point(85, 33);
+            cboLocTheoKhoa.Margin = new Padding(3, 4, 3, 4);
+            cboLocTheoKhoa.Name = "cboLocTheoKhoa";
+            cboLocTheoKhoa.Size = new Size(274, 28);
+            cboLocTheoKhoa.TabIndex = 127;
+            cboLocTheoKhoa.SelectedIndexChanged += cboLocTheoKhoa_SelectedIndexChanged;
+            // 
             // label3
             // 
             label3.AutoSize = true;
-            label3.Location = new Point(1173, 29);
+            label3.Location = new Point(25, 78);
             label3.Name = "label3";
             label3.Size = new Size(100, 20);
             label3.TabIndex = 80;
@@ -457,16 +482,16 @@
             // cboKieuSX
             // 
             cboKieuSX.FormattingEnabled = true;
-            cboKieuSX.Location = new Point(1279, 23);
+            cboKieuSX.Location = new Point(166, 73);
             cboKieuSX.Name = "cboKieuSX";
-            cboKieuSX.Size = new Size(151, 28);
+            cboKieuSX.Size = new Size(193, 28);
             cboKieuSX.TabIndex = 79;
             cboKieuSX.SelectedIndexChanged += cboKieuSX_SelectedIndexChanged;
             // 
             // radGiam
             // 
             radGiam.AutoSize = true;
-            radGiam.Location = new Point(1548, 27);
+            radGiam.Location = new Point(473, 74);
             radGiam.Name = "radGiam";
             radGiam.Size = new Size(67, 24);
             radGiam.TabIndex = 77;
@@ -478,7 +503,7 @@
             // 
             radTang.AutoSize = true;
             radTang.Checked = true;
-            radTang.Location = new Point(1461, 27);
+            radTang.Location = new Point(386, 74);
             radTang.Name = "radTang";
             radTang.Size = new Size(64, 24);
             radTang.TabIndex = 78;
@@ -490,7 +515,7 @@
             // label11
             // 
             label11.AutoSize = true;
-            label11.Location = new Point(35, 31);
+            label11.Location = new Point(382, 40);
             label11.Name = "label11";
             label11.Size = new Size(109, 20);
             label11.TabIndex = 74;
@@ -501,11 +526,11 @@
             panelSearch.BackColor = Color.White;
             panelSearch.Controls.Add(groupBoxSearch);
             panelSearch.Dock = DockStyle.Top;
-            panelSearch.Location = new Point(0, 329);
+            panelSearch.Location = new Point(0, 280);
             panelSearch.Margin = new Padding(3, 4, 3, 4);
             panelSearch.Name = "panelSearch";
             panelSearch.Padding = new Padding(10, 6, 10, 6);
-            panelSearch.Size = new Size(1694, 88);
+            panelSearch.Size = new Size(1694, 133);
             panelSearch.TabIndex = 5;
             // 
             // cboKhoa
@@ -529,7 +554,7 @@
             // label9
             // 
             label9.AutoSize = true;
-            label9.Location = new Point(55, 168);
+            label9.Location = new Point(55, 136);
             label9.Name = "label9";
             label9.Size = new Size(104, 20);
             label9.TabIndex = 112;
@@ -555,7 +580,7 @@
             // 
             // txtSDT
             // 
-            txtSDT.Location = new Point(170, 164);
+            txtSDT.Location = new Point(170, 132);
             txtSDT.Margin = new Padding(3, 4, 3, 4);
             txtSDT.Name = "txtSDT";
             txtSDT.Size = new Size(400, 27);
@@ -564,7 +589,7 @@
             // label6
             // 
             label6.AutoSize = true;
-            label6.Location = new Point(112, 133);
+            label6.Location = new Point(606, 102);
             label6.Name = "label6";
             label6.Size = new Size(47, 20);
             label6.TabIndex = 106;
@@ -603,7 +628,7 @@
             groupBoxInfo.Margin = new Padding(3, 4, 3, 4);
             groupBoxInfo.Name = "groupBoxInfo";
             groupBoxInfo.Padding = new Padding(3, 4, 3, 4);
-            groupBoxInfo.Size = new Size(1674, 305);
+            groupBoxInfo.Size = new Size(1674, 256);
             groupBoxInfo.TabIndex = 0;
             groupBoxInfo.TabStop = false;
             groupBoxInfo.Text = "Thông tin giảng viên";
@@ -614,11 +639,11 @@
             btnNhap.FlatStyle = FlatStyle.Flat;
             btnNhap.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
             btnNhap.ImageAlign = ContentAlignment.MiddleLeft;
-            btnNhap.Location = new Point(1153, 237);
+            btnNhap.Location = new Point(768, 200);
             btnNhap.Margin = new Padding(3, 4, 3, 4);
             btnNhap.Name = "btnNhap";
             btnNhap.Padding = new Padding(10, 0, 0, 0);
-            btnNhap.Size = new Size(195, 56);
+            btnNhap.Size = new Size(137, 39);
             btnNhap.TabIndex = 127;
             btnNhap.Text = "Nhập..";
             btnNhap.UseVisualStyleBackColor = false;
@@ -630,11 +655,11 @@
             btnXuat.FlatStyle = FlatStyle.Flat;
             btnXuat.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
             btnXuat.ImageAlign = ContentAlignment.MiddleLeft;
-            btnXuat.Location = new Point(1377, 237);
+            btnXuat.Location = new Point(911, 200);
             btnXuat.Margin = new Padding(3, 4, 3, 4);
             btnXuat.Name = "btnXuat";
             btnXuat.Padding = new Padding(10, 0, 0, 0);
-            btnXuat.Size = new Size(195, 56);
+            btnXuat.Size = new Size(137, 39);
             btnXuat.TabIndex = 128;
             btnXuat.Text = "Xuất..";
             btnXuat.UseVisualStyleBackColor = false;
@@ -667,7 +692,7 @@
             panelInput.Margin = new Padding(3, 4, 3, 4);
             panelInput.Name = "panelInput";
             panelInput.Padding = new Padding(10, 12, 10, 12);
-            panelInput.Size = new Size(1694, 329);
+            panelInput.Size = new Size(1694, 280);
             panelInput.TabIndex = 4;
             // 
             // UC_GiangVien
@@ -741,5 +766,7 @@
         private DataGridViewTextBoxColumn SDT;
         private DataGridViewTextBoxColumn HocVi;
         private DataGridViewTextBoxColumn Khoa;
+        private Label label4;
+        private ComboBox cboLocTheoKhoa;
     }
 }

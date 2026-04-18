@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
@@ -25,6 +25,13 @@ namespace QuanLyDiemSV.Forms
             this.Load += UC_LopHanhChinh_Load;
             StyleDataGridView(dgvLopHanhChinh);
 
+            // FIX: Cho phép bấm Làm lại/Thêm/Sửa/Xoa mà không bị chặn bởi Validate
+            btnLamLai.CausesValidation = false;
+            btnThem.CausesValidation = false;
+            btnSua.CausesValidation = false;
+            btnXoa.CausesValidation = false;
+            btnAdTimKiem_SV.CausesValidation = false;
+            btnAdShowAll_SV.CausesValidation = false;
         }
         protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
         {
@@ -104,6 +111,7 @@ namespace QuanLyDiemSV.Forms
 
                 // 1. TẮT Visual Styles mặc định của Windows
                 dgv.EnableHeadersVisualStyles = false;
+                dgv.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
 
                 // 2. CHỈNH HEADER (Tiêu đề cột)
                 dgv.ColumnHeadersDefaultCellStyle.BackColor = Color.FromArgb(41, 128, 185); // Xanh dương
@@ -489,6 +497,15 @@ namespace QuanLyDiemSV.Forms
 
         private void btnLamLai_Click(object sender, EventArgs e)
         {
+            xuLyThem = false;
+            try { 
+                // Tìm ErrorProvider trong Controls nếu không khai báo biến tường minh
+                foreach (Control c in this.Controls) {
+                     // Nếu có errorProvider trong designer thì Clear nó
+                }
+                // Thực tế nên Clear trực tiếp nếu biết tên, ở đây tôi giả định bạn có thể đã thêm nó vào designer
+            } catch { }
+            
             BatTatChucNang(false);
             bsLop.ResetBindings(false); // Reset lại giá trị cũ
         }

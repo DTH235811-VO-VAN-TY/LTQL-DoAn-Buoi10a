@@ -1,6 +1,7 @@
-﻿using System;
+using System;
 using System.Drawing;
 using System.Windows.Forms;
+using Microsoft.EntityFrameworkCore;
 using GUI; // Namespace của UC_Diem
 using QuanLyDiemSV.Data;
 using QuanLyDiemSV.Forms; // Namespace của UC_Container
@@ -150,11 +151,17 @@ namespace QuanLyDiemSV
             uC_TaiKhoan1.BringToFront();
         }
 
+        private void btnCaiDat_Click(object sender, EventArgs e)
+        {
+            ActivateButton(sender);
+            uC_CaiDat1.BringToFront();
+        }
+
         private async void btnTraCuuDiem_Click(object sender, EventArgs e)
         {
             ActivateButton(sender);
             uC_TraCuuDiem_Container1.BringToFront();
-            uC_TraCuuDiem_Container1.CapNhatDuLieuMoiNhat();
+            await uC_TraCuuDiem_Container1.CapNhatDuLieuMoiNhat();
         }
 
         private void Form1_Load(object sender, EventArgs e)
@@ -239,7 +246,7 @@ namespace QuanLyDiemSV
 
             DemSoThongBaoMoi(); // Chạy ngay lần đầu tiên
         }
-        private void DemSoThongBaoMoi()
+        private async void DemSoThongBaoMoi()
         {
             try
             {
@@ -249,14 +256,18 @@ namespace QuanLyDiemSV
 
                     if (Session.RoleID == 2) // GIẢNG VIÊN: Đếm đơn chờ xử lý trong bảng DonKhieuNai
                     {
-                        soThongBao = context.DonKhieuNai
-                            .Count(d => d.TrangThai == 0 && d.MaLHPNavigation.MaGV == Session.MaNguoiDung);
+                        soThongBao = await context.DonKhieuNai
+                            .CountAsync(d => d.TrangThai == 0 && d.MaLHPNavigation.MaGV == Session.MaNguoiDung);
+                    }
+                    else if (Session.RoleID == 1) // ADMIN: Đếm đơn giảng viên xin sửa điểm
+                    {
+                        soThongBao = await context.YeuCauSuaDiem.CountAsync(y => y.TrangThai == 0);
                     }
                     else if (Session.RoleID == 3) // SINH VIÊN: Đếm phản hồi trong bảng ThongBao
                     {
                         // Thay vì đếm DonKhieuNai như cũ, giờ Sinh viên sẽ đếm trong bảng ThongBao
-                        soThongBao = context.ThongBaos
-                            .Count(t => t.MaNguoiNhan == Session.MaNguoiDung && t.DaDoc == false);
+                        soThongBao = await context.ThongBaos
+                            .CountAsync(t => t.MaNguoiNhan == Session.MaNguoiDung && t.DaDoc == false);
                     }
 
                     // CẬP NHẬT GIAO DIỆN NÚT CHUÔNG
@@ -363,7 +374,14 @@ namespace QuanLyDiemSV
 
                 // Sau khi Form Quản lý đóng lại, gọi hàm quét radar để update lại số đếm trên chuông ngay lập tức
                 DemSoThongBaoMoi();
-
+            }
+            else if (Session.RoleID == 1) // Nếu là Admin bấm chuông
+            {
+                using (FrmQuanLyYeuCauSuaDiem frm = new FrmQuanLyYeuCauSuaDiem())
+                {
+                    frm.ShowDialog();
+                }
+                DemSoThongBaoMoi();
             }
             else if (Session.RoleID == 3) // Nếu là Sinh viên bấm chuông
             {

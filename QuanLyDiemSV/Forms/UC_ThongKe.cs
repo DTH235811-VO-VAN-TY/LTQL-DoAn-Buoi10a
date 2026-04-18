@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -16,17 +16,46 @@ namespace QuanLyDiemSV.Forms
     public partial class UC_ThongKe : UserControl
     {
         QLDSVDbContext context = new QLDSVDbContext();
+        Button btnThongKeNoMon;
+
         public UC_ThongKe()
         {
             InitializeComponent();
             this.Load += UC_ThongKe_Load;
+            
+            // Khởi tạo nút phân tích nợ môn
+            btnThongKeNoMon = new Button();
+            btnThongKeNoMon.Text = "Phân Tích Nợ Môn";
+            btnThongKeNoMon.Size = new Size(180, 40);
+            btnThongKeNoMon.Location = new Point(10, 250); 
+            btnThongKeNoMon.BackColor = Color.MediumVioletRed;
+            btnThongKeNoMon.ForeColor = Color.White;
+            btnThongKeNoMon.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
+            btnThongKeNoMon.Visible = false; // Chỉ hiện cho Admin
+            btnThongKeNoMon.Click += BtnThongKeNoMon_Click;
+            panel5.Controls.Add(btnThongKeNoMon);
+
             StyleDataGridView(dgvThongKe);
             StyleButtons();
-
         }
+
+        private void BtnThongKeNoMon_Click(object sender, EventArgs e)
+        {
+            using (FrmThongKeNoMon frm = new FrmThongKeNoMon())
+            {
+                frm.ShowDialog();
+            }
+        }
+
         private void UC_ThongKe_Load(object sender, EventArgs e)
         {
             LoadComboBoxes();
+            
+            if (Session.RoleID == 1) // Là Admin
+            {
+                btnThongKeNoMon.Visible = true;
+            }
+
             btnThongKe.PerformClick();// Tự động chạy thống kê khi vừa mở form
             StyleCacPanel();
 
@@ -74,6 +103,9 @@ namespace QuanLyDiemSV.Forms
 
                 // 1. TẮT Visual Styles mặc định của Windows
                 dgv.EnableHeadersVisualStyles = false;
+
+                // --- FIX LỖI CRASH: Chặn resizing header khi đang ở chế độ Fill ---
+                dgv.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
 
                 // 2. CHỈNH HEADER (Tiêu đề cột)
                 dgv.ColumnHeadersDefaultCellStyle.BackColor = Color.FromArgb(41, 128, 185); // Xanh dương
@@ -160,7 +192,8 @@ namespace QuanLyDiemSV.Forms
             var listDieuKien = new List<dynamic>
             {
                 new { Value = "ALL", Text = "-- Tất cả sinh viên --" },
-                new { Value = "HOCBONG", Text = "Sinh viên có điểm học tập cao nhất(Top 5)" }
+                new { Value = "HOCBONG", Text = "Sinh viên có điểm học tập cao nhất (Top 5)" },
+                new { Value = "CANHBAO", Text = "Cảnh báo học vụ (GPA Hệ 4 < 2.0)" }
             };
             cboDieuKien.DataSource = listDieuKien;
             cboDieuKien.DisplayMember = "Text";
@@ -195,13 +228,20 @@ namespace QuanLyDiemSV.Forms
                 var listSV = await querySV.ToListAsync();
                 var listResult = new List<ThongKeDTO>();
 
-                // 2. [TỐI ƯU TỐC ĐỘ]: Lấy trước toàn bộ điểm của các SV này lên Ram 1 lần duy nhất
+                // Đặt thời gian chờ tối đa lên 120 giây (2 phút) để SQL xử lý thoải mái
+                context.Database.SetCommandTimeout(120);
+
+                // 2. [TỐI ƯU TỐC ĐỘ]: Lấy trước toàn bộ điểm đã có của trường lên RAM 1 lần duy nhất (Rất nhanh do không có điều kiện phức tạp IN)
                 var maSVs = listSV.Select(s => s.MaSV).ToList();
-                var allDiem = (from kq in context.KetQuaHocTap
+                var allDiemFull = await (from kq in context.KetQuaHocTap
                                join lhp in context.LopHocPhan on kq.MaLHP equals lhp.MaLHP
                                join mh in context.MonHoc on lhp.MaMon equals mh.MaMon
-                               where maSVs.Contains(kq.MaSV) && kq.DiemTongKet != null
-                               select new { kq.MaSV, DiemTK = kq.DiemTongKet.Value, mh.SoTinChi, lhp.MaHK }).ToList();
+                               where kq.DiemTongKet != null
+                               select new { kq.MaSV, DiemTK = kq.DiemTongKet.Value, mh.SoTinChi, lhp.MaHK, lhp.MaMon }).ToListAsync();
+
+                // Lọc trên RAM thay vì bắt SQL phải thực thi lệnh IN (...) với hàng nghìn sinh viên (gây lỗi Timeout)
+                var maSVsHash = new HashSet<string>(maSVs);
+                var allDiem = allDiemFull.Where(x => maSVsHash.Contains(x.MaSV)).ToList();
 
                 // 3. Tính điểm cho từng sinh viên
                 foreach (var sv in listSV)
@@ -215,21 +255,39 @@ namespace QuanLyDiemSV.Forms
                         diemCuaSV = diemCuaSV.Where(d => d.MaHK == maHK).ToList();
                     }
 
-                    decimal diemThongKe = 0;
-                    if (diemCuaSV.Count > 0)
+                    // QUY CHẾ: Sinh viên học lại (Nhiều lần trong cùng 1 môn học) -> Lấy điểm môn học có kết quả cao nhất
+                    var cacMonDaHoc = diemCuaSV.GroupBy(x => x.MaMon).Select(g => new
                     {
-                        decimal tongDiem = diemCuaSV.Sum(x => x.DiemTK * x.SoTinChi);
-                        int tongTC = diemCuaSV.Sum(x => x.SoTinChi);
-                        diemThongKe = Math.Round(tongDiem / tongTC, 2);
+                        SoTinChi = g.First().SoTinChi,
+                        DiemTK_He10 = g.Max(x => x.DiemTK)
+                    }).ToList();
+
+                    decimal diemThongKe = 0;
+                    decimal diemThongKeHe4 = 0;
+
+                    if (cacMonDaHoc.Count > 0)
+                    {
+                        // Tính ĐTB Hệ 10
+                        decimal tongDiem10 = cacMonDaHoc.Sum(x => x.DiemTK_He10 * x.SoTinChi);
+                        int tongTC = cacMonDaHoc.Sum(x => x.SoTinChi);
+                        diemThongKe = Math.Round(tongDiem10 / tongTC, 2);
+
+                        // Tính ĐTB Hệ 4
+                        decimal tongDiem4 = cacMonDaHoc.Sum(x => DiemService.QuyDoiHe4(x.DiemTK_He10) * x.SoTinChi);
+                        diemThongKeHe4 = Math.Round(tongDiem4 / tongTC, 2);
                     }
 
                     // --- XỬ LÝ LỌC HỌC BỔNG ---
-                    // Theo quy chế: Cần xét thêm điều kiện không được rớt môn nào (< 4.0) và ĐTB >= 7.0
-                    bool coMonRot = diemCuaSV.Any(x => x.DiemTK < 4.0m);
+                    bool coMonRot = cacMonDaHoc.Any(x => x.DiemTK_He10 < 4.0m);
                     if (dieuKien == "HOCBONG")
                     {
-                        // Nếu rớt môn, điểm trung bình dưới Khá, hoặc không có điểm -> Loại khỏi danh sách xét
-                        if (coMonRot || diemThongKe < 7.0m || diemCuaSV.Count == 0)
+                        if (coMonRot || diemThongKe < 7.0m || cacMonDaHoc.Count == 0)
+                            continue;
+                    }
+                    else if (dieuKien == "CANHBAO")
+                    {
+                        // CẢNH BÁO HỌC VỤ: Lấy sinh viên có GPA Hệ 4 dưới 2.0
+                        if (diemThongKeHe4 >= 2.0m || cacMonDaHoc.Count == 0)
                             continue;
                     }
 

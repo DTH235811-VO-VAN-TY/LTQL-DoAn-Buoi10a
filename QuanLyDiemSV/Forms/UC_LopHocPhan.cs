@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
@@ -20,12 +20,37 @@ namespace QuanLyDiemSV
         bool daTaiDuLieu = false; // Biến cờ
         bool dangXuLy = false;
         ErrorProvider errorProvider = new ErrorProvider();
+        List<GiangVien> listGVFull = new List<GiangVien>();
 
         public UC_LopHocPhan()
         {
             InitializeComponent();
             this.Load += UC_LopHocPhan_Load;
             StyleDataGridView(dgvLopHocPhan);
+
+            // FIX: Cho phép bấm Làm lại/Thêm/Sửa/Xoa mà không bị chặn bởi Validate
+            btnLamLai.CausesValidation = false;
+            btnThem.CausesValidation = false;
+            btnSua.CausesValidation = false;
+            btnXoa.CausesValidation = false;
+            btnTimKiem.CausesValidation = false;
+            // btnAdShowAll_SV không tồn tại ở đây
+        }
+        private async Task LoadCboLocMaMonTheoKhoaAsync()
+        {
+            try
+            {
+                var listKhoa = await context.Khoa.ToListAsync();
+                listKhoa.Insert(0, new Khoa { MaKhoa = "ALL", TenKhoa = "--- Tất cả các khoa ---" });
+
+                cboLocMaMonTheoKhoa.DataSource = listKhoa;
+                cboLocMaMonTheoKhoa.DisplayMember = "TenKhoa";
+                cboLocMaMonTheoKhoa.ValueMember = "MaKhoa";
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi tải danh sách khoa để lọc môn: " + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
         protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
         {
@@ -168,12 +193,11 @@ namespace QuanLyDiemSV
         {
             using (var freshContext = new QLDSVDbContext())
             {
-                // Sử dụng ToListAsync() với từ khóa await
-                var listGV = await freshContext.GiangVien.AsNoTracking().ToListAsync();
+                listGVFull = await freshContext.GiangVien.AsNoTracking().ToListAsync();
                 var listMon = await freshContext.MonHoc.AsNoTracking().ToListAsync();
                 var listHK = await freshContext.HocKy.AsNoTracking().ToListAsync();
 
-                cboMaGV.DataSource = listGV;
+                cboMaGV.DataSource = listGVFull;
                 cboMaGV.DisplayMember = "HoTen";
                 cboMaGV.ValueMember = "MaGV";
 
@@ -189,6 +213,7 @@ namespace QuanLyDiemSV
             if (!daTaiDuLieu)
             {
                 await LoadCboKhoaAsync(); // Tải danh sách Khoa vào ComboBox lọc
+                await LoadCboLocMaMonTheoKhoaAsync(); // Tải danh sách Khoa cho ComboBox lọc Môn
                 await LoadDataAsync(); // Gọi phiên bản Async của LoadData
                 daTaiDuLieu = true;
             }
@@ -424,6 +449,9 @@ namespace QuanLyDiemSV
             xuLyThem = false;
             BatTatChucNang(true);
             txtMaLHP.Enabled = false; // Không sửa khóa chính
+            
+            // Kích hoạt việc lọc giảng viên cho dòng hiện tại khi bắt đầu sửa
+            cboMaMon_SelectedIndexChanged(null, null);
         }
 
         private void btnXoa_Click(object sender, EventArgs e)
@@ -573,9 +601,18 @@ namespace QuanLyDiemSV
             errorProvider.Clear();
             // 1. Tạm gỡ sự kiện ComboBox để tránh vòng lặp lỗi
             cboMaMon.SelectedIndexChanged -= cboMaMon_SelectedIndexChanged;
+            cboLocMaMonTheoKhoa.SelectedIndexChanged -= cboLocMaMonTheoKhoa_SelectedIndexChanged;
 
             xuLyThem = false;
             BatTatChucNang(false); // Trở về trạng thái ban đầu
+
+            // Reset bộ lọc môn học về tất cả để admin dễ tìm
+            if (cboLocMaMonTheoKhoa.Items.Count > 0) cboLocMaMonTheoKhoa.SelectedIndex = 0;
+            // Kích hoạt lại việc nạp toàn bộ môn học vào cboMaMon
+            cboLocMaMonTheoKhoa_SelectedIndexChanged(null, null); 
+
+            // Khôi phục lại danh sách giảng viên đầy đủ để cboMaGV không bị trống khi chỉ xem
+            cboMaGV.DataSource = listGVFull;
 
             // 2. KHÔI PHỤC BINDING (Rất quan trọng vì nút Thêm đã SuspendBinding)
             bsLopHP.ResumeBinding();
@@ -603,6 +640,7 @@ namespace QuanLyDiemSV
 
             // 4. Gắn sự kiện lại và gọi thủ công 1 lần để lọc lại danh sách GV
             cboMaMon.SelectedIndexChanged += cboMaMon_SelectedIndexChanged;
+            cboLocMaMonTheoKhoa.SelectedIndexChanged += cboLocMaMonTheoKhoa_SelectedIndexChanged;
             cboMaMon_SelectedIndexChanged(null, null);
         }
 
@@ -853,6 +891,10 @@ namespace QuanLyDiemSV
             // Ngăn lỗi khi Form vừa load, ComboBox chưa có dữ liệu hoàn chỉnh
             if (cboMaMon.SelectedValue == null || !daTaiDuLieu) return;
 
+            // FIX LAG: Nếu không phải đang Thêm mới và Nút Lưu không bật (đang chế độ Xem)
+            // thì không cần truy vấn DB để lọc lại GV, danh sách gốc (full) vẫn hiển thị đúng tên.
+            if (!xuLyThem && !btnLuu.Enabled) return;
+
             string selectedMaMon = cboMaMon.SelectedValue.ToString();
 
             using (var db = new QLDSVDbContext())
@@ -903,6 +945,36 @@ namespace QuanLyDiemSV
             if (daTaiDuLieu)
             {
                 await LoadDataAsync();
+            }
+        }
+
+        private async void cboLocMaMonTheoKhoa_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            // Chặn sự kiện chạy lung tung lúc Form mới mở chưa load xong dữ liệu
+            if (!daTaiDuLieu || cboLocMaMonTheoKhoa.SelectedValue == null) return;
+
+            string maKhoaChon = cboLocMaMonTheoKhoa.SelectedValue.ToString();
+
+            try
+            {
+                var query = context.MonHoc.AsQueryable();
+
+                // Nếu khác "ALL", ta mới where theo Mã Khoa
+                if (maKhoaChon != "ALL")
+                {
+                    query = query.Where(m => m.MaKhoa == maKhoaChon);
+                }
+
+                var listMon = await query.ToListAsync();
+
+                // Đổ dữ liệu mới vào ComboBox Môn Học
+                cboMaMon.DataSource = listMon;
+                cboMaMon.DisplayMember = "TenMon";
+                cboMaMon.ValueMember = "MaMon";
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi lọc danh sách môn học: " + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
     }

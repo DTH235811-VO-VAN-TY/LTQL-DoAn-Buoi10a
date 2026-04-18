@@ -47,10 +47,13 @@
             DiemThiLan2 = new DataGridViewTextBoxColumn();
             DiemTongKet = new DataGridViewTextBoxColumn();
             panel2 = new Panel();
+            btnChotDiem = new Button();
+            btnBieuDoPhoDiem = new Button();
             lblSoLuongSV = new Label();
             radGiam = new RadioButton();
             radTang = new RadioButton();
             txtTuKhoa = new TextBox();
+            btnNhapExcel = new Button();
             btnXuatExcel = new Button();
             btnHienTatCa = new Button();
             btnTimKiem = new Button();
@@ -60,7 +63,6 @@
             cboLoaiTK = new ComboBox();
             label2 = new Label();
             btnQuayLaiLop = new Button();
-            btnNhapExcel = new Button();
             panel1.SuspendLayout();
             pnlDanhSachSV.SuspendLayout();
             groupBox1.SuspendLayout();
@@ -247,6 +249,8 @@
             // 
             // panel2
             // 
+            panel2.Controls.Add(btnChotDiem);
+            panel2.Controls.Add(btnBieuDoPhoDiem);
             panel2.Controls.Add(lblSoLuongSV);
             panel2.Controls.Add(radGiam);
             panel2.Controls.Add(radTang);
@@ -266,6 +270,26 @@
             panel2.Name = "panel2";
             panel2.Size = new Size(1694, 119);
             panel2.TabIndex = 0;
+            // 
+            // btnChotDiem
+            // 
+            btnChotDiem.Font = new Font("Segoe UI Semibold", 10.2F, FontStyle.Bold);
+            btnChotDiem.Location = new Point(1527, 65);
+            btnChotDiem.Name = "btnChotDiem";
+            btnChotDiem.Size = new Size(147, 41);
+            btnChotDiem.TabIndex = 9;
+            btnChotDiem.Text = "Chốt Điểm";
+            btnChotDiem.UseVisualStyleBackColor = true;
+            // 
+            // btnBieuDoPhoDiem
+            // 
+            btnBieuDoPhoDiem.Font = new Font("Segoe UI Semibold", 10.2F, FontStyle.Bold);
+            btnBieuDoPhoDiem.Location = new Point(1354, 65);
+            btnBieuDoPhoDiem.Name = "btnBieuDoPhoDiem";
+            btnBieuDoPhoDiem.Size = new Size(167, 41);
+            btnBieuDoPhoDiem.TabIndex = 9;
+            btnBieuDoPhoDiem.Text = "Phân tích biểu đồ";
+            btnBieuDoPhoDiem.UseVisualStyleBackColor = true;
             // 
             // lblSoLuongSV
             // 
@@ -313,6 +337,17 @@
             txtTuKhoa.TabIndex = 6;
             txtTuKhoa.TextAlign = HorizontalAlignment.Center;
             // 
+            // btnNhapExcel
+            // 
+            btnNhapExcel.Font = new Font("Segoe UI", 10.2F, FontStyle.Bold);
+            btnNhapExcel.Location = new Point(1201, 64);
+            btnNhapExcel.Name = "btnNhapExcel";
+            btnNhapExcel.Size = new Size(147, 41);
+            btnNhapExcel.TabIndex = 2;
+            btnNhapExcel.Text = "Nhập Excel";
+            btnNhapExcel.UseVisualStyleBackColor = true;
+            btnNhapExcel.Click += btnNhapExcel_Click;
+            // 
             // btnXuatExcel
             // 
             btnXuatExcel.Font = new Font("Segoe UI", 10.2F, FontStyle.Bold);
@@ -347,7 +382,7 @@
             // btnLuuBangDiem
             // 
             btnLuuBangDiem.Font = new Font("Segoe UI", 10.2F, FontStyle.Bold);
-            btnLuuBangDiem.Location = new Point(1221, 65);
+            btnLuuBangDiem.Location = new Point(1048, 64);
             btnLuuBangDiem.Name = "btnLuuBangDiem";
             btnLuuBangDiem.Size = new Size(147, 41);
             btnLuuBangDiem.TabIndex = 4;
@@ -404,17 +439,6 @@
             btnQuayLaiLop.UseVisualStyleBackColor = true;
             btnQuayLaiLop.Click += btnQuayLaiLop_Click;
             // 
-            // btnNhapExcel
-            // 
-            btnNhapExcel.Font = new Font("Segoe UI", 10.2F, FontStyle.Bold);
-            btnNhapExcel.Location = new Point(1374, 65);
-            btnNhapExcel.Name = "btnNhapExcel";
-            btnNhapExcel.Size = new Size(147, 41);
-            btnNhapExcel.TabIndex = 2;
-            btnNhapExcel.Text = "Nhập Excel";
-            btnNhapExcel.UseVisualStyleBackColor = true;
-            btnNhapExcel.Click += btnNhapExcel_Click;
-            // 
             // UC_GiangVien_ChamDiem
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
@@ -470,5 +494,7 @@
         private Button btnXuatExcel;
         private Label lblSoLuongSV;
         private Button btnNhapExcel;
+        private Button btnChotDiem;
+        private Button btnBieuDoPhoDiem;
     }
 }

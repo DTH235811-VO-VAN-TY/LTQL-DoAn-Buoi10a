@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
@@ -30,63 +30,71 @@ namespace QuanLyDiemSV.Forms
             InitializeComponent();
             this.Load += UC_TaiKhoan_Load;
             StyleDataGridView(dataGridView1);
+
+            // FIX: Cho phép bấm Làm lại/Thêm/Sửa/Xoa mà không bị chặn bởi Validate
+            btnLamLai.CausesValidation = false;
+            btnThem.CausesValidation = false;
+            btnSua.CausesValidation = false;
+            btnXoa.CausesValidation = false;
+            btnTimKiem.CausesValidation = false;
+            btnShowAll.CausesValidation = false;
         }
         private void RegisterValidations()
         {
             txtTenDangNhap.Validating += (s, e) =>
             {
+                if (!txtTenDangNhap.Enabled) { errorProvider.SetError(txtTenDangNhap, ""); return; }
+
                 if (string.IsNullOrWhiteSpace(txtTenDangNhap.Text))
                 {
-                    e.Cancel = true;
+                    // e.Cancel = true; // Bỏ Cancel để có thể nhấn nút Làm lại thoải mái
                     errorProvider.SetError(txtTenDangNhap, "Tên đăng nhập không được để trống!");
                 }
                 else if(xuLyThem && context.UserAccount.Any(x => x.Username == txtTenDangNhap.Text.Trim()))
                 {
-                    e.Cancel = true;
                     errorProvider.SetError(txtTenDangNhap, "Tên đăng nhập này đã tồn tại!");
                 }
                 else
                 {
-                    e.Cancel = false;
                     errorProvider.SetError(txtTenDangNhap, "");
                 }
             };
             txtMatKhau.Validating += (s, e) =>
             {
+                if (!txtMatKhau.Enabled) { errorProvider.SetError(txtMatKhau, ""); return; }
+
                 if (xuLyThem && string.IsNullOrWhiteSpace(txtMatKhau.Text))
                 {
-                    e.Cancel = true;
                     errorProvider.SetError(txtMatKhau, "Mật khẩu không được để trống khi tạo tài khoản mới!");
                 }
                 else
                 {
-                    e.Cancel = false;
                     errorProvider.SetError(txtMatKhau, "");
                 }
             };
             cboQuyenHan.Validating += (s, e) =>
             {
+                if (!cboQuyenHan.Enabled) { errorProvider.SetError(cboQuyenHan, ""); return; }
+
                 if (cboQuyenHan.SelectedValue == null)
                 {
-                    e.Cancel = true;
                     errorProvider.SetError(cboQuyenHan, "Vui lòng chọn quyền hạn cho tài khoản!");
                 }
                 else
                 {
-                    e.Cancel = false;
                     errorProvider.SetError(cboQuyenHan, "");
                 }
             };
             cboTrangThai.Validating += (s, e) =>
             {
+                if (!cboTrangThai.Enabled) { errorProvider.SetError(cboTrangThai, ""); return; }
+
                 if (cboTrangThai.SelectedValue == null)
                 {
-                    e.Cancel = true;
                     errorProvider.SetError(cboTrangThai, "Vui lòng chọn trạng thái cho tài khoản!");
                 }
                 else
                 {
-                    e.Cancel = false;
                     errorProvider.SetError(cboTrangThai, "");
                 }
             };
@@ -106,6 +114,7 @@ namespace QuanLyDiemSV.Forms
 
                 // 1. TẮT Visual Styles mặc định của Windows
                 dgv.EnableHeadersVisualStyles = false;
+                dgv.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
 
                 // 2. CHỈNH HEADER (Tiêu đề cột)
                 dgv.ColumnHeadersDefaultCellStyle.BackColor = Color.FromArgb(41, 128, 185); // Xanh dương
@@ -479,6 +488,7 @@ namespace QuanLyDiemSV.Forms
 
         private void btnLamLai_Click(object sender, EventArgs e)
         {
+            xuLyThem = false;
             errorProvider.Clear(); // Xóa hết lỗi cũ trước khi làm lại
             BatTatChucNang(false);
             bsTaiKhoan.ResetBindings(false); // Reset lại giá trị cũ

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -8,6 +8,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Microsoft.EntityFrameworkCore;
 using ClosedXML.Excel;
 using QuanLyDiemSV.Data; // Đảm bảo namespace này đúng
 
@@ -20,6 +21,7 @@ namespace QuanLyDiemSV.Forms
         BindingSource bsGiangVien = new BindingSource();
         bool xuLyThem = false;
         bool daTaiDuLieu = false;
+        bool dangTruyVan = false;
         ErrorProvider errorProvider = new ErrorProvider();
         public UC_GiangVien()
         {
@@ -27,7 +29,9 @@ namespace QuanLyDiemSV.Forms
             this.Load += UC_GiangVien_Load;
             this.VisibleChanged += UC_GiangVien_VisibleChanged;
             StyleDataGridView(dgvAdminGiangVien);
-
+            
+            // Wireup sự kiện lọc theo khoa
+            cboLocTheoKhoa.SelectedIndexChanged += cboLocTheoKhoa_SelectedIndexChanged;
         }
         protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
         {
@@ -65,7 +69,6 @@ namespace QuanLyDiemSV.Forms
 
             // =====================================================================
             // 2. KHÓA AN TOÀN: Chặn phím tắt đơn khi người dùng đang nhập liệu
-            // (Để tránh việc gõ chữ 'C' trong tên mà lại nhảy sang lệnh Thêm mới)
             // =====================================================================
             if (this.ActiveControl is TextBox || this.ActiveControl is ComboBox)
             {
@@ -96,6 +99,29 @@ namespace QuanLyDiemSV.Forms
 
             return base.ProcessCmdKey(ref msg, keyData);
         }
+
+        private async Task LoadCboLocKhoaAsync()
+        {
+            try
+            {
+                using (var freshContext = new QLDSVDbContext())
+                {
+                    var listKhoa = await freshContext.Khoa.AsNoTracking().ToListAsync();
+                    var allKhoa = new List<Khoa>();
+                    allKhoa.Add(new Khoa { MaKhoa = "ALL", TenKhoa = "--- Xem tất cả ---" });
+                    allKhoa.AddRange(listKhoa);
+
+                    cboLocTheoKhoa.DataSource = allKhoa;
+                    cboLocTheoKhoa.DisplayMember = "TenKhoa";
+                    cboLocTheoKhoa.ValueMember = "MaKhoa";
+                    cboLocTheoKhoa.SelectedIndex = 0;
+                }
+            }
+            catch { }
+        }
+    
+            
+        
         private void RegisterValidations()
         {
             // Kiểm tra Mã GV không được để trống
@@ -171,14 +197,15 @@ namespace QuanLyDiemSV.Forms
             // Đã ẩn các hàm Load dữ liệu khỏi đây
         }
 
-        private void UC_GiangVien_VisibleChanged(object sender, EventArgs e)
+        private async void UC_GiangVien_VisibleChanged(object sender, EventArgs e)
         {
             if (this.Visible && !daTaiDuLieu)
             {
                 Cursor.Current = Cursors.WaitCursor;
-                LoadCboKhoa();
+                await LoadCboKhoaAsync();
                 LoadCboHocVi();
-                LoadData();
+                await LoadCboLocKhoaAsync();
+                await LoadDataAsync();
                 daTaiDuLieu = true;
                 Cursor.Current = Cursors.Default;
             }
@@ -221,13 +248,16 @@ namespace QuanLyDiemSV.Forms
             btnXoa.Enabled = !giaTri;
         }
 
-        private void LoadCboKhoa()
+        private async Task LoadCboKhoaAsync()
         {
-            var listKhoa = context.Khoa.ToList();
-            cboKhoa.DataSource = listKhoa;
-            cboKhoa.DisplayMember = "TenKhoa";
-            cboKhoa.ValueMember = "MaKhoa";
-            cboKhoa.SelectedIndex = -1;
+            using (var freshContext = new QLDSVDbContext())
+            {
+                var listKhoa = await freshContext.Khoa.AsNoTracking().ToListAsync();
+                cboKhoa.DataSource = listKhoa;
+                cboKhoa.DisplayMember = "TenKhoa";
+                cboKhoa.ValueMember = "MaKhoa";
+                cboKhoa.SelectedIndex = -1;
+            }
         }
 
         private void LoadCboHocVi()
@@ -237,13 +267,38 @@ namespace QuanLyDiemSV.Forms
             cboHocVi.DataSource = listHocVi;
         }
 
-        public void LoadData()
+        public async Task CapNhatDuLieuMoiNhat()
         {
+            using (var freshContext = new QLDSVDbContext())
+            {
+                var oldKhoa = cboKhoa.SelectedValue;
+                cboKhoa.DataSource = await freshContext.Khoa.AsNoTracking().ToListAsync();
+                cboKhoa.DisplayMember = "TenKhoa";
+                cboKhoa.ValueMember = "MaKhoa";
+                if (oldKhoa != null) cboKhoa.SelectedValue = oldKhoa;
+            }
+
+            context.ChangeTracker.Clear();
+            await LoadDataAsync();
+        }
+
+        public async Task LoadDataAsync()
+        {
+            if (dangTruyVan) return; // Chặn các yêu cầu chồng chéo
+            dangTruyVan = true;
             try
             {
-                // 1. Khởi tạo Query cơ bản (chưa tải về RAM)
-                var query = context.GiangVien.AsQueryable();
+                using (var freshContext = new QLDSVDbContext())
+                {
+                    // 1. Khởi tạo Query cơ bản (chưa tải về RAM)
+                    var query = freshContext.GiangVien.AsNoTracking().AsQueryable();
 
+                // Lọc theo Khoa (nếu có chọn)
+                if (cboLocTheoKhoa.SelectedValue != null && cboLocTheoKhoa.SelectedValue.ToString() != "ALL")
+                {
+                    string maKhoaChon = cboLocTheoKhoa.SelectedValue.ToString();
+                    query = query.Where(g => g.MaKhoa == maKhoaChon);
+                }
                 // ==========================================
                 // 2. XỬ LÝ TÌM KIẾM
                 // ==========================================
@@ -290,7 +345,7 @@ namespace QuanLyDiemSV.Forms
                 }
 
                 // 4. Lấy dữ liệu đã lọc & sắp xếp từ SQL về
-                var listGV = query.ToList();
+                var listGV = await query.ToListAsync();
 
                 // 5. Gán vào BindingSource
                 bsGiangVien.DataSource = listGV;
@@ -320,11 +375,16 @@ namespace QuanLyDiemSV.Forms
                 bsGiangVien.CurrentChanged += BsGiangVien_CurrentChanged;
                 BsGiangVien_CurrentChanged(null, null);
             }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Lỗi tải dữ liệu: " + ex.Message);
-            }
         }
+        catch (Exception ex)
+        {
+            MessageBox.Show("Lỗi tải dữ liệu: " + ex.Message);
+        }
+        finally
+        {
+            dangTruyVan = false;
+        }
+    }
 
         // Sự kiện xử lý riêng cho RadioButton Giới tính
         private void BsGiangVien_CurrentChanged(object sender, EventArgs e)
@@ -431,7 +491,7 @@ namespace QuanLyDiemSV.Forms
             txtMaGV.Focus();
         }
 
-        private void btnSua_Click(object sender, EventArgs e)
+        private async void btnSua_Click(object sender, EventArgs e)
         {
             errorProvider.Clear();
             if (bsGiangVien.Current == null) return;
@@ -441,7 +501,7 @@ namespace QuanLyDiemSV.Forms
             txtMaGV.Enabled = false; // Không sửa khóa chính
         }
 
-        private void btnXoa_Click(object sender, EventArgs e)
+        private async void btnXoa_Click(object sender, EventArgs e)
         {
             errorProvider.Clear();
             if (bsGiangVien.Current == null) return;
@@ -453,7 +513,7 @@ namespace QuanLyDiemSV.Forms
                 {
                     context.GiangVien.Remove(gv);
                     context.SaveChanges();
-                    LoadData();
+                    await LoadDataAsync();
                     MessageBox.Show("Xóa thành công!");
                 }
                 catch (Exception ex)
@@ -463,7 +523,7 @@ namespace QuanLyDiemSV.Forms
             }
         }
 
-        private void btnLuu_Click(object sender, EventArgs e)
+        private async void btnLuu_Click(object sender, EventArgs e)
         {
             errorProvider.Clear();
             // --- GỌI HÀM KIỂM TRA RÀNG BUỘC Ở ĐÂY ---
@@ -515,8 +575,7 @@ namespace QuanLyDiemSV.Forms
                 }
 
                 context.SaveChanges();
-              //  bsGiangVien.ResumeBinding(); // Chặn đổ dữ liệu từ lưới khi thêm
-                LoadData();
+                await LoadDataAsync();
                 BatTatChucNang(false);
                 MessageBox.Show("Lưu dữ liệu thành công!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
@@ -542,118 +601,157 @@ namespace QuanLyDiemSV.Forms
 
         #endregion
 
-        private void radTang_CheckedChanged(object sender, EventArgs e)
+        private async void radTang_CheckedChanged(object sender, EventArgs e)
         {
             if (radTang.Checked)
             {
-                LoadData();
+                await LoadDataAsync();
             }
         }
 
-        private void radGiam_CheckedChanged(object sender, EventArgs e)
+        private async void radGiam_CheckedChanged(object sender, EventArgs e)
         {
             if (radGiam.Checked)
-                LoadData();
+                await LoadDataAsync();
         }
 
-        private void cboKieuSX_SelectedIndexChanged(object sender, EventArgs e)
+        private async void cboKieuSX_SelectedIndexChanged(object sender, EventArgs e)
         {
-            LoadData();
+            await LoadDataAsync();
         }
 
-        private void btnTimKiem_Click(object sender, EventArgs e)
+        private async void btnTimKiem_Click(object sender, EventArgs e)
         {
-            LoadData();
+            await LoadDataAsync();
         }
 
-        private void btnShowAll_Click(object sender, EventArgs e)
+        private async void btnShowAll_Click(object sender, EventArgs e)
         {
             txtTuKhoaTK.Clear();
             cboLoaiTK.SelectedIndex = 1;
             cboKieuSX.SelectedIndex = 0;
             radTang.Checked = true;
 
-            LoadData();
+            await LoadDataAsync();
         }
 
-        private void btnNhap_Click(object sender, EventArgs e)
+        private async void btnNhap_Click(object sender, EventArgs e)
         {
-            OpenFileDialog openFileDialog = new OpenFileDialog();
-            openFileDialog.Title = "Nhập dữ liệu sinh viên từ Excel";
-            openFileDialog.Filter = "Excel Files|*.xls;*.xlsx";
-            openFileDialog.Multiselect = false;
-
-            if (openFileDialog.ShowDialog() == DialogResult.OK)
+            try
             {
-                try
+                using (OpenFileDialog ofd = new OpenFileDialog() { Filter = "Excel Workbook|*.xlsx|Excel 97-2003 Workbook|*.xls", Title = "Chọn file Excel Giảng Viên" })
                 {
-                    // Mở hộp thoại chọn file Excel
-                    using (OpenFileDialog ofd = new OpenFileDialog() { Filter = "Excel Workbook|*.xlsx|Excel 97-2003 Workbook|*.xls", Title = "Chọn file Excel Giảng Viên" })
+                    if (ofd.ShowDialog() == DialogResult.OK)
                     {
-                        if (ofd.ShowDialog() == DialogResult.OK)
+                        using (var workbook = new XLWorkbook(ofd.FileName))
                         {
-                            using (var workbook = new XLWorkbook(ofd.FileName))
-                            {
-                                var worksheet = workbook.Worksheet(1); // Lấy sheet đầu tiên
-                                var rows = worksheet.RangeUsed().RowsUsed().Skip(1); // Bỏ qua dòng tiêu đề 1
+                            var worksheet = workbook.Worksheet(1);
+                            var rows = worksheet.RangeUsed().RowsUsed();
 
+                            DataTable dt = new DataTable();
+                            dt.Columns.Add("MaGV");
+                            dt.Columns.Add("HoTen");
+                            dt.Columns.Add("NgaySinh");
+                            dt.Columns.Add("GioiTinh");
+                            dt.Columns.Add("Email");
+                            dt.Columns.Add("SDT");
+                            dt.Columns.Add("HocVi");
+                            dt.Columns.Add("MaKhoa");
+                            dt.Columns.Add("GhiChu");
+
+                            HashSet<string> seenMaGV = new HashSet<string>();
+
+                            foreach (var row in rows.Skip(1))
+                            {
+                                string maGV = row.Cell(1).Value.ToString().Trim();
+                                if (string.IsNullOrEmpty(maGV)) continue;
+
+                                string ghiChu = "";
+                                if (seenMaGV.Contains(maGV))
+                                {
+                                    ghiChu = "Trùng trong file Excel";
+                                }
+                                else if (context.GiangVien.Any(x => x.MaGV == maGV))
+                                {
+                                    ghiChu = "Đã tồn tại trong hệ thống";
+                                }
+                                seenMaGV.Add(maGV);
+
+                                dt.Rows.Add(
+                                    maGV,
+                                    row.Cell(2).Value.ToString().Trim(),
+                                    row.Cell(3).Value.ToString().Trim(),
+                                    row.Cell(4).Value.ToString().Trim(),
+                                    row.Cell(5).Value.ToString().Trim(),
+                                    row.Cell(6).Value.ToString().Trim(),
+                                    row.Cell(7).Value.ToString().Trim(),
+                                    row.Cell(8).Value.ToString().Trim(),
+                                    ghiChu
+                                );
+                            }
+
+                            FrmPreviewImport preview = new FrmPreviewImport(dt);
+                            if (preview.ShowDialog() == DialogResult.OK)
+                            {
                                 int rowCount = 0;
                                 int duplicateCount = 0;
 
-                                foreach (var row in rows)
+                                // Sử dụng DbContext mới hoàn toàn để tránh xung đột với context đang dùng cho Grid
+                                using (var importContext = new QLDSVDbContext())
                                 {
-                                    string maGV = row.Cell(1).Value.ToString().Trim();
-
-                                    // Bỏ qua các dòng trống
-                                    if (string.IsNullOrEmpty(maGV)) continue;
-
-                                    // Kiểm tra trùng lặp Mã GV
-                                    if (context.GiangVien.Any(x => x.MaGV == maGV))
+                                    foreach (DataRow dr in dt.Rows)
                                     {
-                                        duplicateCount++;
-                                        continue;
+                                        string maGV = dr["MaGV"].ToString();
+                                        string ghiChu = dr["GhiChu"].ToString();
+
+                                        if (!string.IsNullOrEmpty(ghiChu))
+                                        {
+                                            duplicateCount++;
+                                            continue;
+                                        }
+
+                                        GiangVien gv = new GiangVien();
+                                        gv.MaGV = maGV;
+                                        gv.HoTen = dr["HoTen"].ToString();
+                                        
+                                        if (DateTime.TryParse(dr["NgaySinh"].ToString(), out DateTime ngaySinh))
+                                            gv.NgaySinh = DateOnly.FromDateTime(ngaySinh);
+                                        else
+                                            gv.NgaySinh = DateOnly.FromDateTime(DateTime.Now);
+
+                                        gv.GioiTinh = dr["GioiTinh"].ToString();
+                                        gv.Email = dr["Email"].ToString();
+                                        gv.SDT = dr["SDT"].ToString();
+                                        gv.HocVi = dr["HocVi"].ToString();
+                                        gv.MaKhoa = dr["MaKhoa"].ToString();
+
+                                        importContext.GiangVien.Add(gv);
+                                        rowCount++;
                                     }
 
-                                    GiangVien gv = new GiangVien();
-                                    gv.MaGV = maGV;
-                                    gv.HoTen = row.Cell(2).Value.ToString().Trim();
-
-                                    // Xử lý Ngày Sinh (Chuyển thành DateOnly giống cách lưu thông thường)
-                                    if (DateTime.TryParse(row.Cell(3).Value.ToString(), out DateTime ngaySinh))
-                                        gv.NgaySinh = DateOnly.FromDateTime(ngaySinh);
-                                    else
-                                        gv.NgaySinh = DateOnly.FromDateTime(DateTime.Now); // Mặc định nếu nhập sai format
-
-                                    gv.GioiTinh = row.Cell(4).Value.ToString().Trim();
-                                    gv.Email = row.Cell(5).Value.ToString().Trim();
-                                    gv.SDT = row.Cell(6).Value.ToString().Trim();
-                                    gv.HocVi = row.Cell(7).Value.ToString().Trim();
-                                    gv.MaKhoa = row.Cell(8).Value.ToString().Trim();
-
-                                    context.GiangVien.Add(gv);
-                                    rowCount++;
+                                    if (rowCount > 0)
+                                    {
+                                        importContext.SaveChanges();
+                                    }
                                 }
 
-                                // Lưu toàn bộ xuống DB
-                                context.SaveChanges();
+                                // Reload danh sách chính sau khi import xong
+                                context.ChangeTracker.Clear();
+                                await LoadDataAsync();
 
-                                // Load lại DataGridView
-                                LoadData();
-
-                                // Hiển thị thống kê
                                 string msg = $"Đã nhập thành công {rowCount} giảng viên mới.";
                                 if (duplicateCount > 0)
-                                    msg += $"\nĐã bỏ qua {duplicateCount} giảng viên bị trùng mã.";
+                                    msg += $"\nĐã bỏ qua {duplicateCount} dòng không hợp lệ hoặc bị trùng.";
 
                                 MessageBox.Show(msg, "Hoàn tất", MessageBoxButtons.OK, MessageBoxIcon.Information);
                             }
                         }
                     }
                 }
-                catch (Exception ex)
-                {
-                    MessageBox.Show("Lỗi nhập file: Vui lòng kiểm tra lại cấu trúc file Excel.\nChi tiết: " + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi nhập file: " + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -716,6 +814,14 @@ namespace QuanLyDiemSV.Forms
             catch (Exception ex)
             {
                 MessageBox.Show("Lỗi xuất file: " + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private async void cboLocTheoKhoa_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (daTaiDuLieu)
+            {
+                await LoadDataAsync();
             }
         }
     }

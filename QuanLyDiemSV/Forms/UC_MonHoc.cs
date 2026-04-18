@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
@@ -27,6 +27,14 @@ namespace GUI
             this.VisibleChanged += UC_MonHoc_VisibleChanged;
             StyleDataGridView(dgvDSMon);
             StyleDataGridView(dgvMonTienQuyet);
+
+            // FIX: Cho phép bấm Làm lại/Thêm/Sửa/Xoa mà không bị chặn bởi Validate
+            btnLamLai.CausesValidation = false;
+            btnThem.CausesValidation = false;
+            btnSua.CausesValidation = false;
+            btnXoa.CausesValidation = false;
+            btnTimKiem.CausesValidation = false;
+            btnReset.CausesValidation = false;
         }
         protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
         {
@@ -150,6 +158,7 @@ namespace GUI
 
                 // 1. TẮT Visual Styles mặc định của Windows
                 dgv.EnableHeadersVisualStyles = false;
+                dgv.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
 
                 // 2. CHỈNH HEADER (Tiêu đề cột)
                 dgv.ColumnHeadersDefaultCellStyle.BackColor = Color.FromArgb(41, 128, 185); // Xanh dương
@@ -536,6 +545,7 @@ namespace GUI
 
         private void btnLamLai_Click(object sender, EventArgs e)
         {
+            xuLyThem = false;
             errorProvider.Clear();
             BatTatChucNang(false);
             bsMonHoc.ResetBindings(false); // Reset lại giá trị cũ

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -39,6 +39,7 @@ namespace QuanLyDiemSV.Data
         public virtual DbSet<ThongBao> ThongBaos { get; set; }
 
         public virtual DbSet<NhatKyHoatDong> NhatKyHoatDong { get; set; }
+        public virtual DbSet<YeuCauSuaDiem> YeuCauSuaDiem { get; set; }
 
         /* protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
  #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
@@ -50,7 +51,7 @@ namespace QuanLyDiemSV.Data
             {
                 // Chuỗi kết nối lấy từ App.config bạn gửi trước đó
                 //optionsBuilder.UseSqlServer(ConfigurationManager.ConnectionStrings["QLDSVConnection"].ConnectionString);
-                optionsBuilder.UseSqlServer("Server=REDMI-11\\SQLEXPRESS01;Database=QLDSV_;Integrated Security=True;Pooling=false;TrustServerCertificate=True;MultipleActiveResultSets=true;Connection Timeout=60;", builder => builder.EnableRetryOnFailure()); ;
+                optionsBuilder.UseSqlServer("Server=REDMI-11\\SQLEXPRESS01;Database=QLDSV_;Integrated Security=True;Pooling=True;TrustServerCertificate=True;MultipleActiveResultSets=true;Connection Timeout=30;", builder => builder.EnableRetryOnFailure());
             }
         }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -150,6 +151,14 @@ namespace QuanLyDiemSV.Data
                 entity.Property(e => e.NgayTao).HasDefaultValueSql("(getdate())");
                 entity.HasOne(d => d.Role).WithMany(p => p.UserAccount)
                     .OnDelete(DeleteBehavior.ClientSetNull);
+            });
+
+            modelBuilder.Entity<YeuCauSuaDiem>(entity =>
+            {
+                entity.HasKey(e => e.MaYC);
+                entity.Property(e => e.NgayGui).HasDefaultValueSql("(getdate())");
+                entity.HasOne(d => d.LopHocPhan).WithMany().OnDelete(DeleteBehavior.ClientSetNull);
+                entity.HasOne(d => d.GiangVien).WithMany().OnDelete(DeleteBehavior.ClientSetNull);
             });
         }
     }

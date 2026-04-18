@@ -28,11 +28,11 @@
         /// </summary>
         private void InitializeComponent()
         {
-            DataGridViewCellStyle dataGridViewCellStyle8 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle4 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle1 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle2 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle3 = new DataGridViewCellStyle();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(UC_Diem));
-            DataGridViewCellStyle dataGridViewCellStyle5 = new DataGridViewCellStyle();
-            DataGridViewCellStyle dataGridViewCellStyle6 = new DataGridViewCellStyle();
-            DataGridViewCellStyle dataGridViewCellStyle7 = new DataGridViewCellStyle();
             panel1 = new Panel();
             panel5 = new Panel();
             groupBox4 = new GroupBox();
@@ -51,6 +51,16 @@
             panel4 = new Panel();
             groupBox3 = new GroupBox();
             dgvBangDiem = new DataGridView();
+            MaMon = new DataGridViewTextBoxColumn();
+            TenMon = new DataGridViewTextBoxColumn();
+            SoTinChi = new DataGridViewTextBoxColumn();
+            DiemGK = new DataGridViewTextBoxColumn();
+            DiemCK = new DataGridViewTextBoxColumn();
+            DiemThiLan1 = new DataGridViewTextBoxColumn();
+            DiemThiLan2 = new DataGridViewTextBoxColumn();
+            DiemTongKet = new DataGridViewTextBoxColumn();
+            DiemChu = new DataGridViewTextBoxColumn();
+            GhiChu = new DataGridViewTextBoxColumn();
             panel3 = new Panel();
             btnAdSua_SV = new Button();
             btnAdLamLai_SV = new Button();
@@ -93,16 +103,6 @@
             label13 = new Label();
             label12 = new Label();
             label11 = new Label();
-            MaMon = new DataGridViewTextBoxColumn();
-            TenMon = new DataGridViewTextBoxColumn();
-            SoTinChi = new DataGridViewTextBoxColumn();
-            DiemGK = new DataGridViewTextBoxColumn();
-            DiemCK = new DataGridViewTextBoxColumn();
-            DiemThiLan1 = new DataGridViewTextBoxColumn();
-            DiemThiLan2 = new DataGridViewTextBoxColumn();
-            DiemTongKet = new DataGridViewTextBoxColumn();
-            DiemChu = new DataGridViewTextBoxColumn();
-            GhiChu = new DataGridViewTextBoxColumn();
             panel1.SuspendLayout();
             panel5.SuspendLayout();
             groupBox4.SuspendLayout();
@@ -325,18 +325,109 @@
             dgvBangDiem.EnableHeadersVisualStyles = false;
             dgvBangDiem.Location = new Point(3, 26);
             dgvBangDiem.Name = "dgvBangDiem";
-            dataGridViewCellStyle8.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle8.BackColor = Color.Cyan;
-            dataGridViewCellStyle8.Font = new Font("Segoe UI", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            dataGridViewCellStyle8.ForeColor = Color.White;
-            dataGridViewCellStyle8.SelectionBackColor = SystemColors.Highlight;
-            dataGridViewCellStyle8.SelectionForeColor = SystemColors.HighlightText;
-            dataGridViewCellStyle8.WrapMode = DataGridViewTriState.True;
-            dgvBangDiem.RowHeadersDefaultCellStyle = dataGridViewCellStyle8;
+            dgvBangDiem.ReadOnly = true;
+            dataGridViewCellStyle4.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle4.BackColor = Color.Cyan;
+            dataGridViewCellStyle4.Font = new Font("Segoe UI", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            dataGridViewCellStyle4.ForeColor = Color.White;
+            dataGridViewCellStyle4.SelectionBackColor = SystemColors.Highlight;
+            dataGridViewCellStyle4.SelectionForeColor = SystemColors.HighlightText;
+            dataGridViewCellStyle4.WrapMode = DataGridViewTriState.True;
+            dgvBangDiem.RowHeadersDefaultCellStyle = dataGridViewCellStyle4;
             dgvBangDiem.RowHeadersWidth = 51;
             dgvBangDiem.Size = new Size(1668, 283);
             dgvBangDiem.TabIndex = 0;
             dgvBangDiem.CellClick += dgvBangDiem_CellClick;
+            // 
+            // MaMon
+            // 
+            MaMon.DataPropertyName = "MaMon";
+            dataGridViewCellStyle1.Font = new Font("Microsoft Sans Serif", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            dataGridViewCellStyle1.ForeColor = Color.Blue;
+            MaMon.DefaultCellStyle = dataGridViewCellStyle1;
+            MaMon.HeaderText = "Mã Môn";
+            MaMon.MinimumWidth = 6;
+            MaMon.Name = "MaMon";
+            MaMon.ReadOnly = true;
+            // 
+            // TenMon
+            // 
+            TenMon.DataPropertyName = "TenMon";
+            TenMon.HeaderText = "Tên Môn";
+            TenMon.MinimumWidth = 6;
+            TenMon.Name = "TenMon";
+            TenMon.ReadOnly = true;
+            // 
+            // SoTinChi
+            // 
+            SoTinChi.DataPropertyName = "SoTinChi";
+            SoTinChi.HeaderText = "Số Tín Chỉ";
+            SoTinChi.MinimumWidth = 6;
+            SoTinChi.Name = "SoTinChi";
+            SoTinChi.ReadOnly = true;
+            // 
+            // DiemGK
+            // 
+            DiemGK.DataPropertyName = "DiemGK";
+            DiemGK.HeaderText = "Điểm GK";
+            DiemGK.MinimumWidth = 6;
+            DiemGK.Name = "DiemGK";
+            DiemGK.ReadOnly = true;
+            // 
+            // DiemCK
+            // 
+            DiemCK.DataPropertyName = "DiemCK";
+            DiemCK.HeaderText = "Điểm CK";
+            DiemCK.MinimumWidth = 6;
+            DiemCK.Name = "DiemCK";
+            DiemCK.ReadOnly = true;
+            // 
+            // DiemThiLan1
+            // 
+            DiemThiLan1.DataPropertyName = "DiemThiLan1";
+            DiemThiLan1.HeaderText = "Thi lần 1";
+            DiemThiLan1.MinimumWidth = 6;
+            DiemThiLan1.Name = "DiemThiLan1";
+            DiemThiLan1.ReadOnly = true;
+            // 
+            // DiemThiLan2
+            // 
+            DiemThiLan2.DataPropertyName = "DiemThiLan2";
+            DiemThiLan2.HeaderText = "Thi lần 2";
+            DiemThiLan2.MinimumWidth = 6;
+            DiemThiLan2.Name = "DiemThiLan2";
+            DiemThiLan2.ReadOnly = true;
+            // 
+            // DiemTongKet
+            // 
+            DiemTongKet.DataPropertyName = "DiemTongKet";
+            dataGridViewCellStyle2.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            dataGridViewCellStyle2.Font = new Font("Microsoft Sans Serif", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            dataGridViewCellStyle2.ForeColor = Color.Blue;
+            DiemTongKet.DefaultCellStyle = dataGridViewCellStyle2;
+            DiemTongKet.HeaderText = "Điểm TK(10)";
+            DiemTongKet.MinimumWidth = 6;
+            DiemTongKet.Name = "DiemTongKet";
+            DiemTongKet.ReadOnly = true;
+            // 
+            // DiemChu
+            // 
+            DiemChu.DataPropertyName = "DiemChu";
+            dataGridViewCellStyle3.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            dataGridViewCellStyle3.Font = new Font("Microsoft Sans Serif", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            dataGridViewCellStyle3.ForeColor = Color.Blue;
+            DiemChu.DefaultCellStyle = dataGridViewCellStyle3;
+            DiemChu.HeaderText = "Điểm chữ";
+            DiemChu.MinimumWidth = 6;
+            DiemChu.Name = "DiemChu";
+            DiemChu.ReadOnly = true;
+            // 
+            // GhiChu
+            // 
+            GhiChu.HeaderText = "Ghi chú";
+            GhiChu.MinimumWidth = 6;
+            GhiChu.Name = "GhiChu";
+            GhiChu.ReadOnly = true;
             // 
             // panel3
             // 
@@ -643,7 +734,7 @@
             cboHocKy.Location = new Point(229, 37);
             cboHocKy.Margin = new Padding(3, 4, 3, 4);
             cboHocKy.Name = "cboHocKy";
-            cboHocKy.Size = new Size(145, 28);
+            cboHocKy.Size = new Size(225, 28);
             cboHocKy.TabIndex = 11;
             cboHocKy.SelectedIndexChanged += cboHocKy_SelectedIndexChanged;
             // 
@@ -691,7 +782,7 @@
             // 
             label7.AutoSize = true;
             label7.Font = new Font("Microsoft Sans Serif", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            label7.Location = new Point(430, 44);
+            label7.Location = new Point(460, 44);
             label7.Name = "label7";
             label7.Size = new Size(81, 20);
             label7.TabIndex = 8;
@@ -845,96 +936,6 @@
             label11.Size = new Size(126, 20);
             label11.TabIndex = 0;
             label11.Text = "Mã Sinh Viên:";
-            // 
-            // MaMon
-            // 
-            MaMon.DataPropertyName = "MaMon";
-            dataGridViewCellStyle5.Font = new Font("Microsoft Sans Serif", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            dataGridViewCellStyle5.ForeColor = Color.Blue;
-            MaMon.DefaultCellStyle = dataGridViewCellStyle5;
-            MaMon.HeaderText = "Mã Môn";
-            MaMon.MinimumWidth = 6;
-            MaMon.Name = "MaMon";
-            MaMon.ReadOnly = true;
-            // 
-            // TenMon
-            // 
-            TenMon.DataPropertyName = "TenMon";
-            TenMon.HeaderText = "Tên Môn";
-            TenMon.MinimumWidth = 6;
-            TenMon.Name = "TenMon";
-            TenMon.ReadOnly = true;
-            // 
-            // SoTinChi
-            // 
-            SoTinChi.DataPropertyName = "SoTinChi";
-            SoTinChi.HeaderText = "Số Tín Chỉ";
-            SoTinChi.MinimumWidth = 6;
-            SoTinChi.Name = "SoTinChi";
-            SoTinChi.ReadOnly = true;
-            // 
-            // DiemGK
-            // 
-            DiemGK.DataPropertyName = "DiemGK";
-            DiemGK.HeaderText = "Điểm GK";
-            DiemGK.MinimumWidth = 6;
-            DiemGK.Name = "DiemGK";
-            DiemGK.ReadOnly = true;
-            // 
-            // DiemCK
-            // 
-            DiemCK.DataPropertyName = "DiemCK";
-            DiemCK.HeaderText = "Điểm CK";
-            DiemCK.MinimumWidth = 6;
-            DiemCK.Name = "DiemCK";
-            DiemCK.ReadOnly = true;
-            // 
-            // DiemThiLan1
-            // 
-            DiemThiLan1.DataPropertyName = "DiemThiLan1";
-            DiemThiLan1.HeaderText = "Thi lần 1";
-            DiemThiLan1.MinimumWidth = 6;
-            DiemThiLan1.Name = "DiemThiLan1";
-            DiemThiLan1.ReadOnly = true;
-            // 
-            // DiemThiLan2
-            // 
-            DiemThiLan2.DataPropertyName = "DiemThiLan2";
-            DiemThiLan2.HeaderText = "Thi lần 2";
-            DiemThiLan2.MinimumWidth = 6;
-            DiemThiLan2.Name = "DiemThiLan2";
-            DiemThiLan2.ReadOnly = true;
-            // 
-            // DiemTongKet
-            // 
-            DiemTongKet.DataPropertyName = "DiemTongKet";
-            dataGridViewCellStyle6.Alignment = DataGridViewContentAlignment.MiddleCenter;
-            dataGridViewCellStyle6.Font = new Font("Microsoft Sans Serif", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            dataGridViewCellStyle6.ForeColor = Color.Blue;
-            DiemTongKet.DefaultCellStyle = dataGridViewCellStyle6;
-            DiemTongKet.HeaderText = "Điểm TK(10)";
-            DiemTongKet.MinimumWidth = 6;
-            DiemTongKet.Name = "DiemTongKet";
-            DiemTongKet.ReadOnly = true;
-            // 
-            // DiemChu
-            // 
-            DiemChu.DataPropertyName = "DiemChu";
-            dataGridViewCellStyle7.Alignment = DataGridViewContentAlignment.MiddleCenter;
-            dataGridViewCellStyle7.Font = new Font("Microsoft Sans Serif", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            dataGridViewCellStyle7.ForeColor = Color.Blue;
-            DiemChu.DefaultCellStyle = dataGridViewCellStyle7;
-            DiemChu.HeaderText = "Điểm chữ";
-            DiemChu.MinimumWidth = 6;
-            DiemChu.Name = "DiemChu";
-            DiemChu.ReadOnly = true;
-            // 
-            // GhiChu
-            // 
-            GhiChu.HeaderText = "Ghi chú";
-            GhiChu.MinimumWidth = 6;
-            GhiChu.Name = "GhiChu";
-            GhiChu.ReadOnly = true;
             // 
             // UC_Diem
             // 
