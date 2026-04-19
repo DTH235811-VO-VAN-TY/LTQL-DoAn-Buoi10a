@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(UC_QuanLyDiem_Container));
             DataGridViewCellStyle dataGridViewCellStyle1 = new DataGridViewCellStyle();
             DataGridViewCellStyle dataGridViewCellStyle2 = new DataGridViewCellStyle();
             DataGridViewCellStyle dataGridViewCellStyle3 = new DataGridViewCellStyle();
@@ -80,6 +81,7 @@
             // 
             // groupBox1
             // 
+            groupBox1.BackColor = Color.White;
             groupBox1.Controls.Add(txtTuKhoa);
             groupBox1.Controls.Add(label1);
             groupBox1.Controls.Add(label11);
@@ -127,7 +129,7 @@
             // label12
             // 
             label12.AutoSize = true;
-            label12.Location = new Point(756, 61);
+            label12.Location = new Point(756, 57);
             label12.Name = "label12";
             label12.Size = new Size(76, 23);
             label12.TabIndex = 88;
@@ -145,7 +147,7 @@
             // cboTimKiem
             // 
             cboTimKiem.FormattingEnabled = true;
-            cboTimKiem.Location = new Point(546, 58);
+            cboTimKiem.Location = new Point(550, 51);
             cboTimKiem.Margin = new Padding(3, 4, 3, 4);
             cboTimKiem.Name = "cboTimKiem";
             cboTimKiem.Size = new Size(200, 31);
@@ -154,26 +156,28 @@
             // btnShowAll
             // 
             btnShowAll.BackColor = Color.White;
+            btnShowAll.FlatAppearance.BorderSize = 0;
             btnShowAll.FlatStyle = FlatStyle.Flat;
-            btnShowAll.Location = new Point(1398, 52);
+            btnShowAll.Image = (Image)resources.GetObject("btnShowAll.Image");
+            btnShowAll.Location = new Point(1325, 50);
             btnShowAll.Margin = new Padding(3, 4, 3, 4);
             btnShowAll.Name = "btnShowAll";
-            btnShowAll.Size = new Size(120, 40);
+            btnShowAll.Size = new Size(46, 40);
             btnShowAll.TabIndex = 86;
-            btnShowAll.Text = "Hiện tất cả";
             btnShowAll.UseVisualStyleBackColor = false;
             btnShowAll.Click += btnShowAll_Click;
             // 
             // btnTimKiem
             // 
             btnTimKiem.BackColor = Color.White;
+            btnTimKiem.FlatAppearance.BorderSize = 0;
             btnTimKiem.FlatStyle = FlatStyle.Flat;
+            btnTimKiem.Image = (Image)resources.GetObject("btnTimKiem.Image");
             btnTimKiem.Location = new Point(1263, 51);
             btnTimKiem.Margin = new Padding(3, 4, 3, 4);
             btnTimKiem.Name = "btnTimKiem";
-            btnTimKiem.Size = new Size(120, 40);
+            btnTimKiem.Size = new Size(46, 40);
             btnTimKiem.TabIndex = 85;
-            btnTimKiem.Text = "Tìm Kiếm";
             btnTimKiem.UseVisualStyleBackColor = false;
             btnTimKiem.Click += btnTimKiem_Click;
             // 
@@ -189,7 +193,7 @@
             // 
             // groupBox2
             // 
-            groupBox2.BackColor = SystemColors.Control;
+            groupBox2.BackColor = Color.White;
             groupBox2.Controls.Add(radGiam);
             groupBox2.Controls.Add(radTang);
             groupBox2.Controls.Add(cboKieuSX);
@@ -257,6 +261,7 @@
             // 
             // groupBox3
             // 
+            groupBox3.BackColor = Color.White;
             groupBox3.Controls.Add(dgvDanhSachSV);
             groupBox3.Dock = DockStyle.Fill;
             groupBox3.Font = new Font("Segoe UI", 10.2F, FontStyle.Regular, GraphicsUnit.Point, 0);

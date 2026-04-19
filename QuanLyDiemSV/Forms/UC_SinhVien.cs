@@ -99,6 +99,7 @@ namespace QuanLyDiemSV.Forms
 
             // Ép xóa Cache và tải lại danh sách sinh viên
             context.ChangeTracker.Clear();
+            await LoadCboKhoaAsync();
             LoadDuLieuSinhVien();
         }
         private void KhoiTaoCboTimKiemSapXep()
@@ -399,10 +400,10 @@ namespace QuanLyDiemSV.Forms
                 isValid = false;
             }
 
-            // 3. Kiểm tra Email (@student.edu.vn)
+            // 3. Kiểm tra Email
             if (!IsValidEmailSV(txtAdSV_Email.Text))
             {
-                errorProvider.SetError(txtAdSV_Email, "Email phải có định dạng xxx@student.edu.vn!");
+                errorProvider.SetError(txtAdSV_Email, "Email không hợp lệ!");
                 isValid = false;
             }
 
@@ -991,10 +992,10 @@ namespace QuanLyDiemSV.Forms
             return Regex.IsMatch(sdt, @"^\d{10}$");
         }
 
-        // Kiểm tra định dạng Email
+        // Kiểm tra định dạng Email chung
         private bool IsValidEmailSV(string email)
         {
-            return Regex.IsMatch(email, @"^[a-zA-Z0-9._%+-]+@student\.edu\.vn$");
+            return Regex.IsMatch(email, @"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$");
         }
         private bool IsValidMaSV(string maSV)
         {
@@ -1013,7 +1014,7 @@ namespace QuanLyDiemSV.Forms
             // 2. Kiểm tra Email Sinh Viên
             txtAdSV_Email.Validating += (s, e) => {
                 if (!string.IsNullOrEmpty(txtAdSV_Email.Text) && !IsValidEmailSV(txtAdSV_Email.Text))
-                    errorProvider.SetError(txtAdSV_Email, "Email sinh viên phải có đuôi @student.edu.vn!");
+                    errorProvider.SetError(txtAdSV_Email, "Email không hợp lệ!");
                 else
                     errorProvider.SetError(txtAdSV_Email, "");
             };

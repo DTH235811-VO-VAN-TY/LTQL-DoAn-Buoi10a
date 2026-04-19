@@ -279,9 +279,11 @@ namespace QuanLyDiemSV.Forms
 
                     // --- XỬ LÝ LỌC HỌC BỔNG ---
                     bool coMonRot = cacMonDaHoc.Any(x => x.DiemTK_He10 < 4.0m);
+                    int tongTC_HK = cacMonDaHoc.Sum(x => x.SoTinChi);
+
                     if (dieuKien == "HOCBONG")
                     {
-                        if (coMonRot || diemThongKe < 7.0m || cacMonDaHoc.Count == 0)
+                        if (coMonRot || diemThongKe < 7.0m || cacMonDaHoc.Count == 0 || tongTC_HK < 15)
                             continue;
                     }
                     else if (dieuKien == "CANHBAO")
@@ -428,6 +430,22 @@ namespace QuanLyDiemSV.Forms
                         MessageBox.Show("Lỗi xuất file: File có thể đang được mở bởi phần mềm khác.\nChi tiết: " + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     }
                 }
+            }
+        }
+        // ==============================================================
+        // HÀM CẬP NHẬT DỮ LIỆU MỚI NHẤT (Chuẩn hóa cho toàn hệ thống)
+        // ==============================================================
+        public void CapNhatDuLieuMoiNhat()
+        {
+            try
+            {
+                context = new QLDSVDbContext();
+                LoadComboBoxes();
+                btnThongKe.PerformClick();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi cập nhật thống kê: " + ex.Message);
             }
         }
     }

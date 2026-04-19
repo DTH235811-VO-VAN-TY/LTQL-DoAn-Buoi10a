@@ -40,6 +40,7 @@ namespace QuanLyDiemSV.Data
 
         public virtual DbSet<NhatKyHoatDong> NhatKyHoatDong { get; set; }
         public virtual DbSet<YeuCauSuaDiem> YeuCauSuaDiem { get; set; }
+        public virtual DbSet<KhungChuongTrinh> KhungChuongTrinh { get; set; }
 
         /* protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
  #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
@@ -159,6 +160,15 @@ namespace QuanLyDiemSV.Data
                 entity.Property(e => e.NgayGui).HasDefaultValueSql("(getdate())");
                 entity.HasOne(d => d.LopHocPhan).WithMany().OnDelete(DeleteBehavior.ClientSetNull);
                 entity.HasOne(d => d.GiangVien).WithMany().OnDelete(DeleteBehavior.ClientSetNull);
+            });
+
+            modelBuilder.Entity<KhungChuongTrinh>(entity =>
+            {
+                entity.HasKey(e => e.ID);
+                // Ràng buộc: Mỗi ngành chỉ có 1 lần xuất hiện cho mỗi môn
+                entity.HasIndex(e => new { e.MaNganh, e.MaMon }).IsUnique();
+                entity.HasOne(d => d.MaNganhNavigation).WithMany().OnDelete(DeleteBehavior.ClientSetNull);
+                entity.HasOne(d => d.MaMonNavigation).WithMany().OnDelete(DeleteBehavior.ClientSetNull);
             });
         }
     }

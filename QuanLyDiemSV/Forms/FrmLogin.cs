@@ -109,5 +109,11 @@ namespace QuanLyDiemSV.Forms
         {
             txtMatKhau.PasswordChar = checkHienMatKhau.Checked ? '\0' : '*'; // Hiện mật khẩu nếu checked, ngược lại ẩn
         }
+
+        private void lblQuenMatKhau_Click(object sender, EventArgs e)
+        {
+            FrmQuenMatKhau frm = new FrmQuenMatKhau();
+            frm.ShowDialog();
+        }
     }
 }

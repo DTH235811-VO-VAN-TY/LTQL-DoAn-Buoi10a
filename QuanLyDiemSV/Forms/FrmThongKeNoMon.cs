@@ -17,13 +17,14 @@ namespace QuanLyDiemSV.Forms
         public FrmThongKeNoMon()
         {
             InitializeComponent();
+            
         }
 
         private async void FrmThongKeNoMon_Load(object sender, EventArgs e)
         {
             await LoadDuLieu();
         }
-
+        
         private async Task LoadDuLieu()
         {
             try
@@ -32,7 +33,7 @@ namespace QuanLyDiemSV.Forms
                 var ketQua = await _context.KetQuaHocTap
                     .Include(k => k.MaLHPNavigation)
                     .ThenInclude(l => l.MaMonNavigation)
-                    .Where(k => k.DiemTongKet != null)
+                    .Where(k => k.DiemTongKet != null && k.MaLHPNavigation != null && k.MaLHPNavigation.MaMonNavigation != null)
                     .ToListAsync();
 
                 // Gom nhóm theo mã môn và tên môn

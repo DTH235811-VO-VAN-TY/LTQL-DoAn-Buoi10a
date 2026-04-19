@@ -100,18 +100,39 @@ namespace QuanLyDiemSV.Forms
 
             return base.ProcessCmdKey(ref msg, keyData);
         }
+        // Cờ chặn vòng lặp khi LoadCboHocKy thay đổi DataSource → trigger SelectedIndexChanged
+        private bool _dangLoadCbo = false;
+
         private void LoadCboHocKy()
         {
-            using (var context = new QLDSVDbContext())
+            _dangLoadCbo = true; // BẬT CỜ: Chặn sự kiện SelectedIndexChanged
+            try
             {
-                var listHK = context.HocKy.OrderByDescending(x => x.TenHK).ToList();
+                using (var context = new QLDSVDbContext())
+                {
+                    // NÂNG CẤP: Chỉ lấy các học kỳ mà Giảng viên này CÓ LỚP DẠY
+                    var danhSachMaHK = context.LopHocPhan
+                        .Where(l => l.MaGV == currentMaGV)
+                        .Select(l => l.MaHK)
+                        .Distinct()
+                        .ToList();
 
-                // Chèn thêm mục "Tất cả" vào vị trí đầu tiên
-                listHK.Insert(0, new HocKy { MaHK = "ALL", TenHK = "-- Tất cả học kỳ --" });
+                    var listHK = context.HocKy
+                        .Where(hk => danhSachMaHK.Contains(hk.MaHK))
+                        .OrderByDescending(x => x.NamHocBatDau)
+                        .ThenByDescending(x => x.TenHK)
+                        .ToList();
 
-                cboHocKy.DataSource = listHK;
-                cboHocKy.DisplayMember = "TenHK";
-                cboHocKy.ValueMember = "MaHK";
+                    listHK.Insert(0, new HocKy { MaHK = "ALL", TenHK = "-- Tất cả học kỳ --" });
+
+                    cboHocKy.DataSource = listHK;
+                    cboHocKy.DisplayMember = "TenHK";
+                    cboHocKy.ValueMember = "MaHK";
+                }
+            }
+            finally
+            {
+                _dangLoadCbo = false; // TẮT CỜ: Cho phép sự kiện hoạt động trở lại
             }
         }
         // Hàm tạo dữ liệu cho các ComboBox Tìm kiếm / Sắp xếp
@@ -279,7 +300,7 @@ namespace QuanLyDiemSV.Forms
                     {
                         bool daQuaMonTQ = (from k in dbChamDiem.KetQuaHocTap
                                            join lhp in dbChamDiem.LopHocPhan on k.MaLHP equals lhp.MaLHP
-                                           where k.MaSV == maSV && lhp.MaMon == dk.MaMonTienQuyet && k.DiemTongKet != null
+                                           where k.MaSV == maSV && lhp.MaMon == dk.MaMonTienQuyet && k.DiemTongKet >= 4.0m
                                            select k).Any();
 
                         if (!daQuaMonTQ)
@@ -745,7 +766,7 @@ namespace QuanLyDiemSV.Forms
             lblHocKy.Text = $"{hocKy}";
             lblHocKy.Font = new Font("Segoe UI", 10.5F, FontStyle.Regular);
             lblHocKy.ForeColor = Color.Black;
-            lblHocKy.Location = new Point(20, 45); // Tọa độ Y=45
+            lblHocKy.Location = new Point(20, 52); // Tọa độ Y=52
             lblHocKy.AutoSize = true;
 
             gb.Controls.Add(lblHocKy);
@@ -800,10 +821,17 @@ namespace QuanLyDiemSV.Forms
             gb.Controls.Add(btnNhapDiem);
             flpDanhSachLop.Controls.Add(gb);
         }
-        public async Task LoadDanhSachLopCuaToiAsync(string maGVDangNhap)
+        public async Task LoadDanhSachLopCuaToiAsync(string maGVDangNhap, bool napLaiCombo = true)
         {
             // Lưu lại mã GV để dùng cho các nút Lọc / Cbo Changed
             currentMaGV = maGVDangNhap;
+
+            // NÂNG CẤP: Chỉ load ComboBox khi cần thiết (lần đầu hoặc khi bấm Tải lại)
+            if (napLaiCombo)
+            {
+                LoadCboHocKy();
+            }
+
             flpDanhSachLop.Controls.Clear();
 
             using (var context = new QuanLyDiemSV.Data.QLDSVDbContext())
@@ -822,12 +850,13 @@ namespace QuanLyDiemSV.Forms
                     query = query.Where(l => l.MaHK == maHK);
                 }
 
-                // 3. TÌM KIẾM THEO TỪ KHÓA (Tìm trên Tên môn, Mã LHP, hoặc Phòng học)
+                // 3. TÌM KIẾM THEO TỪ KHÓA (Tìm trên Tên môn, Mã môn, Mã LHP, hoặc Phòng học)
                 string tuKhoa = txtTimKiem.Text.Trim().ToLower();
                 if (!string.IsNullOrEmpty(tuKhoa))
                 {
                     query = query.Where(l => l.MaLHP.ToString().Contains(tuKhoa) ||
                                              (l.MaMonNavigation != null && l.MaMonNavigation.TenMon.ToLower().Contains(tuKhoa)) ||
+                                             l.MaMon.ToLower().Contains(tuKhoa) || // Thêm lọc theo mã môn
                                              l.TenLopHP.ToLower().Contains(tuKhoa) ||
                                              l.PhongHoc.ToLower().Contains(tuKhoa));
                 }
@@ -850,13 +879,18 @@ namespace QuanLyDiemSV.Forms
                 foreach (var lhp in danhSachLop)
                 {
                     int maLopHP = lhp.MaLHP;
-                    string tenMon = lhp.MaMonNavigation != null ? lhp.MaMonNavigation.TenMon : "Chưa rõ môn";
+                    // Ưu tiên hiển thị Tên Lớp Học Phần, nếu trống mới hiển thị Tên Môn
+                    string tenHienThi = string.IsNullOrEmpty(lhp.TenLopHP) 
+                                        ? (lhp.MaMonNavigation != null ? lhp.MaMonNavigation.TenMon : "Chưa rõ môn")
+                                        : lhp.TenLopHP;
+                    
+                    string tenCard = $"{tenHienThi} ({lhp.MaMon})";
                     string hocKy = string.IsNullOrEmpty(lhp.MaHK) ? "Chưa xác định" : lhp.MaHKNavigation?.TenHK ?? lhp.MaHK;
                     string phongHoc = string.IsNullOrEmpty(lhp.PhongHoc) ? "Chưa sắp xếp" : lhp.PhongHoc;
                     int siSo = lhp.SiSoToiDa ?? 0;
                     int trangThai = lhp.TrangThai ?? 1;
 
-                    TaoCardLopHocPhan(maLopHP, tenMon, hocKy, phongHoc, siSo, trangThai);
+                    TaoCardLopHocPhan(maLopHP, tenCard, hocKy, phongHoc, siSo, trangThai);
                 }
             }
         }
@@ -934,15 +968,9 @@ namespace QuanLyDiemSV.Forms
 
         private void UC_GiangVien_ChamDiem_Load(object sender, EventArgs e)
         {
-            LoadCboHocKy();
+            // Chỉ clear giao diện, dữ liệu thật sẽ được load bởi LoadDanhSachLopCuaToiAsync
+            // (được gọi từ Form1 sau khi đã có Session.MaNguoiDung)
             flpDanhSachLop.Controls.Clear();
-
-            // Cập nhật lại dữ liệu test (Học Kỳ và Phòng Học)
-            TaoCardLopHocPhan(101, "Cơ sở dữ liệu", "HK1_2025_2026", "Phòng A1", 45, 1);
-            TaoCardLopHocPhan(102, "Lập trình Windows", "HK1_2025_2026", "Phòng A2", 42, 1);
-            TaoCardLopHocPhan(103, "Cấu trúc dữ liệu", "HK1_2025_2026", "Phòng B1", 50, 1);
-            TaoCardLopHocPhan(104, "Trí tuệ nhân tạo", "HK2_2025_2026", "Phòng B2", 30, 1);
-            TaoCardLopHocPhan(105, "Mạng máy tính", "HK2_2025_2026", "Phòng C1", 40, 1);
         }
         // ==============================================================
         // HÀM TẢI DỮ LIỆU KÈM LỌC VÀ SẮP XẾP
@@ -1045,9 +1073,13 @@ namespace QuanLyDiemSV.Forms
 
         private void cboHocKy_SelectedIndexChanged(object sender, EventArgs e)
         {
+            // CHẶN VÒNG LẶP: Nếu đang load ComboBox thì bỏ qua
+            if (_dangLoadCbo) return;
+
             if (!string.IsNullOrEmpty(currentMaGV))
             {
-                LoadDanhSachLopCuaToiAsync(currentMaGV);
+                // Chỉ reload danh sách card, KHÔNG nạp lại ComboBox (tránh reset selection)
+                _ = LoadDanhSachLopCuaToiAsync(currentMaGV, false);
             }
         }
 
@@ -1055,9 +1087,20 @@ namespace QuanLyDiemSV.Forms
         {
             if (!string.IsNullOrEmpty(currentMaGV))
             {
-                LoadDanhSachLopCuaToiAsync(currentMaGV);
+                // Chỉ lọc dữ liệu, không nạp lại ComboBox
+                _ = LoadDanhSachLopCuaToiAsync(currentMaGV, false);
             }
         }
+
+        //private void btnTaiLai_Click(object sender, EventArgs e)
+        //{
+        //    if (!string.IsNullOrEmpty(currentMaGV))
+        //    {
+        //        txtTimKiem.Clear();
+        //        // Tải lại toàn bộ bao gồm cả danh sách học kỳ
+        //        _ = LoadDanhSachLopCuaToiAsync(currentMaGV, true);
+        //    }
+        //}
 
         private void btnInDanhSach_Click(object sender, EventArgs e)
         {
@@ -1326,6 +1369,24 @@ namespace QuanLyDiemSV.Forms
             using (FrmBieuDoPhoDiem frm = new FrmBieuDoPhoDiem(currentLHP))
             {
                 frm.ShowDialog();
+            }
+        }
+        // ==============================================================
+        // HÀM CẬP NHẬT DỮ LIỆU MỚI NHẤT (Chuẩn hóa cho toàn hệ thống)
+        // ==============================================================
+        public void CapNhatDuLieuMoiNhat()
+        {
+            try
+            {
+                // Gọi lại hàm load danh sách lớp của chính giảng viên đang đăng nhập
+                if (!string.IsNullOrEmpty(Session.MaNguoiDung))
+                {
+                    LoadDanhSachLopCuaToiAsync(Session.MaNguoiDung);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi cập nhật danh sách chấm điểm: " + ex.Message);
             }
         }
     }

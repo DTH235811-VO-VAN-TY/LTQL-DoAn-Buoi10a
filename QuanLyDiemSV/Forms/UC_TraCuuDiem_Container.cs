@@ -48,6 +48,13 @@ namespace QuanLyDiemSV.Forms
             {
                 cboKhoa.Enabled = false;
             }
+
+            // PHÂN QUYỀN: Chỉ Admin mới thấy 2 nút báo cáo đặc biệt
+            if (Session.RoleID != 1)
+            {
+                btnBaoCaoSVHB.Visible = false;
+                btnBaoCaoSVTN.Visible = false;
+            }
             // =======================================================
 
             //LoadDanhSachSinhVien();
@@ -111,7 +118,7 @@ namespace QuanLyDiemSV.Forms
         {
             if (ucChiTiet != null && ucChiTiet.Visible)
             {
-                await ucChiTiet.CapNhatDuLieuMoiNhatAsync();
+                await ucChiTiet.CapNhatDuLieuMoiNhat();
             }
         }
 
@@ -598,14 +605,38 @@ namespace QuanLyDiemSV.Forms
 
             // Bạn cần tạo một Form mới chứa ReportViewer (VD: FrmBaoCaoDanhSachSV) 
             // Form này sẽ nhận mã Khoa, Lớp để tự động truy vấn và in ra danh sách
+            Reports.FrmBaoCaoDanhSachSV frm = new Reports.FrmBaoCaoDanhSachSV(maKhoa, maLop, 0); // 0 = Tất cả
+            frm.ShowDialog();
+        }
 
-            using (var frm = new QuanLyDiemSV.Reports.FrmBaoCaoDanhSachSV(maKhoa, maLop))
+        private void btnBaoCaoSVTN_Click(object sender, EventArgs e)
+        {
+            if (dgvDanhSachSV.Rows.Count == 0)
             {
-                frm.ShowDialog();
+                MessageBox.Show("Không có dữ liệu trên lưới để in báo cáo!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
             }
 
+            string maKhoa = cboKhoa.SelectedValue?.ToString() ?? "ALL";
+            string maLop = cboLop.SelectedValue?.ToString() ?? "ALL";
 
-            MessageBox.Show("Tại đây bạn hãy gọi Form Report in danh sách sinh viên của bạn (ví dụ FrmBaoCaoDanhSachSV) nhé!", "Chỉ dẫn");
+            Reports.FrmBaoCaoDanhSachSV frm = new Reports.FrmBaoCaoDanhSachSV(maKhoa, maLop, 1); // 1 = Tốt nghiệp
+            frm.ShowDialog();
+        }
+
+        private void btnBaoCaoSVHB_Click(object sender, EventArgs e)
+        {
+            if (dgvDanhSachSV.Rows.Count == 0)
+            {
+                MessageBox.Show("Không có dữ liệu trên lưới để in báo cáo!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            string maKhoa = cboKhoa.SelectedValue?.ToString() ?? "ALL";
+            string maLop = cboLop.SelectedValue?.ToString() ?? "ALL";
+
+            Reports.FrmBaoCaoDanhSachSV frm = new Reports.FrmBaoCaoDanhSachSV(maKhoa, maLop, 2); // 2 = Học bổng
+            frm.ShowDialog();
         }
 
         private async void cboLop_SelectedIndexChanged(object sender, EventArgs e)

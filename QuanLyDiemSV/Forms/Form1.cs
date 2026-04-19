@@ -80,13 +80,14 @@ namespace QuanLyDiemSV
         {
             ActivateButton(sender);
             uC_MonHoc1.BringToFront();
+            uC_MonHoc1.CapNhatDuLieuMoiNhat();
         }
 
         private void btnGiangVien_Click(object sender, EventArgs e)
         {
             ActivateButton(sender);
             uC_GiangVien1.BringToFront();
-            // uC_GiangVien1.LoadData();
+            uC_GiangVien1.CapNhatDuLieuMoiNhat();
         }
 
         private async void btnLopHanhChinh_Click(object sender, EventArgs e)
@@ -102,14 +103,13 @@ namespace QuanLyDiemSV
             {
                 ActivateButton(sender);
                 uC_LopHocPhan1.BringToFront();
-                uC_LopHocPhan1.CapNhatDuLieuMoiNhatAsync();
+                uC_LopHocPhan1.CapNhatDuLieuMoiNhat();
             }
             else if (Session.RoleID == 2)
             {
                 ActivateButton(sender);
                 uC_GiangVien_ChamDiem1.BringToFront();
-                //uC_GiangVien_ChamDiem1.CapNhatDuLieuMoiNhat();
-                uC_GiangVien_ChamDiem1.LoadDanhSachLopCuaToiAsync(Session.MaNguoiDung);
+                uC_GiangVien_ChamDiem1.CapNhatDuLieuMoiNhat();
             }
 
         }
@@ -149,6 +149,7 @@ namespace QuanLyDiemSV
         {
             ActivateButton(sender);
             uC_TaiKhoan1.BringToFront();
+            uC_TaiKhoan1.CapNhatDuLieuMoiNhat();
         }
 
         private void btnCaiDat_Click(object sender, EventArgs e)
@@ -350,15 +351,15 @@ namespace QuanLyDiemSV
         private void btnThongKe_Click(object sender, EventArgs e)
         {
             ActivateButton(sender);
-            //uC_GiangVien_ChamDiem1.BringToFront();
             uC_TrangChu1.BringToFront();
+            // uC_TrangChu1.CapNhatDuLieuMoiNhat(); // Nếu UC_TrangChu có hàm này
         }
 
         private async void btnTrangChu_Click(object sender, EventArgs e)
         {
             ActivateButton(sender);
-            //uC_GiangVien_ChamDiem1.BringToFront();
             uC_ThongKe1.BringToFront();
+            uC_ThongKe1.CapNhatDuLieuMoiNhat();
         }
         // Viết hàm này ở Form có nút Thông báo
 
@@ -407,6 +408,7 @@ namespace QuanLyDiemSV
         {
             ActivateButton(sender);
             uC_NhatKyHoatDong1.BringToFront();
+            uC_NhatKyHoatDong1.CapNhatDuLieuMoiNhat();
         }
     }
 }

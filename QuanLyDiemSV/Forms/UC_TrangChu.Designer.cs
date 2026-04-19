@@ -30,6 +30,8 @@
         {
             grbThongKe = new GroupBox();
             cboHocKy = new Panel();
+            dtpLocNam = new DateTimePicker();
+            label2 = new Label();
             comboBox1 = new ComboBox();
             label1 = new Label();
             cboHocKy.SuspendLayout();
@@ -48,6 +50,8 @@
             // 
             // cboHocKy
             // 
+            cboHocKy.Controls.Add(dtpLocNam);
+            cboHocKy.Controls.Add(label2);
             cboHocKy.Controls.Add(comboBox1);
             cboHocKy.Controls.Add(label1);
             cboHocKy.Dock = DockStyle.Top;
@@ -56,11 +60,31 @@
             cboHocKy.Size = new Size(1654, 68);
             cboHocKy.TabIndex = 2;
             // 
+            // dtpLocNam
+            // 
+            dtpLocNam.CalendarFont = new Font("Times New Roman", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            dtpLocNam.Font = new Font("Times New Roman", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            dtpLocNam.Format = DateTimePickerFormat.Custom;
+            dtpLocNam.Location = new Point(107, 22);
+            dtpLocNam.Name = "dtpLocNam";
+            dtpLocNam.Size = new Size(250, 27);
+            dtpLocNam.TabIndex = 3;
+            // 
+            // label2
+            // 
+            label2.AutoSize = true;
+            label2.Font = new Font("Segoe UI", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            label2.Location = new Point(29, 24);
+            label2.Name = "label2";
+            label2.Size = new Size(53, 23);
+            label2.TabIndex = 2;
+            label2.Text = "Năm:";
+            // 
             // comboBox1
             // 
             comboBox1.Font = new Font("Times New Roman", 10.2F, FontStyle.Regular, GraphicsUnit.Point, 0);
             comboBox1.FormattingEnabled = true;
-            comboBox1.Location = new Point(117, 24);
+            comboBox1.Location = new Point(614, 21);
             comboBox1.Name = "comboBox1";
             comboBox1.Size = new Size(273, 27);
             comboBox1.TabIndex = 1;
@@ -69,7 +93,7 @@
             // 
             label1.AutoSize = true;
             label1.Font = new Font("Segoe UI Semibold", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            label1.Location = new Point(43, 25);
+            label1.Location = new Point(540, 22);
             label1.Name = "label1";
             label1.Size = new Size(68, 23);
             label1.TabIndex = 0;
@@ -94,5 +118,7 @@
         private Panel cboHocKy;
         private ComboBox comboBox1;
         private Label label1;
+        private DateTimePicker dtpLocNam;
+        private Label label2;
     }
 }

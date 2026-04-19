@@ -7,6 +7,7 @@ using QuanLyDiemSV.Data; // Namespace chứa Context
 using BCrypt.Net; // Thư viện mã hóa mật khẩu
 using System.Security.Cryptography;
 using System.Text;
+using Microsoft.EntityFrameworkCore; // Cho Include
 
 namespace QuanLyDiemSV.Forms
 {
@@ -30,6 +31,9 @@ namespace QuanLyDiemSV.Forms
             InitializeComponent();
             this.Load += UC_TaiKhoan_Load;
             StyleDataGridView(dataGridView1);
+            
+            // Đăng ký sự kiện lọc cho cboLocKhoa
+            cboLocKhoa.SelectedIndexChanged += (s, e) => { if (cboLocKhoa.Focused) LoadData(); };
 
             // FIX: Cho phép bấm Làm lại/Thêm/Sửa/Xoa mà không bị chặn bởi Validate
             btnLamLai.CausesValidation = false;
@@ -205,10 +209,20 @@ namespace QuanLyDiemSV.Forms
                 cboQuyenHan.SelectedIndex = -1;
 
                 var listKhoa = context.Khoa.ToList();
-                cbKhoa.DataSource = listKhoa;
+                cbKhoa.DataSource = new List<Khoa>(listKhoa);
                 cbKhoa.DisplayMember = "TenKhoa";
                 cbKhoa.ValueMember = "MaKhoa";
                 cbKhoa.SelectedIndex = -1;
+
+                // 3. Load ComboBox Lọc Khoa (Ở panel tìm kiếm)
+                var listLocKhoa = new List<object>();
+                listLocKhoa.Add(new { MaKhoa = "ALL", TenKhoa = "-- Tất cả khoa --" });
+                foreach (var k in listKhoa) listLocKhoa.Add(new { k.MaKhoa, k.TenKhoa });
+
+                cboLocKhoa.DataSource = listLocKhoa;
+                cboLocKhoa.DisplayMember = "TenKhoa";
+                cboLocKhoa.ValueMember = "MaKhoa";
+                cboLocKhoa.SelectedIndex = 0; // Mặc định là Tất cả khoa
 
                 // 2. Load Trạng thái (Hoạt động / Khóa)
                 List<TrangThaiItem> listTrangThai = new List<TrangThaiItem>()
@@ -230,8 +244,23 @@ namespace QuanLyDiemSV.Forms
         {
             try
             {
-                // 1. Khởi tạo truy vấn gốc
-                var query = context.UserAccount.AsQueryable();
+                // 1. Khởi tạo truy vấn gốc (Include các bảng liên quan để lọc theo khoa)
+                var query = context.UserAccount
+                    .Include(u => u.GiangVien)
+                    .Include(u => u.SinhVien).ThenInclude(s => s.MaLopNavigation).ThenInclude(l => l.MaNganhNavigation)
+                    .AsQueryable();
+
+                // ==========================================
+                // 1.5 XỬ LÝ LỌC THEO KHOA
+                // ==========================================
+                if (cboLocKhoa.SelectedValue != null && cboLocKhoa.SelectedValue.ToString() != "ALL")
+                {
+                    string maKhoa = cboLocKhoa.SelectedValue.ToString();
+                    query = query.Where(u =>
+                        (u.GiangVien.Any(gv => gv.MaKhoa == maKhoa)) ||
+                        (u.SinhVien.Any(sv => sv.MaLopNavigation.MaNganhNavigation.MaKhoa == maKhoa))
+                    );
+                }
 
                 // ==========================================
                 // 2. XỬ LÝ TÌM KIẾM
@@ -533,6 +562,7 @@ namespace QuanLyDiemSV.Forms
             // Reset các giá trị lọc về mặc định
             txtTuKhoaTK.Clear();
             cboLoaiTK.SelectedIndex = 0;
+            cboLocKhoa.SelectedIndex = 0;
             cboKieuSX.SelectedIndex = 0;
             radTang.Checked = true;
 
@@ -596,6 +626,22 @@ namespace QuanLyDiemSV.Forms
                     e.CellStyle.ForeColor = Color.DarkBlue; // SV màu xanh dương
                 }
                 e.FormattingApplied = true;
+            }
+        }
+        // ==============================================================
+        // HÀM CẬP NHẬT DỮ LIỆU MỚI NHẤT (Chuẩn hóa cho toàn hệ thống)
+        // ==============================================================
+        public void CapNhatDuLieuMoiNhat()
+        {
+            try
+            {
+                context = new QLDSVDbContext();
+                LoadData();
+                LoadComboBoxData();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi cập nhật tài khoản: " + ex.Message);
             }
         }
     }

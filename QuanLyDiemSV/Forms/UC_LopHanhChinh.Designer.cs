@@ -28,7 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
-            DataGridViewCellStyle dataGridViewCellStyle4 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle1 = new DataGridViewCellStyle();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(UC_LopHanhChinh));
             panelGrid = new Panel();
             groupBoxList = new GroupBox();
@@ -54,6 +54,8 @@
             panelSearch = new Panel();
             panelInput = new Panel();
             groupBoxInfo = new GroupBox();
+            btnXuat = new Button();
+            btnNhap = new Button();
             label4 = new Label();
             label5 = new Label();
             cboGCVN = new ComboBox();
@@ -70,8 +72,6 @@
             btnAddNganh = new Button();
             btnThem = new Button();
             btnXoa = new Button();
-            btnNhap = new Button();
-            btnXuat = new Button();
             panelGrid.SuspendLayout();
             groupBoxList.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)dgvLopHanhChinh).BeginInit();
@@ -116,14 +116,14 @@
             dgvLopHanhChinh.BackgroundColor = SystemColors.ButtonHighlight;
             dgvLopHanhChinh.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             dgvLopHanhChinh.Columns.AddRange(new DataGridViewColumn[] { MaLop, TenLop, NienKhoa, MaNganh, MaGVCN });
-            dataGridViewCellStyle4.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle4.BackColor = SystemColors.Window;
-            dataGridViewCellStyle4.Font = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            dataGridViewCellStyle4.ForeColor = SystemColors.ControlText;
-            dataGridViewCellStyle4.SelectionBackColor = SystemColors.Highlight;
-            dataGridViewCellStyle4.SelectionForeColor = SystemColors.HighlightText;
-            dataGridViewCellStyle4.WrapMode = DataGridViewTriState.False;
-            dgvLopHanhChinh.DefaultCellStyle = dataGridViewCellStyle4;
+            dataGridViewCellStyle1.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle1.BackColor = SystemColors.Window;
+            dataGridViewCellStyle1.Font = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            dataGridViewCellStyle1.ForeColor = SystemColors.ControlText;
+            dataGridViewCellStyle1.SelectionBackColor = SystemColors.Highlight;
+            dataGridViewCellStyle1.SelectionForeColor = SystemColors.HighlightText;
+            dataGridViewCellStyle1.WrapMode = DataGridViewTriState.False;
+            dgvLopHanhChinh.DefaultCellStyle = dataGridViewCellStyle1;
             dgvLopHanhChinh.Dock = DockStyle.Fill;
             dgvLopHanhChinh.Location = new Point(3, 24);
             dgvLopHanhChinh.Margin = new Padding(3, 4, 3, 4);
@@ -178,13 +178,14 @@
             // btnAdTimKiem_SV
             // 
             btnAdTimKiem_SV.BackColor = Color.White;
+            btnAdTimKiem_SV.FlatAppearance.BorderSize = 0;
             btnAdTimKiem_SV.FlatStyle = FlatStyle.Flat;
+            btnAdTimKiem_SV.Image = (Image)resources.GetObject("btnAdTimKiem_SV.Image");
             btnAdTimKiem_SV.Location = new Point(1375, 24);
             btnAdTimKiem_SV.Margin = new Padding(3, 4, 3, 4);
             btnAdTimKiem_SV.Name = "btnAdTimKiem_SV";
-            btnAdTimKiem_SV.Size = new Size(108, 35);
+            btnAdTimKiem_SV.Size = new Size(54, 35);
             btnAdTimKiem_SV.TabIndex = 20;
-            btnAdTimKiem_SV.Text = "Tìm Kiếm";
             btnAdTimKiem_SV.UseVisualStyleBackColor = false;
             btnAdTimKiem_SV.Click += btnAdTimKiem_SV_Click;
             // 
@@ -200,13 +201,14 @@
             // btnAdShowAll_SV
             // 
             btnAdShowAll_SV.BackColor = Color.White;
+            btnAdShowAll_SV.FlatAppearance.BorderSize = 0;
             btnAdShowAll_SV.FlatStyle = FlatStyle.Flat;
-            btnAdShowAll_SV.Location = new Point(1508, 24);
+            btnAdShowAll_SV.Image = (Image)resources.GetObject("btnAdShowAll_SV.Image");
+            btnAdShowAll_SV.Location = new Point(1435, 24);
             btnAdShowAll_SV.Margin = new Padding(3, 4, 3, 4);
             btnAdShowAll_SV.Name = "btnAdShowAll_SV";
-            btnAdShowAll_SV.Size = new Size(108, 35);
+            btnAdShowAll_SV.Size = new Size(54, 35);
             btnAdShowAll_SV.TabIndex = 21;
-            btnAdShowAll_SV.Text = "Hiện tất cả";
             btnAdShowAll_SV.UseVisualStyleBackColor = false;
             btnAdShowAll_SV.Click += btnAdShowAll_SV_Click;
             // 
@@ -378,6 +380,26 @@
             groupBoxInfo.TabIndex = 0;
             groupBoxInfo.TabStop = false;
             groupBoxInfo.Text = "Thông tin lớp học";
+            // 
+            // btnXuat
+            // 
+            btnXuat.Location = new Point(1331, 194);
+            btnXuat.Name = "btnXuat";
+            btnXuat.Size = new Size(152, 41);
+            btnXuat.TabIndex = 131;
+            btnXuat.Text = "Xuất Excel";
+            btnXuat.UseVisualStyleBackColor = true;
+            btnXuat.Click += btnXuat_Click;
+            // 
+            // btnNhap
+            // 
+            btnNhap.Location = new Point(1148, 194);
+            btnNhap.Name = "btnNhap";
+            btnNhap.Size = new Size(152, 41);
+            btnNhap.TabIndex = 131;
+            btnNhap.Text = "Nhập Excel";
+            btnNhap.UseVisualStyleBackColor = true;
+            btnNhap.Click += btnNhap_Click;
             // 
             // label4
             // 
@@ -564,26 +586,6 @@
             btnXoa.Text = "Xóa";
             btnXoa.UseVisualStyleBackColor = false;
             btnXoa.Click += btnXoa_Click;
-            // 
-            // btnNhap
-            // 
-            btnNhap.Location = new Point(1148, 194);
-            btnNhap.Name = "btnNhap";
-            btnNhap.Size = new Size(152, 41);
-            btnNhap.TabIndex = 131;
-            btnNhap.Text = "Nhập Excel";
-            btnNhap.UseVisualStyleBackColor = true;
-            btnNhap.Click += btnNhap_Click;
-            // 
-            // btnXuat
-            // 
-            btnXuat.Location = new Point(1331, 194);
-            btnXuat.Name = "btnXuat";
-            btnXuat.Size = new Size(152, 41);
-            btnXuat.TabIndex = 131;
-            btnXuat.Text = "Xuất Excel";
-            btnXuat.UseVisualStyleBackColor = true;
-            btnXuat.Click += btnXuat_Click;
             // 
             // UC_LopHanhChinh
             // 

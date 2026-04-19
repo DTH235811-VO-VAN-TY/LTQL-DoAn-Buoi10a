@@ -138,6 +138,17 @@ namespace GUI
             BatTatChucNang(false);
             CauHinhCotGridDiem();
             bsDiem.CurrentChanged += BsDiem_CurrentChanged;
+
+            // PHÂN QUYỀN: Nếu là Sinh viên thì ẩn các nút quản trị điểm
+            if (Session.RoleID == 3)
+            {
+                btnAdThem_SV.Visible = false;
+                btnAdSua_SV.Visible = false;
+                btnAdXoa_SV.Visible = false;
+                btnAdLua_SV.Visible = false;
+                btnAdLamLai_SV.Visible = false;
+                btnNhap.Visible = false;
+            }
         }
         private void UC_Diem_VisibleChanged(object sender, EventArgs e)
         {
@@ -177,7 +188,36 @@ namespace GUI
         {
             try
             {
-                var listHK = context.HocKy.OrderByDescending(x => x.TenHK).ToList();
+                // NÂNG CẤP: Lọc học kỳ theo Niên khóa của sinh viên đang xem
+                var query = context.HocKy.AsQueryable();
+
+                if (!string.IsNullOrEmpty(currentMaSV))
+                {
+                    // Lấy NienKhoa từ LopHanhChinh của sinh viên
+                    var nienKhoa = (from sv in context.SinhVien
+                                    join lop in context.LopHanhChinh on sv.MaLop equals lop.MaLop
+                                    where sv.MaSV == currentMaSV
+                                    select lop.NienKhoa).FirstOrDefault();
+
+                    if (!string.IsNullOrEmpty(nienKhoa))
+                    {
+                        var parts = nienKhoa.Trim().Split('-');
+                        if (parts.Length == 2
+                            && int.TryParse(parts[0], out int nkStart) && nkStart > 0
+                            && int.TryParse(parts[1], out int nkEnd) && nkEnd > 0)
+                        {
+                            // Chỉ lấy các kỳ có NamHocBatDau nằm trong khoảng niên khóa
+                            query = query.Where(hk => hk.NamHocBatDau != null
+                                                   && hk.NamHocBatDau >= nkStart
+                                                   && hk.NamHocBatDau <= nkEnd);
+                        }
+                    }
+                }
+
+                var listHK = query.OrderByDescending(x => x.NamHocBatDau)
+                                  .ThenByDescending(x => x.TenHK)
+                                  .ToList();
+
                 cboHocKy.DataSource = listHK;
                 cboHocKy.DisplayMember = "TenHK";
                 cboHocKy.ValueMember = "MaHK";
@@ -260,6 +300,9 @@ namespace GUI
         public void LoadThongTinSinhVien(string maSV)
         {
             this.currentMaSV = maSV;
+
+            // NÂNG CẤP: Load lại ComboBox Học kỳ theo niên khóa của SV đang xem
+            LoadCboHocKy();
 
             var thongTinSV = (from sv in context.SinhVien
                               join lop in context.LopHanhChinh on sv.MaLop equals lop.MaLop
@@ -518,33 +561,34 @@ namespace GUI
 
                 int maLHP = lhpDangKy.MaLHP;
 
+                // =========================================================
+                // 1. KIỂM TRA MÔN TIÊN QUYẾT (Áp dụng cho cả Thêm và Sửa)
+                // =========================================================
+                var listMonTienQuyet = context.DieuKienMonHoc.Where(dk => dk.MaMon == maMon).ToList();
+                foreach (var dk in listMonTienQuyet)
+                {
+                    // Kiểm tra xem sinh viên đã có ĐIỂM TỔNG KẾT và ĐÃ ĐẠT (>= 4.0) môn tiên quyết chưa
+                    var diemTQ = (from k in context.KetQuaHocTap
+                                  join l in context.LopHocPhan on k.MaLHP equals l.MaLHP
+                                  where k.MaSV == currentMaSV && l.MaMon == dk.MaMonTienQuyet
+                                  select k.DiemTongKet).FirstOrDefault();
+
+                    if (diemTQ == null || diemTQ < 4.0m)
+                    {
+                        string tenMonTQ = context.MonHoc.Where(m => m.MaMon == dk.MaMonTienQuyet).Select(m => m.TenMon).FirstOrDefault() ?? dk.MaMonTienQuyet;
+                        string tinhTrang = (diemTQ == null) ? "chưa có điểm" : $"chưa đạt (chỉ được {diemTQ})";
+
+                        MessageBox.Show($"Không thể lưu điểm!\n\nSinh viên {tinhTrang} môn tiên quyết: [{dk.MaMonTienQuyet}] - {tenMonTQ}.\nVui lòng cập nhật điểm đạt cho môn tiên quyết trước.",
+                                        "Cảnh báo học vụ", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        return;
+                    }
+                }
+
                 if (xuLyThem)
                 {
                     // ==========================================================
                     // LOGIC CHO TRƯỜNG HỢP: THÊM MỚI
                     // ==========================================================
-                    var maMonDangChon = context.LopHocPhan.Where(x => x.MaLHP == maLHP).Select(x => x.MaMon).FirstOrDefault();
-
-                    if (maMonDangChon != null)
-                    {
-                        var listMonTienQuyet = context.DieuKienMonHoc.Where(dk => dk.MaMon == maMonDangChon).ToList();
-
-                        foreach (var dk in listMonTienQuyet)
-                        {
-                            bool daHocMonTienQuyet = (from k in context.KetQuaHocTap
-                                                      join lhp in context.LopHocPhan on k.MaLHP equals lhp.MaLHP
-                                                      where k.MaSV == currentMaSV && lhp.MaMon == dk.MaMonTienQuyet
-                                                      select k).Any();
-
-                            if (!daHocMonTienQuyet)
-                            {
-                                string tenMonTQ = context.MonHoc.Where(m => m.MaMon == dk.MaMonTienQuyet).Select(m => m.TenMon).FirstOrDefault() ?? dk.MaMonTienQuyet;
-                                MessageBox.Show($"Không thể nhập điểm!\n\nSinh viên chưa học môn tiên quyết: [{dk.MaMonTienQuyet}] - {tenMonTQ}.\nVui lòng nhập điểm môn tiên quyết trước.", "Cảnh báo học vụ", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                                return;
-                            }
-                        }
-                    }
-
                     var check = context.KetQuaHocTap.FirstOrDefault(x => x.MaSV == currentMaSV && x.MaLHP == maLHP);
 
                     if (check != null)
@@ -688,14 +732,6 @@ namespace GUI
             btnAdThem_SV.Enabled = !mo;
             btnAdSua_SV.Enabled = !mo;
             btnAdXoa_SV.Enabled = !mo;
-
-            if (Session.RoleID == 1)
-            {
-                txtDiemQT.Enabled = false;
-                txtDiemCK.Enabled = false;
-                txtDiemThiLan1.Enabled = false;
-                txtDiemThiLan2.Enabled = false;
-            }
         }
         #endregion
 
@@ -930,6 +966,24 @@ namespace GUI
             {
                 if (tkThiLai > tkChinhThuc) return (double)tkThiLai;
                 return (double)tkChinhThuc;
+            }
+        }
+        // ==============================================================
+        // HÀM CẬP NHẬT DỮ LIỆU MỚI NHẤT (Chuẩn hóa cho toàn hệ thống)
+        // ==============================================================
+        public void CapNhatDuLieuMoiNhat()
+        {
+            try
+            {
+                if (!string.IsNullOrEmpty(currentMaSV))
+                {
+                    context = new QLDSVDbContext();
+                    LoadBangDiemSinhVien(currentMaSV);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi cập nhật điểm sinh viên: " + ex.Message);
             }
         }
     }

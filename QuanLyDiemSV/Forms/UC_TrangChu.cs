@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Data;
 using System.Drawing;
 using System.Linq;
@@ -41,28 +41,68 @@ namespace QuanLyDiemSV.Forms
 
 
             LoadComboBoxHocKy();
-            comboBox1.SelectedIndexChanged += (s, ev) => VeCacBieuDoThongKe();
 
-            // 2. GỌI HÀM VẼ 3 BIỂU ĐỒ
+            // Gắn sự kiện cho cboNienKhoa nếu có trên Form
+            var cboNienKhoa = this.Controls.Find("cboNienKhoa", true).FirstOrDefault() as ComboBox;
+            if (cboNienKhoa != null)
+            {
+                cboNienKhoa.SelectedIndexChanged += (s, ev) => VeCacBieuDoThongKe();
+            }
+
+            // Gắn sự kiện cho dtpLocNam nếu có trên Form
+            var dtpLocNam = this.Controls.Find("dtpLocNam", true).FirstOrDefault() as DateTimePicker;
+            if (dtpLocNam != null)
+            {
+                dtpLocNam.Format = DateTimePickerFormat.Custom;
+                dtpLocNam.CustomFormat = "yyyy"; // Chỉ hiện năm
+                dtpLocNam.ShowUpDown = true;     // Hiện nút tăng giảm thay vì lịch
+                
+                dtpLocNam.ValueChanged += (s, ev) => 
+                {
+                    LoadComboBoxHocKy(dtpLocNam.Value.Year);
+                };
+            }
+
+            // 2. GỌI HÀM VẼ CÁC BIỂU ĐỒ
             VeCacBieuDoThongKe();
         }
-        private void LoadComboBoxHocKy()
+        private void LoadComboBoxHocKy(int? yearFilter = null)
         {
             try
             {
+                // Hủy đăng ký sự kiện tạm thời để tránh lỗi đệ quy khi gán lại DataSource
+                comboBox1.SelectedIndexChanged -= ComboBox1_SelectedIndexChanged;
+
                 using (var db = new QLDSVDbContext())
                 {
-                    var listHK = db.HocKy.OrderByDescending(h => h.MaHK).ToList();
+                    var query = db.HocKy.AsQueryable();
 
-                    // SỬA TẠI ĐÂY: Gán "0" (chuỗi) thay vì số 0
+                    if (yearFilter.HasValue)
+                    {
+                        // Lọc các học kỳ có NamHocBatDau bằng với năm được chọn
+                        query = query.Where(h => h.NamHocBatDau == yearFilter.Value);
+                    }
+
+                    var listHK = query.OrderByDescending(h => h.MaHK).ToList();
+
+                    // Gán "0" (chuỗi) thay vì số 0
                     listHK.Insert(0, new HocKy { MaHK = "0", TenHK = "--- Tất cả các kỳ ---" });
 
                     comboBox1.DataSource = listHK;
                     comboBox1.DisplayMember = "TenHK";
                     comboBox1.ValueMember = "MaHK";
                 }
+
+                // Đăng ký lại sự kiện và gọi vẽ biểu đồ
+                comboBox1.SelectedIndexChanged += ComboBox1_SelectedIndexChanged;
+                VeCacBieuDoThongKe();
             }
             catch { }
+        }
+
+        private void ComboBox1_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            VeCacBieuDoThongKe();
         }
         private void LoadThongKeTheoBoLoc()
         {
@@ -95,167 +135,6 @@ namespace QuanLyDiemSV.Forms
                 VeCacBieuDoThongKe();
             }
         }
-        //private void ThucHienThongKe()
-        //{
-        //    if (comboBox1.SelectedValue == null) return;
-
-        //    // Lấy MaHK dưới dạng chuỗi
-        //    string selectedMaHK = comboBox1.SelectedValue.ToString();
-        //    flpThongKe.Controls.Clear();
-
-        //    using (var db = new QLDSVDbContext())
-        //    {
-        //        var query = db.KetQuaHocTap.AsNoTracking();
-
-        //        // So sánh chuỗi "0" với chuỗi "0"
-        //        if (selectedMaHK != "0")
-        //        {
-        //            // So sánh MaHK (String) với selectedMaHK (String)
-        //            query = query.Where(k => k.MaLHPNavigation.MaHK == selectedMaHK);
-        //        }
-
-        //        var data = query.Select(k => new { k.DiemTongKet }).ToList();
-
-        //        // Xử lý điểm (decimal?) và so sánh với literal decimal (m)
-        //        int gioi = data.Count(d => (d.DiemTongKet ?? 0m) >= 8.0m);
-        //        int kha = data.Count(d => (d.DiemTongKet ?? 0m) >= 6.5m && (d.DiemTongKet ?? 0m) < 8.0m);
-        //        int trungBinh = data.Count(d => (d.DiemTongKet ?? 0m) >= 5.0m && (d.DiemTongKet ?? 0m) < 6.5m);
-        //        int yeu = data.Count(d => (d.DiemTongKet ?? 0m) < 5.0m);
-
-        //        // Vẽ biểu đồ học lực (ép kiểu sang double vì Chart yêu cầu double)
-        //        Chart chartHocLuc = GenerateBarChart("Phân loại học lực",
-        //            new string[] { "Giỏi", "Khá", "Trung bình", "Yêu" },
-        //            new double[] { (double)gioi, (double)kha, (double)trungBinh, (double)yeu });
-
-        //        flpThongKe.Controls.Add(WrapChartInModernCard(chartHocLuc));
-
-        //        // Tỷ lệ Đạt/Rớt
-        //        int dat = data.Count(d => (d.DiemTongKet ?? 0m) >= 5.0m);
-        //        int rot = data.Count(d => (d.DiemTongKet ?? 0m) < 5.0m);
-
-        //        Chart chartTiLe = GeneratePieChart("Tỷ lệ Đạt/Rớt",
-        //            new string[] { "Đạt", "Rớt" },
-        //            new double[] { (double)dat, (double)rot });
-
-        //        flpThongKe.Controls.Add(WrapChartInModernCard(chartTiLe));
-        //    }
-        //}
-
-
-        // =========================================================
-        // HÀM CHÍNH: TẢI DỮ LIỆU VÀ VẼ TẤT CẢ BIỂU ĐỒ
-        // =========================================================
-        //private void VeCacBieuDoThongKe()
-        //{
-        //    using (var context = new QLDSVDbContext())
-        //    {
-        //        // BƯỚC A: LẤY TOÀN BỘ DỮ LIỆU LÊN RAM ĐỂ XỬ LÝ (Tránh lỗi EF Core)
-        //        var listSV = context.SinhVien
-        //                            .Include(s => s.MaLopNavigation)
-        //                            .ThenInclude(l => l.MaNganhNavigation)
-        //                            .ToList();
-
-        //        var listDiem = context.KetQuaHocTap.Where(k => k.DiemTongKet != null).ToList();
-
-        //        // Tính ĐTB cho từng sinh viên
-        //        var svDiemTB = listSV.Select(s => new
-        //        {
-        //            MaSV = s.MaSV,
-        //            MaKhoa = s.MaLopNavigation?.MaNganhNavigation?.MaKhoa?.Trim() ?? "Khác",
-        //            TenLop = s.MaLopNavigation?.TenLop?.Trim() ?? "Khác",
-        //            DTB = listDiem.Where(d => d.MaSV == s.MaSV).Any()
-        //                  ? listDiem.Where(d => d.MaSV == s.MaSV).Average(d => (double)d.DiemTongKet)
-        //                  : 0.0
-        //        }).ToList();
-
-        //        // ==========================================================
-        //        // BƯỚC B: VẼ BIỂU ĐỒ 1 - SỐ LƯỢNG SV THEO KHOA (BIỂU ĐỒ CỘT)
-        //        // ==========================================================
-        //        var dataBieuDo1 = svDiemTB.GroupBy(x => x.MaKhoa)
-        //                                  .Select(g => new { Khoa = g.Key, SoLuong = g.Count() }).ToList();
-
-        //        Chart chart1 = TaoKhungBieuDo("SỐ LƯỢNG SINH VIÊN TỪNG KHOA", SeriesChartType.Column, 500, 380);
-        //        Series s1 = chart1.Series[0];
-        //        s1.Color = Color.FromArgb(52, 152, 219); // Xanh dương
-
-        //        if (dataBieuDo1.Count == 0)
-        //        {
-        //            s1.Points.AddXY("Chưa có dữ liệu", 0);
-        //        }
-        //        else
-        //        {
-        //            foreach (var item in dataBieuDo1) s1.Points.AddXY(item.Khoa, item.SoLuong);
-        //        }
-        //        flpThongKe.Controls.Add(WrapChartInModernCard(chart1));
-
-
-        //        // ==========================================================
-        //        // BƯỚC C: VẼ BIỂU ĐỒ 2 - TỶ LỆ SV GIỎI/XUẤT SẮC (BIỂU ĐỒ TRÒN)
-        //        // ==========================================================
-        //        var svGioi = svDiemTB.Where(x => x.DTB >= 8.0).ToList();
-        //        var dataBieuDo2 = svGioi.GroupBy(x => x.MaKhoa)
-        //                                .Select(g => new { Khoa = g.Key, SoLuong = g.Count() }).ToList();
-
-        //        Chart chart2 = TaoKhungBieuDo("PHÂN BỔ SINH VIÊN GIỎI/XUẤT SẮC", SeriesChartType.Doughnut, 500, 380);
-        //        Series s2 = chart2.Series[0];
-
-        //        // FIX LỖI CRASH Ở ĐÂY: Nếu rỗng thì vẽ một vòng tròn xám
-        //        if (dataBieuDo2.Count == 0)
-        //        {
-        //            int pt = s2.Points.AddXY("Chưa có dữ liệu", 1);
-        //            s2.Points[pt].Color = Color.FromArgb(230, 230, 230); // Xám nhạt
-        //            s2.Points[pt].IsValueShownAsLabel = false; // Tắt con số 1 đi
-        //        }
-        //        else
-        //        {
-        //            foreach (var item in dataBieuDo2)
-        //            {
-        //                int pt = s2.Points.AddXY(item.Khoa, item.SoLuong);
-        //                s2.Points[pt].Label = $"{item.Khoa}\n({item.SoLuong})";
-        //            }
-        //        }
-
-        //        // Ẩn trục tọa độ cho biểu đồ tròn để nhìn sạch hơn
-        //        chart2.ChartAreas[0].AxisX.Enabled = AxisEnabled.False;
-        //        chart2.ChartAreas[0].AxisY.Enabled = AxisEnabled.False;
-        //        flpThongKe.Controls.Add(WrapChartInModernCard(chart2));
-
-
-        //        // ==========================================================
-        //        // BƯỚC D: VẼ BIỂU ĐỒ 3 - LỚP CÓ TỶ LỆ GIỎI > 80%
-        //        // ==========================================================
-        //        var dataBieuDo3 = svDiemTB.GroupBy(x => x.TenLop)
-        //                                  .Select(g => new
-        //                                  {
-        //                                      TenLop = g.Key,
-        //                                      TongSV = g.Count(),
-        //                                      SVGioi = g.Count(x => x.DTB >= 8.0),
-        //                                      TyLeGioi = g.Count() > 0 ? (double)g.Count(x => x.DTB >= 8.0) / g.Count() * 100 : 0
-        //                                  })
-        //                                  .Where(x => x.TyLeGioi >= 80)
-        //                                  .OrderByDescending(x => x.TyLeGioi)
-        //                                  .ToList();
-
-        //        Chart chart3 = TaoKhungBieuDo("LỚP CÓ TỶ LỆ SV GIỎI > 80%", SeriesChartType.Bar, 1060, 350);
-        //        Series s3 = chart3.Series[0];
-        //        s3.Color = Color.FromArgb(46, 204, 113); // Xanh lá
-
-        //        if (dataBieuDo3.Count == 0)
-        //        {
-        //            s3.Points.AddXY("Chưa có dữ liệu", 0);
-        //            chart3.Titles[0].Text += "\n(Chưa có lớp nào đạt tiêu chí này)";
-        //            chart3.Titles[0].ForeColor = Color.Gray;
-        //        }
-        //        else
-        //        {
-        //            foreach (var item in dataBieuDo3)
-        //            {
-        //                s3.Points.AddXY(item.TenLop, Math.Round(item.TyLeGioi, 1));
-        //            }
-        //        }
-        //        flpThongKe.Controls.Add(WrapChartInModernCard(chart3));
-        //    }
-        //}
         private void VeCacBieuDoThongKe()
         {
             // 1. LẤY GIÁ TRỊ LỌC TRỰC TIẾP TỪ GIAO DIỆN
@@ -265,16 +144,35 @@ namespace QuanLyDiemSV.Forms
                 selectedMaHK = comboBox1.SelectedValue.ToString();
             }
 
+            string selectedNienKhoa = "ALL";
+            var controlNienKhoa = this.Controls.Find("cboNienKhoa", true).FirstOrDefault() as ComboBox;
+            if (controlNienKhoa != null && controlNienKhoa.SelectedValue != null)
+            {
+                selectedNienKhoa = controlNienKhoa.SelectedValue.ToString();
+            }
+            else if (controlNienKhoa != null && controlNienKhoa.SelectedItem != null)
+            {
+                // Phòng trường hợp cboNienKhoa không binding DataSource mà add tay Items
+                selectedNienKhoa = controlNienKhoa.SelectedItem.ToString(); 
+            }
+
             // Xóa các biểu đồ cũ trong Panel trước khi vẽ mới để tránh chồng lấn
             flpThongKe.Controls.Clear();
 
             using (var context = new QLDSVDbContext())
             {
-                // BƯỚC A: LẤY DỮ LIỆU SINH VIÊN
-                var listSV = context.SinhVien
-                                    .Include(s => s.MaLopNavigation)
-                                    .ThenInclude(l => l.MaNganhNavigation)
-                                    .ToList();
+                // BƯỚC A: LẤY DỮ LIỆU SINH VIÊN VÀ LỌC THEO NIÊN KHÓA (nếu có)
+                var querySV = context.SinhVien
+                                     .Include(s => s.MaLopNavigation)
+                                     .ThenInclude(l => l.MaNganhNavigation)
+                                     .AsQueryable();
+
+                if (selectedNienKhoa != "ALL" && !string.IsNullOrEmpty(selectedNienKhoa) && selectedNienKhoa != "--- Tất cả niên khóa ---")
+                {
+                    querySV = querySV.Where(s => s.MaLopNavigation.NienKhoa == selectedNienKhoa);
+                }
+
+                var listSV = querySV.ToList();
 
                 // BƯỚC B: TRUY VẤN ĐIỂM CÓ LỌC THEO HỌC KỲ
                 var queryDiem = context.KetQuaHocTap.AsNoTracking().Where(k => k.DiemTongKet != null);
@@ -304,7 +202,7 @@ namespace QuanLyDiemSV.Forms
                 var dataBieuDo1 = svDiemTB.GroupBy(x => x.MaKhoa)
                                           .Select(g => new { Khoa = g.Key, SoLuong = g.Count() }).ToList();
 
-                Chart chart1 = TaoKhungBieuDo("SỐ LƯỢNG SINH VIÊN TỪNG KHOA", SeriesChartType.Column, 500, 380);
+                Chart chart1 = TaoKhungBieuDo("SỐ LƯỢNG SINH VIÊN TỪNG KHOA", SeriesChartType.Column, 730, 380);
                 Series s1 = chart1.Series[0];
                 s1.Color = Color.FromArgb(52, 152, 219);
 
@@ -314,14 +212,13 @@ namespace QuanLyDiemSV.Forms
                 flpThongKe.Controls.Add(WrapChartInModernCard(chart1));
 
                 // ==========================================================
-                // BIỂU ĐỒ 2: PHÂN BỔ SV GIỎI/XUẤT SẮC (SỬA LỖI DECIMAL)
+                // BIỂU ĐỒ 2: PHÂN BỔ SV GIỎI/XUẤT SẮC
                 // ==========================================================
-                // Lưu ý dùng 8.0 (double) vì DTB ở trên ta đã ép kiểu về double
                 var svGioi = svDiemTB.Where(x => x.DTB >= 8.0).ToList();
                 var dataBieuDo2 = svGioi.GroupBy(x => x.MaKhoa)
                                         .Select(g => new { Khoa = g.Key, SoLuong = g.Count() }).ToList();
 
-                Chart chart2 = TaoKhungBieuDo("PHÂN BỔ SINH VIÊN GIỎI/XUẤT SẮC", SeriesChartType.Doughnut, 500, 380);
+                Chart chart2 = TaoKhungBieuDo("PHÂN BỔ SINH VIÊN GIỎI/XUẤT SẮC", SeriesChartType.Doughnut, 730, 380);
                 Series s2 = chart2.Series[0];
 
                 if (dataBieuDo2.Count == 0)
@@ -355,7 +252,7 @@ namespace QuanLyDiemSV.Forms
                                           .OrderByDescending(x => x.TyLeGioi)
                                           .ToList();
 
-                Chart chart3 = TaoKhungBieuDo("LỚP CÓ TỶ LỆ SV GIỎI > 80%", SeriesChartType.Bar, 1060, 350);
+                Chart chart3 = TaoKhungBieuDo("LỚP CÓ TỶ LỆ SV GIỎI > 80%", SeriesChartType.Bar, 730, 380);
                 Series s3 = chart3.Series[0];
                 s3.Color = Color.FromArgb(46, 204, 113);
 
@@ -369,6 +266,59 @@ namespace QuanLyDiemSV.Forms
                     foreach (var item in dataBieuDo3) s3.Points.AddXY(item.TenLop, Math.Round(item.TyLeGioi, 1));
                 }
                 flpThongKe.Controls.Add(WrapChartInModernCard(chart3));
+
+                // ==========================================================
+                // BIỂU ĐỒ 4: TỶ LỆ KẾT QUẢ ĐẠT / KHÔNG ĐẠT (Pie Chart)
+                // ==========================================================
+                int soLgDat = svDiemTB.Count(x => x.DTB >= 5.0 && listDiem.Any(d => d.MaSV == x.MaSV)); // Có điểm và >= 5
+                int soLgRot = svDiemTB.Count(x => x.DTB < 5.0 && listDiem.Any(d => d.MaSV == x.MaSV));
+
+                Chart chart4 = TaoKhungBieuDo("TỶ LỆ ĐẠT / KHÔNG ĐẠT", SeriesChartType.Pie, 730, 380);
+                Series s4 = chart4.Series[0];
+
+                if (soLgDat == 0 && soLgRot == 0)
+                {
+                    int pt = s4.Points.AddXY("Chưa có dữ liệu", 1);
+                    s4.Points[pt].Color = Color.FromArgb(230, 230, 230);
+                    s4.Points[pt].IsValueShownAsLabel = false;
+                }
+                else
+                {
+                    if (soLgDat > 0)
+                    {
+                        int ptDat = s4.Points.AddXY("Đạt", soLgDat);
+                        s4.Points[ptDat].Color = Color.FromArgb(46, 204, 113); // Xanh lá
+                    }
+                    if (soLgRot > 0)
+                    {
+                        int ptRot = s4.Points.AddXY("Không đạt", soLgRot);
+                        s4.Points[ptRot].Color = Color.FromArgb(231, 76, 60); // Đỏ
+                    }
+                }
+                chart4.ChartAreas[0].AxisX.Enabled = AxisEnabled.False;
+                chart4.ChartAreas[0].AxisY.Enabled = AxisEnabled.False;
+                flpThongKe.Controls.Add(WrapChartInModernCard(chart4));
+
+                // ==========================================================
+                // BIỂU ĐỒ 5: PHÂN BỐ XẾP LOẠI HỌC LỰC (Column Chart)
+                // ==========================================================
+                int xuatSac = svDiemTB.Count(x => x.DTB >= 9.0 && listDiem.Any(d => d.MaSV == x.MaSV));
+                int gioi = svDiemTB.Count(x => x.DTB >= 8.0 && x.DTB < 9.0 && listDiem.Any(d => d.MaSV == x.MaSV));
+                int kha = svDiemTB.Count(x => x.DTB >= 6.5 && x.DTB < 8.0 && listDiem.Any(d => d.MaSV == x.MaSV));
+                int trungBinh = svDiemTB.Count(x => x.DTB >= 5.0 && x.DTB < 6.5 && listDiem.Any(d => d.MaSV == x.MaSV));
+                int yeu = svDiemTB.Count(x => x.DTB < 5.0 && listDiem.Any(d => d.MaSV == x.MaSV));
+
+                Chart chart5 = TaoKhungBieuDo("THỐNG KÊ XẾP LOẠI HỌC LỰC", SeriesChartType.Column, 730, 380);
+                Series s5 = chart5.Series[0];
+                
+                // Màu sắc cho từng cột
+                int pXS = s5.Points.AddXY("Xuất sắc", xuatSac); s5.Points[pXS].Color = Color.FromArgb(155, 89, 182); // Tím
+                int pG = s5.Points.AddXY("Giỏi", gioi); s5.Points[pG].Color = Color.FromArgb(52, 152, 219); // Xanh dương
+                int pK = s5.Points.AddXY("Khá", kha); s5.Points[pK].Color = Color.FromArgb(241, 196, 15); // Vàng
+                int pTB = s5.Points.AddXY("Trung bình", trungBinh); s5.Points[pTB].Color = Color.FromArgb(230, 126, 34); // Cam
+                int pY = s5.Points.AddXY("Yếu/Kém", yeu); s5.Points[pY].Color = Color.FromArgb(231, 76, 60); // Đỏ
+
+                flpThongKe.Controls.Add(WrapChartInModernCard(chart5));
             }
         }
 
@@ -448,40 +398,5 @@ namespace QuanLyDiemSV.Forms
 
             return pnlCard;
         }
-        //private Chart GeneratePieChart(string title, string[] labels, double[] values)
-        //{
-        //    Chart chart = new Chart { Size = new Size(500, 350) };
-        //    ChartArea chartArea = new ChartArea();
-        //    chart.ChartAreas.Add(chartArea);
-
-        //    Series series = new Series { ChartType = SeriesChartType.Pie };
-        //    for (int i = 0; i < labels.Length; i++)
-        //    {
-        //        series.Points.AddXY(labels[i], values[i]);
-        //    }
-
-        //    chart.Series.Add(series);
-        //    chart.Titles.Add(title);
-        //    chart.Legends.Add(new Legend("Default"));
-        //    return chart;
-        //}
-        //private Chart GenerateBarChart(string title, string[] labels, double[] values)
-        //{
-        //    Chart chart = new Chart { Size = new Size(500, 350) };
-        //    ChartArea chartArea = new ChartArea();
-        //    chart.ChartAreas.Add(chartArea);
-
-        //    Series series = new Series { ChartType = SeriesChartType.Column, Name = "SoLuong" };
-        //    for (int i = 0; i < labels.Length; i++)
-        //    {
-        //        int idx = series.Points.AddXY(labels[i], values[i]);
-        //        if (labels[i] == "Giỏi") series.Points[idx].Color = Color.LimeGreen;
-        //        if (labels[i] == "Yếu") series.Points[idx].Color = Color.Crimson;
-        //    }
-
-        //    chart.Series.Add(series);
-        //    chart.Titles.Add(title);
-        //    return chart;
-        //}
     }
 }

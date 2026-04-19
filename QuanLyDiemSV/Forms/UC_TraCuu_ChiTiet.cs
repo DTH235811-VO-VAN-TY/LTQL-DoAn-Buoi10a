@@ -20,6 +20,10 @@ namespace QuanLyDiemSV.Forms
         QLDSVDbContext context = new QLDSVDbContext();
         public event EventHandler QuayLaiTraCuulicked;
 
+        // Cache niên khóa của SV đang xem để dùng chung cho Xuất Excel/PDF
+        private int? _nienKhoaBatDau = null;
+        private int? _nienKhoaKetThuc = null;
+
         public UC_TraCuu_ChiTiet()
         {
             InitializeComponent();
@@ -31,7 +35,7 @@ namespace QuanLyDiemSV.Forms
             btnGuiKhieuNai.Visible = (Session.RoleID == 3);
         }
 
-        public async Task CapNhatDuLieuMoiNhatAsync()
+        public async Task CapNhatDuLieuMoiNhat()
         {
             if (string.IsNullOrEmpty(lblMaSV.Text) || lblMaSV.Text == "...") return;
             
@@ -59,9 +63,40 @@ namespace QuanLyDiemSV.Forms
             await LoadDiemVaTaoGiaoDienAsync(maSV);
         }
 
+        // ============================================================
+        // HELPER: Lấy và cache niên khóa của sinh viên từ LopHanhChinh
+        // VD: NienKhoa "2023-2027" → _nienKhoaBatDau=2023, _nienKhoaKetThuc=2027
+        // ============================================================
+        private async Task LayNienKhoaSinhVien(string maSV)
+        {
+            _nienKhoaBatDau = null;
+            _nienKhoaKetThuc = null;
+
+            var svInfo = await context.SinhVien.AsNoTracking()
+                .Include(s => s.MaLopNavigation)
+                .FirstOrDefaultAsync(s => s.MaSV == maSV);
+
+            if (svInfo?.MaLopNavigation?.NienKhoa != null)
+            {
+                string nienKhoa = svInfo.MaLopNavigation.NienKhoa.Trim();
+                var parts = nienKhoa.Split('-');
+                if (parts.Length == 2)
+                {
+                    if (int.TryParse(parts[0], out int nkStart) && nkStart > 0)
+                        _nienKhoaBatDau = nkStart;
+                    if (int.TryParse(parts[1], out int nkEnd) && nkEnd > 0)
+                        _nienKhoaKetThuc = nkEnd;
+                }
+            }
+        }
+
         private async Task LoadDiemVaTaoGiaoDienAsync(string maSV)
         {
             flowLayoutPanel1.Controls.Clear();
+
+            // NÂNG CẤP: Lấy niên khóa của sinh viên và cache lại
+            await LayNienKhoaSinhVien(maSV);
+
             // 1. Lấy dữ liệu thô (Bổ sung AsNoTracking() để lấy dữ liệu fresh nhất, bỏ qua Cache)
             var queryRaw = from kq in context.KetQuaHocTap.AsNoTracking()
                            join lhp in context.LopHocPhan.AsNoTracking() on kq.MaLHP equals lhp.MaLHP
@@ -72,6 +107,7 @@ namespace QuanLyDiemSV.Forms
                            {
                                hk.MaHK,
                                hk.TenHK,
+                               hk.NamHocBatDau,
                                mh.MaMon,
                                mh.TenMon,
                                SoTinChi = mh.SoTinChi,
@@ -81,6 +117,14 @@ namespace QuanLyDiemSV.Forms
                                DiemThiLan2 = kq.DiemThiLan2,
                                DiemTongKet = kq.DiemTongKet
                            };
+
+            // Áp dụng bộ lọc niên khóa (chỉ lọc nếu có thông tin NienKhoa hợp lệ)
+            if (_nienKhoaBatDau.HasValue && _nienKhoaKetThuc.HasValue)
+            {
+                queryRaw = queryRaw.Where(x => x.NamHocBatDau != null
+                                            && x.NamHocBatDau >= _nienKhoaBatDau.Value
+                                            && x.NamHocBatDau <= _nienKhoaKetThuc.Value);
+            }
 
             var listDiemRaw = await queryRaw.ToListAsync();
 
@@ -153,6 +197,7 @@ namespace QuanLyDiemSV.Forms
                 lblTongKet.AutoSize = false;
                 lblTongKet.Height = 100;
                 lblTongKet.Padding = new Padding(10, 10, 0, 0);
+
 
                 gbHocKy.Controls.Add(lblTongKet);
                 gbHocKy.Controls.Add(dgv);
@@ -248,6 +293,354 @@ namespace QuanLyDiemSV.Forms
             gbTongKet.Width = flowLayoutPanel1.ClientSize.Width - 10;
             gbTongKet.Controls.Add(lblNoiDung);
             flowLayoutPanel1.Controls.Add(gbTongKet);
+
+            // ============================================================
+            // A. TIẾN ĐỘ KHUNG CHƯƠNG TRÌNH ĐÀO TẠO
+            // ============================================================
+            ThemGroupTienDoKhungCT(allDiem, tongTinChiDat);
+
+            // ============================================================
+            // B. CẢNH BÁO HỌC VỤ
+            // ============================================================
+            ThemGroupCanhBaoHocVu(tk4, tongTinChiDat, allDiem);
+
+            // ============================================================
+            // C. XÉT TỐT NGHIỆP TỰ ĐỘNG
+            // ============================================================
+            ThemGroupXetTotNghiep(tk4, allDiem, tongTinChiDat);
+        }
+
+        // ============================================================
+        // A. TIẾN ĐỘ KHUNG CHƯƠNG TRÌNH ĐÀO TẠO
+        // ============================================================
+        private void ThemGroupTienDoKhungCT(List<DiemChiTietDTO> allDiem, int tongTinChiDat)
+        {
+            string maSV = lblMaSV.Text;
+            if (string.IsNullOrEmpty(maSV) || maSV == "...") return;
+
+            // 1. Lấy MaNganh của sinh viên
+            var svInfo = context.SinhVien.AsNoTracking()
+                .Include(s => s.MaLopNavigation)
+                .FirstOrDefault(s => s.MaSV == maSV);
+
+            string maNganh = svInfo?.MaLopNavigation?.MaNganh;
+            if (string.IsNullOrEmpty(maNganh)) return;
+
+            // 2. Lấy khung CT của ngành
+            var khungCT = context.KhungChuongTrinh.AsNoTracking()
+                .Where(k => k.MaNganh == maNganh)
+                .Include(k => k.MaMonNavigation)
+                .OrderBy(k => k.HocKyDuKien)
+                .ThenBy(k => k.MaMonNavigation.TenMon)
+                .ToList();
+
+            if (khungCT.Count == 0) return; // Chưa có khung CT cho ngành này
+
+            // 3. Tính toán tiến độ
+            int tongTCKhung = khungCT.Sum(k => k.MaMonNavigation?.SoTinChi ?? 0);
+            int tongMonKhung = khungCT.Count;
+            var dsMaMonDaDat = allDiem
+                .Where(d => d.DiemTongKet != null && (double)d.DiemTongKet >= 4.0)
+                .Select(d => d.MaMon)
+                .Distinct()
+                .ToList();
+
+            var dsMonDaDat = khungCT.Where(k => dsMaMonDaDat.Contains(k.MaMon)).ToList();
+            var dsMonChuaDat = khungCT.Where(k => !dsMaMonDaDat.Contains(k.MaMon)).ToList();
+            int tcDaDat = dsMonDaDat.Sum(k => k.MaMonNavigation?.SoTinChi ?? 0);
+            int monDaDat = dsMonDaDat.Count;
+
+            double phanTram = tongTCKhung > 0 ? Math.Round((double)tcDaDat / tongTCKhung * 100, 1) : 0;
+
+            // 4. Tạo GroupBox Tiến Độ
+            GroupBox gbTienDo = new GroupBox();
+            gbTienDo.Text = "📊 TIẾN ĐỘ KHUNG CHƯƠNG TRÌNH ĐÀO TẠO";
+            gbTienDo.Width = flowLayoutPanel1.ClientSize.Width - 10;
+            gbTienDo.Font = new System.Drawing.Font("Segoe UI", 11, FontStyle.Regular);
+            gbTienDo.ForeColor = Color.FromArgb(41, 128, 185);
+
+            // Panel chứa nội dung
+            FlowLayoutPanel flpContent = new FlowLayoutPanel();
+            flpContent.Dock = DockStyle.Fill;
+            flpContent.FlowDirection = FlowDirection.TopDown;
+            flpContent.WrapContents = false;
+            flpContent.AutoScroll = true;
+            flpContent.Padding = new Padding(10, 5, 10, 5);
+
+            // Thanh tiến trình
+            Label lblTienDo = new Label();
+            lblTienDo.Text = $"Hoàn thành: {tcDaDat}/{tongTCKhung} tín chỉ ({phanTram}%)  |  " +
+                             $"Môn đã đạt: {monDaDat}/{tongMonKhung}";
+            lblTienDo.Font = new System.Drawing.Font("Segoe UI", 10, FontStyle.Bold);
+            lblTienDo.ForeColor = Color.Black;
+            lblTienDo.AutoSize = true;
+            flpContent.Controls.Add(lblTienDo);
+
+            // ProgressBar
+            ProgressBar pb = new ProgressBar();
+            pb.Minimum = 0;
+            pb.Maximum = tongTCKhung > 0 ? tongTCKhung : 1;
+            pb.Value = Math.Min(tcDaDat, pb.Maximum);
+            pb.Width = flowLayoutPanel1.ClientSize.Width - 80;
+            pb.Height = 28;
+            pb.Style = ProgressBarStyle.Continuous;
+            flpContent.Controls.Add(pb);
+
+            // Danh sách môn còn nợ (bắt buộc)
+            var dsMonNo = dsMonChuaDat.Where(k => k.LoaiMon == "Bắt buộc").ToList();
+            if (dsMonNo.Count > 0)
+            {
+                Label lblMonNo = new Label();
+                lblMonNo.Text = $"⚠ Các môn BẮT BUỘC chưa đạt ({dsMonNo.Count} môn):";
+                lblMonNo.Font = new System.Drawing.Font("Segoe UI", 10, FontStyle.Bold);
+                lblMonNo.ForeColor = Color.OrangeRed;
+                lblMonNo.AutoSize = true;
+                flpContent.Controls.Add(lblMonNo);
+
+                string danhSach = "";
+                int stt = 1;
+                foreach (var mon in dsMonNo)
+                {
+                    string tenMon = mon.MaMonNavigation?.TenMon ?? mon.MaMon;
+                    int tc = mon.MaMonNavigation?.SoTinChi ?? 0;
+                    danhSach += $"   {stt}. {tenMon} ({tc} TC) - Dự kiến HK{mon.HocKyDuKien}\n";
+                    stt++;
+                }
+
+                Label lblDanhSach = new Label();
+                lblDanhSach.Text = danhSach;
+                lblDanhSach.Font = new System.Drawing.Font("Segoe UI", 9.5f, FontStyle.Regular);
+                lblDanhSach.ForeColor = Color.Black;
+                lblDanhSach.AutoSize = true;
+                flpContent.Controls.Add(lblDanhSach);
+            }
+            else
+            {
+                Label lblHoanThanh = new Label();
+                lblHoanThanh.Text = "✅ Bạn đã hoàn thành TẤT CẢ các môn bắt buộc trong khung chương trình!";
+                lblHoanThanh.Font = new System.Drawing.Font("Segoe UI", 10, FontStyle.Bold);
+                lblHoanThanh.ForeColor = Color.Green;
+                lblHoanThanh.AutoSize = true;
+                flpContent.Controls.Add(lblHoanThanh);
+            }
+
+            // Tính chiều cao dựa trên nội dung (Tăng giới hạn lên 800 để không bị cắt)
+            int heightNeeded = 140 + (dsMonNo.Count > 0 ? 60 + dsMonNo.Count * 24 : 40);
+            gbTienDo.Height = Math.Min(heightNeeded, 800);
+            gbTienDo.Controls.Add(flpContent);
+            flowLayoutPanel1.Controls.Add(gbTienDo);
+        }
+
+        // ============================================================
+        // B. CẢNH BÁO HỌC VỤ (Academic Warning)
+        // ============================================================
+        private void ThemGroupCanhBaoHocVu(double gpa4, int tongTinChiDat, List<DiemChiTietDTO> allDiem)
+        {
+            // Thu thập các vi phạm
+            List<string> danhSachCanhBao = new List<string>();
+
+            // Kiểm tra GPA quá thấp
+            if (gpa4 > 0 && gpa4 < 1.0)
+            {
+                danhSachCanhBao.Add("🔴 GPA tích lũy DƯỚI 1.0 (hệ 4) - Thuộc diện ĐÌNH CHỈ HỌC TẬP!");
+            }
+            else if (gpa4 >= 1.0 && gpa4 < 1.5)
+            {
+                danhSachCanhBao.Add("🟡 GPA tích lũy dưới 1.5 (hệ 4) - Thuộc diện CẢNH CÁO HỌC VỤ lần 1.");
+            }
+
+            // Kiểm tra môn F (liệt)
+            var dsMonF = allDiem
+                .Where(d => d.DiemTongKet != null && (double)d.DiemTongKet < 4.0)
+                .ToList();
+
+            if (dsMonF.Count >= 3)
+            {
+                danhSachCanhBao.Add($"🟠 Có {dsMonF.Count} môn bị điểm F (< 4.0 hệ 10) - Cần học lại NGAY.");
+            }
+
+            // Kiểm tra tỷ lệ tín chỉ đạt
+            int tongTCDaHoc = allDiem.Where(d => d.DiemTongKet != null).Sum(d => d.SoTinChi);
+            if (tongTCDaHoc > 0)
+            {
+                double tyLeDat = (double)tongTinChiDat / tongTCDaHoc * 100;
+                if (tyLeDat < 50)
+                {
+                    danhSachCanhBao.Add($"🟠 Tỷ lệ tín chỉ đạt chỉ {Math.Round(tyLeDat, 1)}% (< 50%) - Kết quả học tập kém.");
+                }
+            }
+
+            // Nếu không có cảnh báo thì không hiện
+            if (danhSachCanhBao.Count == 0) return;
+
+            // Tạo GroupBox Cảnh báo
+            GroupBox gbCanhBao = new GroupBox();
+            gbCanhBao.Text = "⚠ CẢNH BÁO HỌC VỤ";
+            gbCanhBao.Width = flowLayoutPanel1.ClientSize.Width - 10;
+            gbCanhBao.Font = new System.Drawing.Font("Segoe UI", 11, FontStyle.Bold);
+            gbCanhBao.ForeColor = Color.Red;
+            gbCanhBao.BackColor = Color.FromArgb(255, 245, 245);
+
+            string noiDungCB = string.Join("\n", danhSachCanhBao);
+            noiDungCB += "\n\n📌 Sinh viên cần liên hệ Cố vấn Học tập để được tư vấn lộ trình phù hợp.";
+
+            Label lblCanhBao = new Label();
+            lblCanhBao.Text = noiDungCB;
+            lblCanhBao.Dock = DockStyle.Fill;
+            lblCanhBao.Padding = new Padding(10, 10, 0, 0);
+            lblCanhBao.Font = new System.Drawing.Font("Segoe UI", 10, FontStyle.Regular);
+            lblCanhBao.ForeColor = Color.DarkRed;
+
+            gbCanhBao.Height = 50 + danhSachCanhBao.Count * 30 + 50;
+            gbCanhBao.Controls.Add(lblCanhBao);
+            flowLayoutPanel1.Controls.Add(gbCanhBao);
+        }
+
+        // ============================================================
+        // C. XÉT TỐT NGHIỆP TỰ ĐỘNG (Graduation Check)
+        // ============================================================
+        private void ThemGroupXetTotNghiep(double gpa4, List<DiemChiTietDTO> allDiem, int tongTinChiDat)
+        {
+            string maSV = lblMaSV.Text;
+            if (string.IsNullOrEmpty(maSV) || maSV == "...") return;
+
+            // 1. Lấy MaNganh
+            var svInfo = context.SinhVien.AsNoTracking()
+                .Include(s => s.MaLopNavigation)
+                .FirstOrDefault(s => s.MaSV == maSV);
+
+            string maNganh = svInfo?.MaLopNavigation?.MaNganh;
+            if (string.IsNullOrEmpty(maNganh)) return;
+
+            // 2. Lấy Khung CT
+            var khungCT = context.KhungChuongTrinh.AsNoTracking()
+                .Where(k => k.MaNganh == maNganh)
+                .Include(k => k.MaMonNavigation)
+                .ToList();
+
+            if (khungCT.Count == 0) return;
+
+            // 3. Kiểm tra các điều kiện tốt nghiệp
+            List<string> dieuKienDat = new List<string>();
+            List<string> dieuKienChuaDat = new List<string>();
+            bool duDieuKien = true;
+
+            // ĐK1: GPA >= 2.0
+            if (gpa4 >= 2.0)
+                dieuKienDat.Add($"✅ GPA tích lũy = {gpa4} (≥ 2.0)");
+            else
+            {
+                dieuKienChuaDat.Add($"❌ GPA tích lũy = {gpa4} (< 2.0 - Chưa đạt!)");
+                duDieuKien = false;
+            }
+
+            // ĐK2: Không có môn F trong các môn bắt buộc
+            var dsMonBatBuoc = khungCT.Where(k => k.LoaiMon == "Bắt buộc").Select(k => k.MaMon).ToList();
+            var dsMonFBatBuoc = allDiem
+                .Where(d => dsMonBatBuoc.Contains(d.MaMon) && d.DiemTongKet != null && (double)d.DiemTongKet < 4.0)
+                .ToList();
+
+            if (dsMonFBatBuoc.Count == 0)
+                dieuKienDat.Add("✅ Không có môn bắt buộc bị điểm F");
+            else
+            {
+                string dsF = string.Join(", ", dsMonFBatBuoc.Select(d => d.TenMon));
+                dieuKienChuaDat.Add($"❌ Còn {dsMonFBatBuoc.Count} môn bắt buộc bị F: {dsF}");
+                duDieuKien = false;
+            }
+
+            // ĐK3: Hoàn thành đủ các môn bắt buộc
+            var dsMaMonDaDat = allDiem
+                .Where(d => d.DiemTongKet != null && (double)d.DiemTongKet >= 4.0)
+                .Select(d => d.MaMon).Distinct().ToList();
+
+            var dsMonBBChuaDat = khungCT
+                .Where(k => k.LoaiMon == "Bắt buộc" && !dsMaMonDaDat.Contains(k.MaMon))
+                .ToList();
+
+            if (dsMonBBChuaDat.Count == 0)
+                dieuKienDat.Add("✅ Đã hoàn thành tất cả môn bắt buộc");
+            else
+            {
+                string dsChua = string.Join(", ", dsMonBBChuaDat.Select(d => d.MaMonNavigation?.TenMon ?? d.MaMon));
+                dieuKienChuaDat.Add($"❌ Còn {dsMonBBChuaDat.Count} môn bắt buộc chưa hoàn thành: {dsChua}");
+                duDieuKien = false;
+            }
+
+            // ĐK4: Đủ tín chỉ tối thiểu
+            int tcToiThieu = 160;
+            if (tongTinChiDat >= tcToiThieu)
+                dieuKienDat.Add($"✅ Đủ tín chỉ tối thiểu: {tongTinChiDat}/{tcToiThieu} TC");
+            else
+            {
+                dieuKienChuaDat.Add($"❌ Thiếu tín chỉ: {tongTinChiDat}/{tcToiThieu} TC (còn thiếu {tcToiThieu - tongTinChiDat} TC)");
+                duDieuKien = false;
+            }
+
+            // 4. Xếp loại bằng tốt nghiệp
+            string xepLoaiBang = "";
+            if (duDieuKien)
+            {
+                if (gpa4 >= 3.6) xepLoaiBang = "Xuất sắc";
+                else if (gpa4 >= 3.2) xepLoaiBang = "Giỏi";
+                else if (gpa4 >= 2.5) xepLoaiBang = "Khá";
+                else xepLoaiBang = "Trung bình";
+            }
+
+            // 5. Tạo GroupBox
+            GroupBox gbTotNghiep = new GroupBox();
+            gbTotNghiep.Text = "🎓 XÉT TỐT NGHIỆP";
+            gbTotNghiep.Width = flowLayoutPanel1.ClientSize.Width - 10;
+            gbTotNghiep.Font = new System.Drawing.Font("Segoe UI", 11, FontStyle.Regular);
+            gbTotNghiep.ForeColor = duDieuKien ? Color.FromArgb(39, 174, 96) : Color.FromArgb(192, 57, 43);
+            gbTotNghiep.BackColor = duDieuKien ? Color.FromArgb(234, 250, 241) : Color.FromArgb(253, 237, 236);
+
+            FlowLayoutPanel flpTN = new FlowLayoutPanel();
+            flpTN.Dock = DockStyle.Fill;
+            flpTN.FlowDirection = FlowDirection.TopDown;
+            flpTN.WrapContents = false;
+            flpTN.Padding = new Padding(10, 5, 10, 5);
+
+            // Kết quả chính
+            Label lblKetQua = new Label();
+            if (duDieuKien)
+            {
+                lblKetQua.Text = $"🎉 ĐỦ ĐIỀU KIỆN TỐT NGHIỆP - Xếp loại bằng: {xepLoaiBang}";
+                lblKetQua.ForeColor = Color.FromArgb(39, 174, 96);
+            }
+            else
+            {
+                lblKetQua.Text = "⛔ CHƯA ĐỦ ĐIỀU KIỆN TỐT NGHIỆP";
+                lblKetQua.ForeColor = Color.FromArgb(192, 57, 43);
+            }
+            lblKetQua.Font = new System.Drawing.Font("Segoe UI", 12, FontStyle.Bold);
+            lblKetQua.AutoSize = true;
+            flpTN.Controls.Add(lblKetQua);
+
+            // Chi tiết các điều kiện
+            string chiTiet = "";
+            foreach (var dk in dieuKienDat) chiTiet += dk + "\n";
+            foreach (var dk in dieuKienChuaDat) chiTiet += dk + "\n";
+
+            Label lblChiTiet = new Label();
+            lblChiTiet.Text = chiTiet;
+            lblChiTiet.Font = new System.Drawing.Font("Segoe UI", 10, FontStyle.Regular);
+            lblChiTiet.ForeColor = Color.Black;
+            lblChiTiet.AutoSize = true;
+            lblChiTiet.MaximumSize = new Size(flowLayoutPanel1.ClientSize.Width - 40, 0); // Cho phép xuống dòng nếu quá rộng
+            flpTN.Controls.Add(lblChiTiet);
+
+            // Tự động tính toán chiều cao dựa trên các control con
+            flpTN.ResumeLayout();
+            int totalHeight = 60; // Padding + Margin
+            foreach (Control c in flpTN.Controls)
+            {
+                totalHeight += c.Height + c.Margin.Top + c.Margin.Bottom;
+            }
+            gbTotNghiep.Height = Math.Max(150, totalHeight + 30);
+            
+            gbTotNghiep.Controls.Add(flpTN);
+            flowLayoutPanel1.Controls.Add(gbTotNghiep);
         }
 
         // --- CÁC HÀM HỖ TRỢ TÍNH TOÁN ---
@@ -345,13 +738,19 @@ namespace QuanLyDiemSV.Forms
                             ws.Range("B6:B8").Style.Font.Bold = true;
                             ws.Range("F6:F7").Style.Font.Bold = true;
 
-                            // LẤY DỮ LIỆU ĐÃ CẬP NHẬT TỪ DB
-                            var listDiemRaw = (from kq in context.KetQuaHocTap
+                            // LẤY DỮ LIỆU ĐÃ CẬP NHẬT TỪ DB (Áp dụng lọc niên khóa)
+                            var queryExcel = from kq in context.KetQuaHocTap
                                                join lhp in context.LopHocPhan on kq.MaLHP equals lhp.MaLHP
                                                join mh in context.MonHoc on lhp.MaMon equals mh.MaMon
                                                join hk in context.HocKy on lhp.MaHK equals hk.MaHK
                                                where kq.MaSV == maSV
-                                               select new { hk.MaHK, hk.TenHK, mh.MaMon, mh.TenMon, mh.SoTinChi, DiemQT = kq.DiemGK, DiemThi = kq.DiemCK, DiemThiLan1 = kq.DiemThiLan1, DiemThiLan2 = kq.DiemThiLan2, DiemTongKet = kq.DiemTongKet }).ToList();
+                                               select new { hk.MaHK, hk.TenHK, hk.NamHocBatDau, mh.MaMon, mh.TenMon, mh.SoTinChi, DiemQT = kq.DiemGK, DiemThi = kq.DiemCK, DiemThiLan1 = kq.DiemThiLan1, DiemThiLan2 = kq.DiemThiLan2, DiemTongKet = kq.DiemTongKet };
+
+                            // Lọc theo niên khóa nếu có
+                            if (_nienKhoaBatDau.HasValue && _nienKhoaKetThuc.HasValue)
+                                queryExcel = queryExcel.Where(x => x.NamHocBatDau != null && x.NamHocBatDau >= _nienKhoaBatDau.Value && x.NamHocBatDau <= _nienKhoaKetThuc.Value);
+
+                            var listDiemRaw = queryExcel.ToList();
 
                             var listDiemProcessed = listDiemRaw.Select(x =>
                             {
@@ -463,13 +862,19 @@ namespace QuanLyDiemSV.Forms
                         pdfDoc.Add(infoTable);
                         pdfDoc.Add(new Paragraph("\n"));
 
-                        // LẤY DỮ LIỆU ĐÃ CẬP NHẬT TỪ DB
-                        var listDiemRaw = (from kq in context.KetQuaHocTap
+                        // LẤY DỮ LIỆU ĐÃ CẬP NHẬT TỪ DB (Áp dụng lọc niên khóa)
+                        var queryPdf = from kq in context.KetQuaHocTap
                                            join lhp in context.LopHocPhan on kq.MaLHP equals lhp.MaLHP
                                            join mh in context.MonHoc on lhp.MaMon equals mh.MaMon
                                            join hk in context.HocKy on lhp.MaHK equals hk.MaHK
                                            where kq.MaSV == maSV
-                                           select new { hk.MaHK, hk.TenHK, mh.MaMon, mh.TenMon, mh.SoTinChi, DiemQT = kq.DiemGK, DiemThi = kq.DiemCK, DiemThiLan1 = kq.DiemThiLan1, DiemThiLan2 = kq.DiemThiLan2, DiemTongKet = kq.DiemTongKet }).ToList();
+                                           select new { hk.MaHK, hk.TenHK, hk.NamHocBatDau, mh.MaMon, mh.TenMon, mh.SoTinChi, DiemQT = kq.DiemGK, DiemThi = kq.DiemCK, DiemThiLan1 = kq.DiemThiLan1, DiemThiLan2 = kq.DiemThiLan2, DiemTongKet = kq.DiemTongKet };
+
+                        // Lọc theo niên khóa nếu có
+                        if (_nienKhoaBatDau.HasValue && _nienKhoaKetThuc.HasValue)
+                            queryPdf = queryPdf.Where(x => x.NamHocBatDau != null && x.NamHocBatDau >= _nienKhoaBatDau.Value && x.NamHocBatDau <= _nienKhoaKetThuc.Value);
+
+                        var listDiemRaw = queryPdf.ToList();
 
                         var listDiemProcessed = listDiemRaw.Select(x =>
                         {

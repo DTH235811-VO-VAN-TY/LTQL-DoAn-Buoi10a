@@ -28,8 +28,8 @@
         /// </summary>
         private void InitializeComponent()
         {
-            DataGridViewCellStyle dataGridViewCellStyle3 = new DataGridViewCellStyle();
-            DataGridViewCellStyle dataGridViewCellStyle4 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle1 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle2 = new DataGridViewCellStyle();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(UC_LopHocPhan));
             panel1 = new Panel();
             panel4 = new Panel();
@@ -46,6 +46,8 @@
             ThaoTac = new DataGridViewButtonColumn();
             panel3 = new Panel();
             groupBox2 = new GroupBox();
+            cboLocHocKy = new ComboBox();
+            label14 = new Label();
             cboLocDuLieu = new ComboBox();
             label10 = new Label();
             radGiam = new RadioButton();
@@ -212,9 +214,9 @@
             // TrangThai
             // 
             TrangThai.DataPropertyName = "TrangThai";
-            dataGridViewCellStyle3.Alignment = DataGridViewContentAlignment.MiddleCenter;
-            dataGridViewCellStyle3.Font = new Font("Microsoft Sans Serif", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            TrangThai.DefaultCellStyle = dataGridViewCellStyle3;
+            dataGridViewCellStyle1.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            dataGridViewCellStyle1.Font = new Font("Microsoft Sans Serif", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            TrangThai.DefaultCellStyle = dataGridViewCellStyle1;
             TrangThai.HeaderText = "Trạng Thái";
             TrangThai.MinimumWidth = 6;
             TrangThai.Name = "TrangThai";
@@ -223,12 +225,12 @@
             // 
             // ThaoTac
             // 
-            dataGridViewCellStyle4.Alignment = DataGridViewContentAlignment.MiddleCenter;
-            dataGridViewCellStyle4.BackColor = Color.Green;
-            dataGridViewCellStyle4.ForeColor = Color.FromArgb(192, 0, 0);
-            dataGridViewCellStyle4.SelectionBackColor = Color.Cyan;
-            dataGridViewCellStyle4.SelectionForeColor = Color.FromArgb(64, 64, 64);
-            ThaoTac.DefaultCellStyle = dataGridViewCellStyle4;
+            dataGridViewCellStyle2.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            dataGridViewCellStyle2.BackColor = Color.Green;
+            dataGridViewCellStyle2.ForeColor = Color.FromArgb(192, 0, 0);
+            dataGridViewCellStyle2.SelectionBackColor = Color.Cyan;
+            dataGridViewCellStyle2.SelectionForeColor = Color.FromArgb(64, 64, 64);
+            ThaoTac.DefaultCellStyle = dataGridViewCellStyle2;
             ThaoTac.HeaderText = "Thao Tác";
             ThaoTac.MinimumWidth = 6;
             ThaoTac.Name = "ThaoTac";
@@ -247,6 +249,9 @@
             // 
             // groupBox2
             // 
+            groupBox2.BackColor = Color.White;
+            groupBox2.Controls.Add(cboLocHocKy);
+            groupBox2.Controls.Add(label14);
             groupBox2.Controls.Add(cboLocDuLieu);
             groupBox2.Controls.Add(label10);
             groupBox2.Controls.Add(radGiam);
@@ -268,12 +273,30 @@
             groupBox2.TabStop = false;
             groupBox2.Text = "Tìm Kiếm và Sắp xếp";
             // 
+            // cboLocHocKy
+            // 
+            cboLocHocKy.FormattingEnabled = true;
+            cboLocHocKy.Location = new Point(605, 95);
+            cboLocHocKy.Name = "cboLocHocKy";
+            cboLocHocKy.Size = new Size(414, 31);
+            cboLocHocKy.TabIndex = 87;
+            cboLocHocKy.SelectedIndexChanged += cboLocDuLieu_SelectedIndexChanged;
+            // 
+            // label14
+            // 
+            label14.AutoSize = true;
+            label14.Location = new Point(497, 102);
+            label14.Name = "label14";
+            label14.Size = new Size(102, 23);
+            label14.TabIndex = 86;
+            label14.Text = "Lọc Học Kỳ:";
+            // 
             // cboLocDuLieu
             // 
             cboLocDuLieu.FormattingEnabled = true;
-            cboLocDuLieu.Location = new Point(162, 91);
+            cboLocDuLieu.Location = new Point(156, 91);
             cboLocDuLieu.Name = "cboLocDuLieu";
-            cboLocDuLieu.Size = new Size(297, 31);
+            cboLocDuLieu.Size = new Size(303, 31);
             cboLocDuLieu.TabIndex = 87;
             cboLocDuLieu.SelectedIndexChanged += cboLocDuLieu_SelectedIndexChanged;
             // 
@@ -322,7 +345,7 @@
             // label9
             // 
             label9.AutoSize = true;
-            label9.Location = new Point(1161, 49);
+            label9.Location = new Point(1141, 51);
             label9.Name = "label9";
             label9.Size = new Size(121, 23);
             label9.TabIndex = 83;
@@ -330,11 +353,11 @@
             // 
             // txtTuKhoa
             // 
-            txtTuKhoa.Location = new Point(488, 44);
+            txtTuKhoa.Location = new Point(605, 42);
             txtTuKhoa.Margin = new Padding(3, 4, 3, 4);
             txtTuKhoa.Name = "txtTuKhoa";
             txtTuKhoa.PlaceholderText = "Nhập từ khóa cần tìm..";
-            txtTuKhoa.Size = new Size(400, 30);
+            txtTuKhoa.Size = new Size(414, 30);
             txtTuKhoa.TabIndex = 78;
             // 
             // label11
@@ -349,7 +372,7 @@
             // label12
             // 
             label12.AutoSize = true;
-            label12.Location = new Point(406, 47);
+            label12.Location = new Point(497, 45);
             label12.Name = "label12";
             label12.Size = new Size(76, 23);
             label12.TabIndex = 82;
@@ -358,35 +381,37 @@
             // cboTimKiem
             // 
             cboTimKiem.FormattingEnabled = true;
-            cboTimKiem.Location = new Point(177, 44);
+            cboTimKiem.Location = new Point(156, 44);
             cboTimKiem.Margin = new Padding(3, 4, 3, 4);
             cboTimKiem.Name = "cboTimKiem";
-            cboTimKiem.Size = new Size(200, 31);
+            cboTimKiem.Size = new Size(303, 31);
             cboTimKiem.TabIndex = 77;
             // 
             // btnShowAll
             // 
             btnShowAll.BackColor = Color.White;
+            btnShowAll.FlatAppearance.BorderSize = 0;
             btnShowAll.FlatStyle = FlatStyle.Flat;
-            btnShowAll.Location = new Point(1025, 42);
+            btnShowAll.Image = (Image)resources.GetObject("btnShowAll.Image");
+            btnShowAll.Location = new Point(1094, 40);
             btnShowAll.Margin = new Padding(3, 4, 3, 4);
             btnShowAll.Name = "btnShowAll";
-            btnShowAll.Size = new Size(130, 40);
+            btnShowAll.Size = new Size(41, 40);
             btnShowAll.TabIndex = 80;
-            btnShowAll.Text = "Hiện tất cả";
             btnShowAll.UseVisualStyleBackColor = false;
             btnShowAll.Click += btnShowAll_Click;
             // 
             // btnTimKiem
             // 
             btnTimKiem.BackColor = Color.White;
+            btnTimKiem.FlatAppearance.BorderSize = 0;
             btnTimKiem.FlatStyle = FlatStyle.Flat;
-            btnTimKiem.Location = new Point(916, 40);
+            btnTimKiem.Image = (Image)resources.GetObject("btnTimKiem.Image");
+            btnTimKiem.Location = new Point(1031, 42);
             btnTimKiem.Margin = new Padding(3, 4, 3, 4);
             btnTimKiem.Name = "btnTimKiem";
-            btnTimKiem.Size = new Size(103, 40);
+            btnTimKiem.Size = new Size(57, 40);
             btnTimKiem.TabIndex = 79;
-            btnTimKiem.Text = "Tìm Kiếm";
             btnTimKiem.UseVisualStyleBackColor = false;
             btnTimKiem.Click += btnTimKiem_Click;
             // 
@@ -811,5 +836,7 @@
         private Label label10;
         private ComboBox cboLocMaMonTheoKhoa;
         private Label label13;
+        private ComboBox cboLocHocKy;
+        private Label label14;
     }
 }

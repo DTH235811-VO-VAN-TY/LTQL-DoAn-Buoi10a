@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -19,22 +19,52 @@ namespace QuanLyDiemSV.Reports
     {
         private string _maKhoa;
         private string _maLop;
-        public FrmBaoCaoDanhSachSV(string maKhoa, string maLop)
+        private int _loaiBaoCao;
+
+        // loaiBaoCao: 0 = Tất cả, 1 = Tốt nghiệp, 2 = Học bổng
+        public FrmBaoCaoDanhSachSV(string maKhoa, string maLop, int loaiBaoCao = 0)
         {
             InitializeComponent();
             _maKhoa = maKhoa;
             _maLop = maLop;
+            _loaiBaoCao = loaiBaoCao;
         }
 
         private void FrmBaoCaoDanhSachSV_Load(object sender, EventArgs e)
         {
+            if (_loaiBaoCao == 1) this.Text = "Báo Cáo Danh Sách Sinh Viên Đủ Điều Kiện Tốt Nghiệp";
+            else if (_loaiBaoCao == 2) this.Text = "Báo Cáo Danh Sách Sinh Viên Nhận Học Bổng";
+
+            // Chỉ hiển thị bộ lọc Học Kỳ khi là báo cáo Học Bổng
+            label4.Visible = (_loaiBaoCao == 2);
+            cboHocKy.Visible = (_loaiBaoCao == 2);
+
             cboKhoa.SelectedIndexChanged += cboKhoa_SelectedIndexChanged;
             cboLop.SelectedIndexChanged += (s, ev) => LoadDuLieuBaoCao();
             cboLoaiSX.SelectedIndexChanged += (s, ev) => LoadDuLieuBaoCao();
             radTang.CheckedChanged += (s, ev) => LoadDuLieuBaoCao();
             radGiam.CheckedChanged += (s, ev) => LoadDuLieuBaoCao();
+            
             LoadComboBoxKhoa();
+            if (_loaiBaoCao == 2) LoadComboBoxHocKy();
+            
             LoadDuLieuBaoCao();
+        }
+
+        private void LoadComboBoxHocKy()
+        {
+            using (var context = new QLDSVDbContext())
+            {
+                var listHocKy = context.HocKy.ToList();
+                listHocKy.Insert(0, new HocKy { MaHK = "ALL", TenHK = "--- Tất cả Học Kỳ ---" });
+
+                cboHocKy.SelectedIndexChanged -= cboHocKy_SelectedIndexChanged;
+                cboHocKy.DataSource = listHocKy;
+                cboHocKy.DisplayMember = "TenHK";
+                cboHocKy.ValueMember = "MaHK";
+                cboHocKy.SelectedIndex = 0;
+                cboHocKy.SelectedIndexChanged += cboHocKy_SelectedIndexChanged;
+            }
         }
         private void LoadComboBoxKhoa()
         {
@@ -108,13 +138,27 @@ namespace QuanLyDiemSV.Reports
 
                 var listSV = querySV.ToList();
 
-                // 2. Lấy dữ liệu điểm
+                // 2. Lấy dữ liệu điểm và khung chương trình
                 var maSVs = listSV.Select(s => s.MaSV).ToList();
-                var listDiem = (from kq in context.KetQuaHocTap.AsNoTracking()
+                var queryDiem = (from kq in context.KetQuaHocTap.AsNoTracking()
                                 join lhp in context.LopHocPhan.AsNoTracking() on kq.MaLHP equals lhp.MaLHP
                                 join mh in context.MonHoc.AsNoTracking() on lhp.MaMon equals mh.MaMon
                                 where maSVs.Contains(kq.MaSV) && kq.DiemTongKet != null
-                                select new { kq.MaSV, DiemTongKet = kq.DiemTongKet.Value, mh.SoTinChi }).ToList();
+                                select new { kq.MaSV, DiemTongKet = kq.DiemTongKet.Value, kq.DiemCK, mh.SoTinChi, mh.MaMon, lhp.MaHK }).AsQueryable();
+
+                // Nếu là báo cáo học bổng và có chọn học kỳ, lọc điểm theo học kỳ đó
+                if (_loaiBaoCao == 2 && cboHocKy.SelectedValue != null)
+                {
+                    string maHK = cboHocKy.SelectedValue.ToString();
+                    if (maHK != "ALL")
+                    {
+                        queryDiem = queryDiem.Where(d => d.MaHK == maHK);
+                    }
+                }
+
+                var listDiem = queryDiem.ToList();
+
+                var khungCTList = context.KhungChuongTrinh.AsNoTracking().Include(k => k.MaMonNavigation).ToList();
 
                 // 3. Tính toán và lưu vào một List Tạm thời (Sử dụng class DTO bạn đã tạo) để chuẩn bị sắp xếp
                 List<SinhVienBaoCaoDTO> listTemp = new List<SinhVienBaoCaoDTO>();
@@ -122,12 +166,72 @@ namespace QuanLyDiemSV.Reports
                 {
                     var diemCuaSV = listDiem.Where(d => d.MaSV == sv.MaSV).ToList();
                     double tongDiem10 = 0;
+                    double tongDiem4 = 0;
                     int tongTinChi = 0;
+                    int tongTCDaDat = 0;
 
                     foreach (var d in diemCuaSV)
                     {
                         tongDiem10 += (double)d.DiemTongKet * d.SoTinChi;
                         tongTinChi += d.SoTinChi;
+
+                        // Tính điểm hệ 4 để xét tốt nghiệp
+                        double d10 = (double)d.DiemTongKet;
+                        double d4 = 0;
+                        if (d10 >= 8.5) d4 = 4.0;
+                        else if (d10 >= 8.0) d4 = 3.5;
+                        else if (d10 >= 7.0) d4 = 3.0;
+                        else if (d10 >= 6.5) d4 = 2.5;
+                        else if (d10 >= 5.5) d4 = 2.0;
+                        else if (d10 >= 5.0) d4 = 1.5;
+                        else if (d10 >= 4.0) d4 = 1.0;
+
+                        tongDiem4 += d4 * d.SoTinChi;
+                        if (d10 >= 4.0) tongTCDaDat += d.SoTinChi;
+                    }
+
+                    double gpa4 = tongTinChi > 0 ? Math.Round(tongDiem4 / tongTinChi, 2) : 0;
+                    double diemTB10 = tongTinChi > 0 ? Math.Round(tongDiem10 / tongTinChi, 2) : 0;
+
+                    // BỘ LỌC ĐIỀU KIỆN
+                    if (_loaiBaoCao == 1) // TỐT NGHIỆP
+                    {
+                        string maNganh = sv.MaLopNavigation?.MaNganh;
+                        var khungSV = khungCTList.Where(k => k.MaNganh == maNganh).ToList();
+
+                        if (khungSV.Count == 0) continue; // Nếu chưa có Khung CT, không thể xét tốt nghiệp
+
+                        bool duDieuKien = true;
+                        if (gpa4 < 2.0) duDieuKien = false; // ĐK 1: GPA >= 2.0
+
+                        var dsMonBB = khungSV.Where(k => k.LoaiMon == "Bắt buộc").Select(k => k.MaMon).ToList();
+
+                        // ĐK 2: Không có môn BB bị F
+                        if (diemCuaSV.Any(d => dsMonBB.Contains(d.MaMon) && d.DiemTongKet < (decimal)4.0))
+                            duDieuKien = false;
+
+                        // ĐK 3: Hoàn thành đủ môn BB
+                        var dsMonDaDat = diemCuaSV.Where(d => d.DiemTongKet >= (decimal)4.0).Select(d => d.MaMon).Distinct().ToList();
+                        if (dsMonBB.Any(m => !dsMonDaDat.Contains(m)))
+                            duDieuKien = false;
+
+                        // ĐK 4: Đủ tín chỉ (Yêu cầu 160 TC)
+                        if (tongTCDaDat < 160)
+                            duDieuKien = false;
+
+                        if (!duDieuKien) continue; // Bỏ qua SV này
+                    }
+                    else if (_loaiBaoCao == 2) // HỌC BỔNG
+                    {
+                        if (diemTB10 < 8.0) continue; // ĐK 1: Điểm tổng kết >= 8.0
+
+                        // ĐK 2: Không có môn nào thi dưới 5
+                        if (diemCuaSV.Any(d => d.DiemCK == null || d.DiemCK < 5))
+                            continue;
+
+                        // ĐK 3: Tổng số tín chỉ trong kỳ phải >= 15
+                        if (tongTinChi < 15)
+                            continue;
                     }
 
                     listTemp.Add(new SinhVienBaoCaoDTO
@@ -136,7 +240,7 @@ namespace QuanLyDiemSV.Reports
                         HoTen = sv.HoTen,
                         TenLop = sv.MaLopNavigation?.TenLop ?? "",
                         TenKhoa = sv.MaLopNavigation?.MaNganhNavigation?.MaKhoaNavigation?.TenKhoa ?? "",
-                        DiemTrungBinh = tongTinChi > 0 ? Math.Round(tongDiem10 / tongTinChi, 2) : 0,
+                        DiemTrungBinh = diemTB10,
                         SoTinChi = tongTinChi
                     });
                 }
@@ -205,6 +309,11 @@ namespace QuanLyDiemSV.Reports
         private void btnReset_Click(object sender, EventArgs e)
         {
             cboKhoa.SelectedIndex = 0; // Về "Tất cả Khoa"
+            LoadDuLieuBaoCao();
+        }
+
+        private void cboHocKy_SelectedIndexChanged(object sender, EventArgs e)
+        {
             LoadDuLieuBaoCao();
         }
     }

@@ -233,8 +233,15 @@ namespace GUI
                 // 1. Lọc theo Khoa (nếu có chọn khoa)
                 if (cboLoc.SelectedValue != null)
                 {
-                    string maKhoa = cboLoc.SelectedValue.ToString();
-                    query = query.Where(m => m.MaKhoa == maKhoa);
+                    string selectedVal = cboLoc.SelectedValue.ToString();
+                    if (selectedVal == "MONCHUNG")
+                    {
+                        query = query.Where(m => m.MaKhoa == null || m.MaKhoa == "");
+                    }
+                    else if (selectedVal != "TATCA")
+                    {
+                        query = query.Where(m => m.MaKhoa == selectedVal);
+                    }
                 }
 
                 // 2. Tìm kiếm theo Tên môn học
@@ -284,13 +291,18 @@ namespace GUI
 
         private void LoadDuLieuKhoa()
         {
-            var listKhoa = context.Khoa.ToList();
+            var listKhoa = context.Khoa.Select(k => new { k.MaKhoa, k.TenKhoa }).ToList();
 
             // 1. Fill cho ComboBox Lọc (comboBox1 ở panel trên cùng)
-            cboLoc.DataSource = new List<Khoa>(listKhoa); // Tạo bản sao list để tránh conflict binding
+            var listLoc = new List<object>();
+            listLoc.Add(new { MaKhoa = "TATCA", TenKhoa = "-- Tất cả khoa --" });
+            listLoc.Add(new { MaKhoa = "MONCHUNG", TenKhoa = "-- Môn chung (Không thuộc khoa) --" });
+            foreach (var k in listKhoa) listLoc.Add(k);
+
+            cboLoc.DataSource = listLoc;
             cboLoc.DisplayMember = "TenKhoa";
             cboLoc.ValueMember = "MaKhoa";
-            cboLoc.SelectedIndex = -1; // Mặc định không chọn gì
+            cboLoc.SelectedIndex = 0; // Mặc định chọn Tất cả khoa
 
             // 2. Fill cho ComboBox Chi tiết (cboKhoa ở GroupBox nhập liệu)
             cboKhoa.DataSource = listKhoa;
@@ -382,11 +394,13 @@ namespace GUI
         // Thay đổi hàm: Truyền thêm mã khoa vào để lọc
         private void LoadCboMonTienQuyetTheoKhoa(string maKhoa, string maMonHienTai)
         {
-            if (string.IsNullOrEmpty(maKhoa)) return;
-
-            // Chỉ lấy các môn học thuộc cùng Khoa với môn đang chọn
-            var listMon = context.MonHoc.Where(m => m.MaKhoa == maKhoa
-                                                && m.MaMon != maMonHienTai).ToList();
+            // Nếu maKhoa rỗng -> Đây là môn chung -> Load các môn chung khác làm môn tiên quyết
+            // Nếu maKhoa có giá trị -> Load các môn cùng khoa
+            
+            var listMon = context.MonHoc
+                .Where(m => (string.IsNullOrEmpty(maKhoa) ? (m.MaKhoa == null || m.MaKhoa == "") : (m.MaKhoa == maKhoa))
+                            && m.MaMon != maMonHienTai)
+                .ToList();
 
             cbboMonTienQuyet.DataSource = listMon;
             cbboMonTienQuyet.DisplayMember = "TenMon";
@@ -671,6 +685,23 @@ namespace GUI
 
             // Load lại toàn bộ dữ liệu ban đầu
             bsMonHoc.DataSource = context.MonHoc.ToList();
+        }
+        // ==============================================================
+        // HÀM CẬP NHẬT DỮ LIỆU MỚI NHẤT (Chuẩn hóa cho toàn hệ thống)
+        // ==============================================================
+        public void CapNhatDuLieuMoiNhat()
+        {
+            try
+            {
+                // Reset context để tránh dùng cache cũ
+                context = new QLDSVDbContext();
+                LoadDuLieuKhoa();
+                LoadDuLieuMonHoc();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi cập nhật môn học: " + ex.Message);
+            }
         }
     }
 }

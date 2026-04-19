@@ -1,4 +1,4 @@
-﻿namespace QuanLyDiemSV.Forms
+namespace QuanLyDiemSV.Forms
 {
     partial class UC_TraCuuDiem_Container
     {
@@ -28,12 +28,13 @@
         /// </summary>
         private void InitializeComponent()
         {
-            DataGridViewCellStyle dataGridViewCellStyle1 = new DataGridViewCellStyle();
-            DataGridViewCellStyle dataGridViewCellStyle6 = new DataGridViewCellStyle();
-            DataGridViewCellStyle dataGridViewCellStyle2 = new DataGridViewCellStyle();
-            DataGridViewCellStyle dataGridViewCellStyle3 = new DataGridViewCellStyle();
-            DataGridViewCellStyle dataGridViewCellStyle4 = new DataGridViewCellStyle();
-            DataGridViewCellStyle dataGridViewCellStyle5 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle7 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle12 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle8 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle9 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle10 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle11 = new DataGridViewCellStyle();
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(UC_TraCuuDiem_Container));
             panel1 = new Panel();
             panel3 = new Panel();
             groupBox2 = new GroupBox();
@@ -62,6 +63,8 @@
             label2 = new Label();
             cboKhoa = new ComboBox();
             label1 = new Label();
+            btnBaoCaoSVHB = new Button();
+            btnBaoCaoSVTN = new Button();
             panel1.SuspendLayout();
             panel3.SuspendLayout();
             groupBox2.SuspendLayout();
@@ -108,24 +111,24 @@
             dgvDanhSachSV.AllowUserToDeleteRows = false;
             dgvDanhSachSV.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
             dgvDanhSachSV.BackgroundColor = Color.White;
-            dataGridViewCellStyle1.Alignment = DataGridViewContentAlignment.MiddleCenter;
-            dataGridViewCellStyle1.BackColor = Color.DeepSkyBlue;
-            dataGridViewCellStyle1.Font = new Font("Segoe UI Semibold", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            dataGridViewCellStyle1.ForeColor = Color.White;
-            dataGridViewCellStyle1.SelectionBackColor = Color.Blue;
-            dataGridViewCellStyle1.SelectionForeColor = SystemColors.HighlightText;
-            dataGridViewCellStyle1.WrapMode = DataGridViewTriState.True;
-            dgvDanhSachSV.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
+            dataGridViewCellStyle7.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            dataGridViewCellStyle7.BackColor = Color.DeepSkyBlue;
+            dataGridViewCellStyle7.Font = new Font("Segoe UI Semibold", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            dataGridViewCellStyle7.ForeColor = Color.White;
+            dataGridViewCellStyle7.SelectionBackColor = Color.Blue;
+            dataGridViewCellStyle7.SelectionForeColor = SystemColors.HighlightText;
+            dataGridViewCellStyle7.WrapMode = DataGridViewTriState.True;
+            dgvDanhSachSV.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle7;
             dgvDanhSachSV.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             dgvDanhSachSV.Columns.AddRange(new DataGridViewColumn[] { MaSV, HoTen, TenLop, TenKhoa, DiemTrungBinh, SoTinChi, ThaoTac });
-            dataGridViewCellStyle6.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle6.BackColor = SystemColors.Window;
-            dataGridViewCellStyle6.Font = new Font("Segoe UI Semibold", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            dataGridViewCellStyle6.ForeColor = SystemColors.ControlText;
-            dataGridViewCellStyle6.SelectionBackColor = Color.Silver;
-            dataGridViewCellStyle6.SelectionForeColor = Color.Black;
-            dataGridViewCellStyle6.WrapMode = DataGridViewTriState.False;
-            dgvDanhSachSV.DefaultCellStyle = dataGridViewCellStyle6;
+            dataGridViewCellStyle12.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle12.BackColor = SystemColors.Window;
+            dataGridViewCellStyle12.Font = new Font("Segoe UI Semibold", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            dataGridViewCellStyle12.ForeColor = SystemColors.ControlText;
+            dataGridViewCellStyle12.SelectionBackColor = Color.Silver;
+            dataGridViewCellStyle12.SelectionForeColor = Color.Black;
+            dataGridViewCellStyle12.WrapMode = DataGridViewTriState.False;
+            dgvDanhSachSV.DefaultCellStyle = dataGridViewCellStyle12;
             dgvDanhSachSV.Dock = DockStyle.Fill;
             dgvDanhSachSV.EnableHeadersVisualStyles = false;
             dgvDanhSachSV.Location = new Point(3, 26);
@@ -139,10 +142,10 @@
             // MaSV
             // 
             MaSV.DataPropertyName = "MaSV";
-            dataGridViewCellStyle2.Alignment = DataGridViewContentAlignment.MiddleCenter;
-            dataGridViewCellStyle2.Font = new Font("Microsoft Sans Serif", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            dataGridViewCellStyle2.ForeColor = Color.Blue;
-            MaSV.DefaultCellStyle = dataGridViewCellStyle2;
+            dataGridViewCellStyle8.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            dataGridViewCellStyle8.Font = new Font("Microsoft Sans Serif", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            dataGridViewCellStyle8.ForeColor = Color.Blue;
+            MaSV.DefaultCellStyle = dataGridViewCellStyle8;
             MaSV.HeaderText = "Mã SV";
             MaSV.MinimumWidth = 6;
             MaSV.Name = "MaSV";
@@ -175,10 +178,10 @@
             // DiemTrungBinh
             // 
             DiemTrungBinh.DataPropertyName = "DiemTrungBinh";
-            dataGridViewCellStyle3.Alignment = DataGridViewContentAlignment.MiddleCenter;
-            dataGridViewCellStyle3.Font = new Font("Microsoft Sans Serif", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            dataGridViewCellStyle3.ForeColor = Color.Blue;
-            DiemTrungBinh.DefaultCellStyle = dataGridViewCellStyle3;
+            dataGridViewCellStyle9.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            dataGridViewCellStyle9.Font = new Font("Microsoft Sans Serif", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            dataGridViewCellStyle9.ForeColor = Color.Blue;
+            DiemTrungBinh.DefaultCellStyle = dataGridViewCellStyle9;
             DiemTrungBinh.HeaderText = "ĐTB Tích lũy";
             DiemTrungBinh.MinimumWidth = 6;
             DiemTrungBinh.Name = "DiemTrungBinh";
@@ -187,10 +190,10 @@
             // SoTinChi
             // 
             SoTinChi.DataPropertyName = "SoTinChi";
-            dataGridViewCellStyle4.Alignment = DataGridViewContentAlignment.MiddleCenter;
-            dataGridViewCellStyle4.Font = new Font("Microsoft Sans Serif", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            dataGridViewCellStyle4.ForeColor = Color.Blue;
-            SoTinChi.DefaultCellStyle = dataGridViewCellStyle4;
+            dataGridViewCellStyle10.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            dataGridViewCellStyle10.Font = new Font("Microsoft Sans Serif", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            dataGridViewCellStyle10.ForeColor = Color.Blue;
+            SoTinChi.DefaultCellStyle = dataGridViewCellStyle10;
             SoTinChi.HeaderText = "STC tích lũy";
             SoTinChi.MinimumWidth = 6;
             SoTinChi.Name = "SoTinChi";
@@ -199,10 +202,10 @@
             // ThaoTac
             // 
             ThaoTac.DataPropertyName = "ThaoTac";
-            dataGridViewCellStyle5.Alignment = DataGridViewContentAlignment.MiddleCenter;
-            dataGridViewCellStyle5.BackColor = Color.White;
-            dataGridViewCellStyle5.Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            ThaoTac.DefaultCellStyle = dataGridViewCellStyle5;
+            dataGridViewCellStyle11.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            dataGridViewCellStyle11.BackColor = Color.White;
+            dataGridViewCellStyle11.Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            ThaoTac.DefaultCellStyle = dataGridViewCellStyle11;
             ThaoTac.HeaderText = "Thao Tác";
             ThaoTac.MinimumWidth = 6;
             ThaoTac.Name = "ThaoTac";
@@ -224,6 +227,9 @@
             // 
             // groupBox1
             // 
+            groupBox1.BackColor = Color.White;
+            groupBox1.Controls.Add(btnBaoCaoSVTN);
+            groupBox1.Controls.Add(btnBaoCaoSVHB);
             groupBox1.Controls.Add(btnInBaoCao);
             groupBox1.Controls.Add(btnInDanhSach);
             groupBox1.Controls.Add(btnXuat);
@@ -250,9 +256,9 @@
             // 
             // btnInBaoCao
             // 
-            btnInBaoCao.Location = new Point(1011, 124);
+            btnInBaoCao.Location = new Point(1472, 123);
             btnInBaoCao.Name = "btnInBaoCao";
-            btnInBaoCao.Size = new Size(170, 41);
+            btnInBaoCao.Size = new Size(175, 41);
             btnInBaoCao.TabIndex = 144;
             btnInBaoCao.Text = "In Báo Cáo";
             btnInBaoCao.UseVisualStyleBackColor = true;
@@ -266,11 +272,11 @@
             btnInDanhSach.FlatAppearance.MouseOverBackColor = Color.Blue;
             btnInDanhSach.Font = new Font("Microsoft Sans Serif", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
             btnInDanhSach.ImageAlign = ContentAlignment.MiddleLeft;
-            btnInDanhSach.Location = new Point(1428, 127);
+            btnInDanhSach.Location = new Point(1507, 57);
             btnInDanhSach.Margin = new Padding(3, 4, 3, 4);
             btnInDanhSach.Name = "btnInDanhSach";
             btnInDanhSach.Padding = new Padding(5, 0, 0, 0);
-            btnInDanhSach.Size = new Size(199, 43);
+            btnInDanhSach.Size = new Size(140, 43);
             btnInDanhSach.TabIndex = 142;
             btnInDanhSach.Text = "In Danh Sách";
             btnInDanhSach.UseVisualStyleBackColor = true;
@@ -284,11 +290,11 @@
             btnXuat.FlatAppearance.MouseOverBackColor = Color.Blue;
             btnXuat.Font = new Font("Microsoft Sans Serif", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
             btnXuat.ImageAlign = ContentAlignment.MiddleLeft;
-            btnXuat.Location = new Point(1208, 124);
+            btnXuat.Location = new Point(1391, 54);
             btnXuat.Margin = new Padding(3, 4, 3, 4);
             btnXuat.Name = "btnXuat";
             btnXuat.Padding = new Padding(5, 0, 0, 0);
-            btnXuat.Size = new Size(199, 43);
+            btnXuat.Size = new Size(97, 43);
             btnXuat.TabIndex = 143;
             btnXuat.Text = "Xuất File";
             btnXuat.UseVisualStyleBackColor = true;
@@ -331,7 +337,7 @@
             // label4
             // 
             label4.AutoSize = true;
-            label4.Location = new Point(841, 63);
+            label4.Location = new Point(819, 61);
             label4.Name = "label4";
             label4.Size = new Size(77, 23);
             label4.TabIndex = 6;
@@ -348,30 +354,32 @@
             // 
             // btnReset
             // 
-            btnReset.Location = new Point(1487, 55);
+            btnReset.FlatAppearance.BorderSize = 0;
+            btnReset.Image = (Image)resources.GetObject("btnReset.Image");
+            btnReset.Location = new Point(1343, 54);
             btnReset.Name = "btnReset";
-            btnReset.Size = new Size(140, 38);
+            btnReset.Size = new Size(42, 38);
             btnReset.TabIndex = 5;
-            btnReset.Text = "Tải lại";
             btnReset.UseVisualStyleBackColor = true;
             btnReset.Click += btnReset_Click;
             // 
             // btnTimKiem
             // 
-            btnTimKiem.Location = new Point(1341, 55);
+            btnTimKiem.FlatAppearance.BorderSize = 0;
+            btnTimKiem.Image = (Image)resources.GetObject("btnTimKiem.Image");
+            btnTimKiem.Location = new Point(1292, 52);
             btnTimKiem.Name = "btnTimKiem";
-            btnTimKiem.Size = new Size(140, 38);
+            btnTimKiem.Size = new Size(45, 40);
             btnTimKiem.TabIndex = 5;
-            btnTimKiem.Text = "Tìm Kiếm";
             btnTimKiem.UseVisualStyleBackColor = true;
             btnTimKiem.Click += btnTimKiem_Click;
             // 
             // txtTuKhoa
             // 
-            txtTuKhoa.Location = new Point(960, 60);
+            txtTuKhoa.Location = new Point(902, 58);
             txtTuKhoa.Name = "txtTuKhoa";
             txtTuKhoa.PlaceholderText = "Nhập từ khóa cần tìm...";
-            txtTuKhoa.Size = new Size(361, 30);
+            txtTuKhoa.Size = new Size(374, 30);
             txtTuKhoa.TabIndex = 4;
             // 
             // cboLop
@@ -409,6 +417,26 @@
             label1.Size = new Size(53, 23);
             label1.TabIndex = 0;
             label1.Text = "Khoa:";
+            // 
+            // btnBaoCaoSVHB
+            // 
+            btnBaoCaoSVHB.Location = new Point(760, 123);
+            btnBaoCaoSVHB.Name = "btnBaoCaoSVHB";
+            btnBaoCaoSVHB.Size = new Size(342, 43);
+            btnBaoCaoSVHB.TabIndex = 145;
+            btnBaoCaoSVHB.Text = "Sinh Viên Đủ Điều Kiện Nhận Học Bổng";
+            btnBaoCaoSVHB.UseVisualStyleBackColor = true;
+            btnBaoCaoSVHB.Click += btnBaoCaoSVHB_Click;
+            // 
+            // btnBaoCaoSVTN
+            // 
+            btnBaoCaoSVTN.Location = new Point(1108, 123);
+            btnBaoCaoSVTN.Name = "btnBaoCaoSVTN";
+            btnBaoCaoSVTN.Size = new Size(342, 41);
+            btnBaoCaoSVTN.TabIndex = 145;
+            btnBaoCaoSVTN.Text = "Sinh Viên Đủ Điều Kiện Tốt Nghiệp";
+            btnBaoCaoSVTN.UseVisualStyleBackColor = true;
+            btnBaoCaoSVTN.Click += btnBaoCaoSVTN_Click;
             // 
             // UC_TraCuuDiem_Container
             // 
@@ -457,5 +485,7 @@
         private DataGridViewTextBoxColumn SoTinChi;
         private DataGridViewLinkColumn ThaoTac;
         private Button btnInBaoCao;
+        private Button btnBaoCaoSVTN;
+        private Button btnBaoCaoSVHB;
     }
 }

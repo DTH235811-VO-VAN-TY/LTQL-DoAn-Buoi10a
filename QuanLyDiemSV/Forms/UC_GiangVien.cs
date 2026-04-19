@@ -279,6 +279,7 @@ namespace QuanLyDiemSV.Forms
             }
 
             context.ChangeTracker.Clear();
+            await LoadCboLocKhoaAsync();
             await LoadDataAsync();
         }
 

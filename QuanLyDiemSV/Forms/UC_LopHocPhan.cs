@@ -27,6 +27,10 @@ namespace QuanLyDiemSV
             InitializeComponent();
             this.Load += UC_LopHocPhan_Load;
             StyleDataGridView(dgvLopHocPhan);
+            
+            // Đăng ký sự kiện lọc cho các ComboBox lọc
+            cboLocDuLieu.SelectedIndexChanged += (s, e) => { if (cboLocDuLieu.Focused) LoadDataAsync(); };
+            cboLocHocKy.SelectedIndexChanged += (s, e) => { if (cboLocHocKy.Focused) LoadDataAsync(); };
 
             // FIX: Cho phép bấm Làm lại/Thêm/Sửa/Xoa mà không bị chặn bởi Validate
             btnLamLai.CausesValidation = false;
@@ -189,7 +193,7 @@ namespace QuanLyDiemSV
             KhoiTaoCboTimKiemSapXep();
             RegisterValidations();
         }
-        public async Task CapNhatDuLieuMoiNhatAsync()
+        public async Task CapNhatDuLieuMoiNhat()
         {
             using (var freshContext = new QLDSVDbContext())
             {
@@ -213,6 +217,7 @@ namespace QuanLyDiemSV
             if (!daTaiDuLieu)
             {
                 await LoadCboKhoaAsync(); // Tải danh sách Khoa vào ComboBox lọc
+                await LoadCboLocHocKyAsync(); // Tải danh sách Học kỳ vào ComboBox lọc
                 await LoadCboLocMaMonTheoKhoaAsync(); // Tải danh sách Khoa cho ComboBox lọc Môn
                 await LoadDataAsync(); // Gọi phiên bản Async của LoadData
                 daTaiDuLieu = true;
@@ -226,7 +231,7 @@ namespace QuanLyDiemSV
             btnLuu.Enabled = giaTri;
             btnLamLai.Enabled = giaTri;
 
-            txtMaLHP.Enabled = giaTri;
+            txtMaLHP.Enabled = false; // Luôn ẩn vì là mã tự tăng
             txtTenLHP.Enabled = giaTri;
             txtPhongHoc.Enabled = giaTri;
             txtSiSo.Enabled = giaTri;
@@ -297,6 +302,24 @@ namespace QuanLyDiemSV
             }
         }
 
+        private async Task LoadCboLocHocKyAsync()
+        {
+            try
+            {
+                var listHK = await context.HocKy.ToListAsync();
+                listHK.Insert(0, new HocKy { MaHK = "ALL", TenHK = "--- Tất cả các học kỳ ---" });
+
+                cboLocHocKy.DataSource = listHK;
+                cboLocHocKy.DisplayMember = "TenHK";
+                cboLocHocKy.ValueMember = "MaHK";
+                cboLocHocKy.SelectedIndex = 0;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi tải danh sách học kỳ để lọc: " + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
         // Thêm biến này ở đầu class (cùng chỗ với bool daTaiDuLieu)
         bool dangTruyVan = false;
 
@@ -342,6 +365,12 @@ namespace QuanLyDiemSV
                     string maKhoaChon = cboLocDuLieu.SelectedValue.ToString();
                     // Lọc các Lớp Học Phần có Môn Học thuộc Khoa đã chọn
                     query = query.Where(l => l.MaMonNavigation != null && l.MaMonNavigation.MaKhoa == maKhoaChon);
+                }
+
+                if (cboLocHocKy.SelectedValue != null && cboLocHocKy.SelectedValue.ToString() != "ALL")
+                {
+                    string maHKChon = cboLocHocKy.SelectedValue.ToString();
+                    query = query.Where(l => l.MaHK == maHKChon);
                 }
 
                 bool isTang = radTang.Checked;
@@ -430,6 +459,7 @@ namespace QuanLyDiemSV
             BatTatChucNang(true);
 
             txtMaLHP.Clear();
+            txtMaLHP.Text = "Tự động tăng";
             txtTenLHP.Clear();
             txtPhongHoc.Clear();
             txtSiSo.Text = "0";
@@ -484,12 +514,12 @@ namespace QuanLyDiemSV
             errorProvider.Clear(); // Dọn dẹp lỗi cũ trước khi kiểm tra mới
             bool coLoi = false;
 
-            // 1. Kiểm tra Mã môn
-            if (string.IsNullOrWhiteSpace(txtMaLHP.Text))
-            {
-                errorProvider.SetError(txtMaLHP, "Mã lớp học phần không được để trống!");
-                coLoi = true;
-            }
+            // Bỏ qua kiểm tra Mã LHP vì là số tự tăng
+            //if (string.IsNullOrWhiteSpace(txtMaLHP.Text))
+            //{
+            //    errorProvider.SetError(txtMaLHP, "Mã lớp học phần không được để trống!");
+            //    coLoi = true;
+            //}
 
             // 2. Kiểm tra Tên môn
             if (string.IsNullOrWhiteSpace(txtTenLHP.Text))
@@ -514,26 +544,8 @@ namespace QuanLyDiemSV
                 // --- ĐÂY LÀ CHÌA KHÓA GIẢI QUYẾT LỖI ---
                 if (xuLyThem)
                 {
-                    // KIỂM TRA ĐIỀU KIỆN MÃ LỚP KHI THÊM MỚI
-                    if (!int.TryParse(txtMaLHP.Text.Trim(), out int maLopMoi))
-                    {
-                        MessageBox.Show("Mã Lớp Học Phần phải là số nguyên hợp lệ!", "Cảnh báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                        txtMaLHP.Focus();
-                        return;
-                    }
-
-                    // Kiểm tra xem Mã này đã tồn tại trong Database chưa
-                    if (context.LopHocPhan.Any(x => x.MaLHP == maLopMoi))
-                    {
-                        MessageBox.Show("Mã Lớp Học Phần này đã tồn tại! Vui lòng nhập mã khác.", "Trùng dữ liệu", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                        txtMaLHP.Focus();
-                        return;
-                    }
-
-                    // NẾU THÊM MỚI: Phải tạo một đối tượng hoàn toàn mới (Mã LHP sẽ trống để SQL tự sinh)
+                    // NẾU THÊM MỚI: Không cần kiểm tra Mã LHP vì CSDL tự tăng (IDENTITY)
                     lhp = new LopHocPhan();
-
-                    lhp.MaLHP = maLopMoi;
                 }
                 else
                 {
@@ -661,6 +673,8 @@ namespace QuanLyDiemSV
         private async void btnShowAll_Click(object sender, EventArgs e)
         {
             txtTuKhoa.Clear();
+            cboLocDuLieu.SelectedIndex = 0;
+            cboLocHocKy.SelectedIndex = 0;
             cboTimKiem.SelectedIndex = 1; // Đưa về mặc định tìm theo Tên LHP
             cboKieuSX.SelectedIndex = 0;  // Đưa về mặc định sắp xếp theo Mã LHP
             radTang.Checked = true;
@@ -765,8 +779,11 @@ namespace QuanLyDiemSV
                                     continue;
                                 }
 
+                                // Bỏ qua gán lhp.MaLHP = maLHP; vì trong DB đã cài IDENTITY tự tăng
+                                // Tuy nhiên ta vẫn giữ maLHP để kiểm tra trùng trong file excel nếu cần.
+                                
                                 LopHocPhan lhp = new LopHocPhan();
-                                lhp.MaLHP = maLHP;
+                                // lhp.MaLHP = maLHP; // KHÔNG GÁN NỮA
                                 lhp.TenLopHP = row.Cell(2).Value.ToString().Trim();
                                 lhp.PhongHoc = row.Cell(3).Value.ToString().Trim().ToUpper();
 

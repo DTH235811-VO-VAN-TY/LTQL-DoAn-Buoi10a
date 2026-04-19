@@ -114,6 +114,7 @@
             // groupBox2
             // 
             groupBox2.Anchor = AnchorStyles.Top;
+            groupBox2.BackColor = Color.White;
             groupBox2.Controls.Add(cboKhoa);
             groupBox2.Controls.Add(btnSua);
             groupBox2.Controls.Add(btnLamLai);
@@ -346,6 +347,7 @@
             // groupBox4
             // 
             groupBox4.Anchor = AnchorStyles.Bottom;
+            groupBox4.BackColor = Color.White;
             groupBox4.Controls.Add(dgvMonTienQuyet);
             groupBox4.Font = new Font("Segoe UI", 10.2F, FontStyle.Regular, GraphicsUnit.Point, 0);
             groupBox4.Location = new Point(954, 617);
@@ -397,6 +399,7 @@
             // groupBox3
             // 
             groupBox3.Anchor = AnchorStyles.Top | AnchorStyles.Bottom;
+            groupBox3.BackColor = Color.White;
             groupBox3.Controls.Add(btnThemMonTienQuyet);
             groupBox3.Controls.Add(btnXoaMonTienQuyet);
             groupBox3.Controls.Add(cbboMonTienQuyet);
@@ -455,7 +458,7 @@
             label5.Anchor = AnchorStyles.None;
             label5.AutoSize = true;
             label5.Font = new Font("Segoe UI", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            label5.Location = new Point(236, 85);
+            label5.Location = new Point(169, 85);
             label5.Name = "label5";
             label5.Size = new Size(20, 28);
             label5.TabIndex = 2;
@@ -466,9 +469,9 @@
             lblTenMon.Anchor = AnchorStyles.None;
             lblTenMon.Font = new Font("Segoe UI", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
             lblTenMon.ForeColor = Color.Blue;
-            lblTenMon.Location = new Point(307, 85);
+            lblTenMon.Location = new Point(195, 88);
             lblTenMon.Name = "lblTenMon";
-            lblTenMon.Size = new Size(242, 28);
+            lblTenMon.Size = new Size(504, 28);
             lblTenMon.TabIndex = 1;
             lblTenMon.Text = "Tên môn";
             // 
@@ -505,6 +508,7 @@
             // 
             // panel2
             // 
+            panel2.BackColor = Color.White;
             panel2.Controls.Add(panel3);
             panel2.Controls.Add(groupBox1);
             panel2.Dock = DockStyle.Left;
@@ -515,6 +519,7 @@
             // 
             // panel3
             // 
+            panel3.BackColor = Color.White;
             panel3.Controls.Add(btnReset);
             panel3.Controls.Add(btnTimKiem);
             panel3.Controls.Add(txtTuKhoa);
@@ -530,26 +535,29 @@
             // 
             // btnReset
             // 
-            btnReset.Location = new Point(832, 84);
+            btnReset.FlatAppearance.BorderSize = 0;
+            btnReset.Image = (Image)resources.GetObject("btnReset.Image");
+            btnReset.Location = new Point(785, 73);
             btnReset.Name = "btnReset";
-            btnReset.Size = new Size(94, 29);
+            btnReset.Size = new Size(40, 48);
             btnReset.TabIndex = 5;
-            btnReset.Text = "Tải lại";
             btnReset.UseVisualStyleBackColor = true;
             btnReset.Click += btnReset_Click;
             // 
             // btnTimKiem
             // 
-            btnTimKiem.Location = new Point(732, 84);
+            btnTimKiem.FlatAppearance.BorderSize = 0;
+            btnTimKiem.Image = (Image)resources.GetObject("btnTimKiem.Image");
+            btnTimKiem.Location = new Point(728, 72);
             btnTimKiem.Name = "btnTimKiem";
-            btnTimKiem.Size = new Size(94, 29);
+            btnTimKiem.Size = new Size(51, 48);
             btnTimKiem.TabIndex = 5;
-            btnTimKiem.Text = "Tìm Kiếm";
             btnTimKiem.UseVisualStyleBackColor = true;
             btnTimKiem.Click += btnTimKiem_Click;
             // 
             // txtTuKhoa
             // 
+            txtTuKhoa.Font = new Font("Times New Roman", 10.2F, FontStyle.Regular, GraphicsUnit.Point, 0);
             txtTuKhoa.ForeColor = Color.Gray;
             txtTuKhoa.Location = new Point(450, 84);
             txtTuKhoa.Name = "txtTuKhoa";

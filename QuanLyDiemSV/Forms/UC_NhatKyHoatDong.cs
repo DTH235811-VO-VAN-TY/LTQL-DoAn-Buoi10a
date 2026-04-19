@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Data;
 using System.Drawing;
 using System.Linq;
@@ -237,6 +237,20 @@ namespace QuanLyDiemSV.Forms
                 dgv.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCells;
             }
             catch { }
+        }
+        // ==============================================================
+        // HÀM CẬP NHẬT DỮ LIỆU MỚI NHẤT (Chuẩn hóa cho toàn hệ thống)
+        // ==============================================================
+        public void CapNhatDuLieuMoiNhat()
+        {
+            try
+            {
+                LoadData();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi cập nhật nhật ký: " + ex.Message);
+            }
         }
     }
 }

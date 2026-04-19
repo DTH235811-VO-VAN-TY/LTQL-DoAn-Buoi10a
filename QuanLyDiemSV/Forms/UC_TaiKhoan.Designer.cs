@@ -28,7 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
-            DataGridViewCellStyle dataGridViewCellStyle1 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle2 = new DataGridViewCellStyle();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(UC_TaiKhoan));
             panel1 = new Panel();
             panel4 = new Panel();
@@ -76,6 +76,8 @@
             label2 = new Label();
             txtUserID = new TextBox();
             label1 = new Label();
+            cboLocKhoa = new ComboBox();
+            label9 = new Label();
             panel1.SuspendLayout();
             panel4.SuspendLayout();
             groupBox3.SuspendLayout();
@@ -109,6 +111,7 @@
             // 
             // groupBox3
             // 
+            groupBox3.BackColor = Color.White;
             groupBox3.Controls.Add(dataGridView1);
             groupBox3.Dock = DockStyle.Fill;
             groupBox3.Font = new Font("Segoe UI Semibold", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
@@ -127,14 +130,14 @@
             dataGridView1.BackgroundColor = Color.White;
             dataGridView1.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             dataGridView1.Columns.AddRange(new DataGridViewColumn[] { UserID, Username, PasswordHash, RoleID, IsActive, NgayTao });
-            dataGridViewCellStyle1.Alignment = DataGridViewContentAlignment.MiddleCenter;
-            dataGridViewCellStyle1.BackColor = SystemColors.Window;
-            dataGridViewCellStyle1.Font = new Font("Segoe UI Semibold", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            dataGridViewCellStyle1.ForeColor = SystemColors.ControlText;
-            dataGridViewCellStyle1.SelectionBackColor = SystemColors.Highlight;
-            dataGridViewCellStyle1.SelectionForeColor = SystemColors.HighlightText;
-            dataGridViewCellStyle1.WrapMode = DataGridViewTriState.False;
-            dataGridView1.DefaultCellStyle = dataGridViewCellStyle1;
+            dataGridViewCellStyle2.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            dataGridViewCellStyle2.BackColor = SystemColors.Window;
+            dataGridViewCellStyle2.Font = new Font("Segoe UI Semibold", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            dataGridViewCellStyle2.ForeColor = SystemColors.ControlText;
+            dataGridViewCellStyle2.SelectionBackColor = SystemColors.Highlight;
+            dataGridViewCellStyle2.SelectionForeColor = SystemColors.HighlightText;
+            dataGridViewCellStyle2.WrapMode = DataGridViewTriState.False;
+            dataGridView1.DefaultCellStyle = dataGridViewCellStyle2;
             dataGridView1.Dock = DockStyle.Fill;
             dataGridView1.Location = new Point(3, 26);
             dataGridView1.Name = "dataGridView1";
@@ -204,13 +207,16 @@
             // 
             // groupBox2
             // 
+            groupBox2.BackColor = Color.White;
             groupBox2.Controls.Add(label8);
             groupBox2.Controls.Add(cboKieuSX);
             groupBox2.Controls.Add(radGiam);
             groupBox2.Controls.Add(radTang);
             groupBox2.Controls.Add(txtTuKhoaTK);
+            groupBox2.Controls.Add(label9);
             groupBox2.Controls.Add(label11);
             groupBox2.Controls.Add(label12);
+            groupBox2.Controls.Add(cboLocKhoa);
             groupBox2.Controls.Add(cboLoaiTK);
             groupBox2.Controls.Add(btnShowAll);
             groupBox2.Controls.Add(btnTimKiem);
@@ -226,7 +232,7 @@
             // label8
             // 
             label8.AutoSize = true;
-            label8.Location = new Point(1180, 66);
+            label8.Location = new Point(1240, 59);
             label8.Name = "label8";
             label8.Size = new Size(111, 23);
             label8.TabIndex = 90;
@@ -235,7 +241,7 @@
             // cboKieuSX
             // 
             cboKieuSX.FormattingEnabled = true;
-            cboKieuSX.Location = new Point(1297, 63);
+            cboKieuSX.Location = new Point(1357, 54);
             cboKieuSX.Name = "cboKieuSX";
             cboKieuSX.Size = new Size(151, 31);
             cboKieuSX.TabIndex = 89;
@@ -244,7 +250,7 @@
             // radGiam
             // 
             radGiam.AutoSize = true;
-            radGiam.Location = new Point(1562, 67);
+            radGiam.Location = new Point(1587, 59);
             radGiam.Name = "radGiam";
             radGiam.Size = new Size(71, 27);
             radGiam.TabIndex = 87;
@@ -256,7 +262,7 @@
             // 
             radTang.AutoSize = true;
             radTang.Checked = true;
-            radTang.Location = new Point(1475, 67);
+            radTang.Location = new Point(1514, 58);
             radTang.Name = "radTang";
             radTang.Size = new Size(67, 27);
             radTang.TabIndex = 88;
@@ -267,17 +273,17 @@
             // 
             // txtTuKhoaTK
             // 
-            txtTuKhoaTK.Location = new Point(477, 59);
+            txtTuKhoaTK.Location = new Point(737, 51);
             txtTuKhoaTK.Margin = new Padding(3, 4, 3, 4);
             txtTuKhoaTK.Name = "txtTuKhoaTK";
             txtTuKhoaTK.PlaceholderText = "Nhập từ khóa cần tìm...";
-            txtTuKhoaTK.Size = new Size(400, 30);
+            txtTuKhoaTK.Size = new Size(394, 30);
             txtTuKhoaTK.TabIndex = 82;
             // 
             // label11
             // 
             label11.AutoSize = true;
-            label11.Location = new Point(31, 59);
+            label11.Location = new Point(363, 56);
             label11.Name = "label11";
             label11.Size = new Size(117, 23);
             label11.TabIndex = 85;
@@ -286,7 +292,7 @@
             // label12
             // 
             label12.AutoSize = true;
-            label12.Location = new Point(385, 62);
+            label12.Location = new Point(645, 56);
             label12.Name = "label12";
             label12.Size = new Size(74, 23);
             label12.TabIndex = 86;
@@ -295,35 +301,37 @@
             // cboLoaiTK
             // 
             cboLoaiTK.FormattingEnabled = true;
-            cboLoaiTK.Location = new Point(160, 57);
+            cboLoaiTK.Location = new Point(486, 48);
             cboLoaiTK.Margin = new Padding(3, 4, 3, 4);
             cboLoaiTK.Name = "cboLoaiTK";
-            cboLoaiTK.Size = new Size(200, 31);
+            cboLoaiTK.Size = new Size(159, 31);
             cboLoaiTK.TabIndex = 81;
             // 
             // btnShowAll
             // 
             btnShowAll.BackColor = Color.White;
+            btnShowAll.FlatAppearance.BorderSize = 0;
             btnShowAll.FlatStyle = FlatStyle.Flat;
-            btnShowAll.Location = new Point(1039, 59);
+            btnShowAll.Image = (Image)resources.GetObject("btnShowAll.Image");
+            btnShowAll.Location = new Point(1197, 49);
             btnShowAll.Margin = new Padding(3, 4, 3, 4);
             btnShowAll.Name = "btnShowAll";
-            btnShowAll.Size = new Size(120, 34);
+            btnShowAll.Size = new Size(46, 37);
             btnShowAll.TabIndex = 84;
-            btnShowAll.Text = "Hiện tất cả";
             btnShowAll.UseVisualStyleBackColor = false;
             btnShowAll.Click += btnShowAll_Click_1;
             // 
             // btnTimKiem
             // 
             btnTimKiem.BackColor = Color.White;
+            btnTimKiem.FlatAppearance.BorderSize = 0;
             btnTimKiem.FlatStyle = FlatStyle.Flat;
-            btnTimKiem.Location = new Point(901, 59);
+            btnTimKiem.Image = (Image)resources.GetObject("btnTimKiem.Image");
+            btnTimKiem.Location = new Point(1137, 46);
             btnTimKiem.Margin = new Padding(3, 4, 3, 4);
             btnTimKiem.Name = "btnTimKiem";
-            btnTimKiem.Size = new Size(120, 34);
+            btnTimKiem.Size = new Size(54, 42);
             btnTimKiem.TabIndex = 83;
-            btnTimKiem.Text = "Tìm Kiếm";
             btnTimKiem.UseVisualStyleBackColor = false;
             btnTimKiem.Click += btnTimKiem_Click_1;
             // 
@@ -338,6 +346,7 @@
             // 
             // groupBox1
             // 
+            groupBox1.BackColor = Color.White;
             groupBox1.Controls.Add(btnXuat);
             groupBox1.Controls.Add(btnSua);
             groupBox1.Controls.Add(btnLamLai);
@@ -617,6 +626,24 @@
             label1.TabIndex = 0;
             label1.Text = "UserID:";
             // 
+            // cboLocKhoa
+            // 
+            cboLocKhoa.FormattingEnabled = true;
+            cboLocKhoa.Location = new Point(75, 46);
+            cboLocKhoa.Margin = new Padding(3, 4, 3, 4);
+            cboLocKhoa.Name = "cboLocKhoa";
+            cboLocKhoa.Size = new Size(282, 31);
+            cboLocKhoa.TabIndex = 81;
+            // 
+            // label9
+            // 
+            label9.AutoSize = true;
+            label9.Location = new Point(16, 49);
+            label9.Name = "label9";
+            label9.Size = new Size(53, 23);
+            label9.TabIndex = 85;
+            label9.Text = "Khoa:";
+            // 
             // UC_TaiKhoan
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
@@ -686,5 +713,7 @@
         private DataGridViewTextBoxColumn NgayTao;
         private Button btnXuat;
         private Button btnNhap;
+        private Label label9;
+        private ComboBox cboLocKhoa;
     }
 }
